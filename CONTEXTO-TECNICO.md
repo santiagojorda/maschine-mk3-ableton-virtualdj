@@ -1,0 +1,150 @@
+# Maschine MK3 → Ableton + VirtualDJ
+
+Contexto para retomar el trabajo. El usuario habla en español y prefiere respuestas cortas e ir de a poco.
+Usa **Ableton Live 12 y VirtualDJ abiertos al mismo tiempo** con un Maschine MK3 en modo MIDI
+(Windows 11 con Windows MIDI Services: los dos programas comparten el puerto del Maschine sin problema).
+
+## Cómo funciona
+
+- **SAMPLING** (CC 39, canal 2) pasa el Maschine a VirtualDJ: Ableton ignora todo y deja de escribir LEDs y pantalla.
+- **MIXER** (CC 37) o **PLUGIN** (CC 35) lo devuelven a Ableton.
+- Los dos programas reciben todos los mensajes; cada uno decide si actuar según el modo
+  (Ableton con `_vdj_mode`, VirtualDJ con la variable `$vdj`).
+
+## Dónde está cada cosa (el proyecto está repartido)
+
+| Qué | Ruta | Nota |
+|---|---|---|
+| Script de Ableton **en uso** | `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts\CustomMaschineMK3\` | Repo git. Rama activa `feature/vdj-mode` (la que carga Ableton). `main` = original. `feature/knob-labels` vacía. |
+| Script de Ableton original | `C:\Users\jorda\Downloads\CustomMaschineMK3-main\CustomMaschineMK3-main\CustomMaschineMK3\` | Sin modificar (fuente: github chiakibeats/CustomMaschineMK3). No editar acá. |
+| Definición VirtualDJ (fuente) | `...\CustomMaschineMK3-main\VirtualDJ\Devices\MaschineMK3-VDJ.xml` | Editar acá y copiar a la instalación. |
+| Mapeo VirtualDJ (fuente) | `...\CustomMaschineMK3-main\VirtualDJ\Mappers\MASCHINEMK3VDJ - Mapeo Personalizado.xml` | Ídem. |
+| Instalación VirtualDJ | `C:\Users\jorda\AppData\Local\VirtualDJ\Devices\` y `\Mappers\` | Copias. Deben quedar idénticas a la fuente. |
+| Plantilla del Controller Editor | `C:\Users\jorda\Documentos\Native Instruments\Controller Editor\Configuration.ncc` (XML) | Plantilla MK3 **"CUSTOM MASCHINE"**. Exportación: `Downloads\Configuration.ncc`. Backup: `Configuration.ncc.backup-2026-10-05`. |
+| Generador de pads | `...\VirtualDJ\generate_pads.py` | Regenera acciones y LEDs de las 4 páginas de pads en los dos XML y valida. |
+| Puente MIDI (no se usa) | `...\VirtualDJ\maschine_vdj_bridge.py` | Puerto virtual teVirtualMIDI → Maschine con log. Ver "Intentos descartados". |
+| **Repositorio (GitHub, privado)** | `C:\Users\jorda\Downloads\Maschine MK3 - Presets\` → `github.com/santiagojorda/maschine-mk3-ableton-virtualdj` | Respaldo versionado de todo (README, guía HTML, este contexto, XML, script, plantilla). El script está como `git subtree` en `Ableton/CustomMaschineMK3` (traer cambios: `git subtree pull --prefix=Ableton/CustomMaschineMK3 "<repo de ProgramData>" feature/vdj-mode`). Tras cada cambio: copiar ahí, commitear y `git push`. |
+| Carpeta vieja | `C:\Users\jorda\Documentos\Ableton\User Library\Remote Scripts\CustomMaschineMK3\` | Solo `__pycache__` y `settings.json`. Ableton **no** la usa. |
+
+`...` = `C:\Users\jorda\Downloads\CustomMaschineMK3-main\CustomMaschineMK3-main`
+
+## Flujo de trabajo
+
+**VirtualDJ:** editar la fuente → validar → copiar a AppData.
+- Validar siempre antes de copiar: el XML parsea (`xml.etree.ElementTree`) y todo `map value=` del mapeo existe como `name=` en la definición (salvo `ONINIT`). Copiar solo si valida: un mapeo roto deja el controlador muerto.
+- Cambios en el **mapeo**: alcanza con desactivar/activar el Maschine en VirtualDJ. Cambios en la **definición**: hay que **reiniciar VirtualDJ**.
+- Al generar acciones con Python, no usar `\"` en strings raw de reemplazo: dejó dos veces una `\` suelta al final de la acción. Chequear que el mapeo no tenga `\`.
+- En comentarios XML no puede aparecer `--` (rompió el archivo una vez con `'---'`).
+
+**Ableton:** editar en ProgramData sobre `feature/vdj-mode`, chequear sintaxis con `ast.parse`, commitear. Para recargar: reiniciar Ableton o elegir "None" y otra vez CustomMaschineMK3 en Preferences. Log: `%AppData%\Ableton\Live 12.4.6\Preferences\Log.txt`; el script escribe `CustomMaschineMK3: VirtualDJ mode = True/False` en cada cambio.
+
+## Mapa MIDI del hardware (plantilla "CUSTOM MASCHINE", igual al script de Ableton)
+
+Canales 0-based como en VirtualDJ (`channel="0"` = MIDI 1).
+- Botones: CC en canal 1 (Plugin 35, Mixer 37, Sampling 39, Erase 54, Restart 53, Play 57, Stop 59, Left 110, Right 111, Shift por sysex `F0 00 21 09 16 00 4D 50 00 01 4D <01|00> F7`).
+- Encoder grande: CC 7 canal 1 (complemento a 2); push CC 8; toque CC 9; inclinar arriba/der/abajo/izq CC 30/31/32/33.
+- 8 perillas: V-Pots Mackie CC 16-23 **canal 0**, signo+magnitud (1-63 derecha, 65-127 izquierda). Toque: CC 10-17 canal 1.
+- 8 botones sobre la pantalla: notas 0-7 canal 1. Grupos A-H: CC 100-107 canal 1 (LEDs: CC en canal 1 = MIDI 2, B1; la plantilla dice canal 0, pero en canal 0 no encendieron; canal 1 sin confirmar).
+- Pads: notas 60-75 canal 0 (pad 1 = abajo izquierda, 16 = arriba derecha). LEDs: misma nota, la velocidad es el color.
+- Colores MK3: velocidad = 4 × color + brillo (0-3). Azul 47, naranja 11, verde 31, amarillo 23.
+- Touch strip: pitch bend canal 0. Sus LEDs escuchan pitch bend canal 0 en todo el rango 0-16383.
+- Pantalla: protocolo Mackie, 4 líneas × 28. Header `F0 00 00 66 17 12 <pos>`, pos = línea × 28 + columna.
+  **Líneas 0 y 2 = pantalla izquierda, 1 y 3 = derecha** (cada línea es de una sola pantalla).
+
+## Ableton (`CustomMaschineMK3.py`, rama `feature/vdj-mode`)
+
+- `receive_midi` y `receive_midi_chunk` filtran por `_accept_midi`. Live 12 entrega en chunks, así que hay que filtrar los dos.
+- En modo VirtualDJ `build_midi_map` reenvía todo CC/nota/pitch bend de los canales 0-1 al script y lo descarta.
+  Sin esto, las perillas y el strip (mapeados directo a parámetros) seguirían moviendo Live.
+- `_do_send_midi` no envía nada en modo VirtualDJ.
+- Al salir: `_redisplay()` reenvía las 4 líneas al instante (`DisplayLineElement.clear_send_cache()`), y `refresh_state()` corre a `VDJ_REFRESH_DELAY` = 1 tick (~100 ms) para pisar los últimos mensajes de VirtualDJ.
+- SAMPLING ya no abre el editor de clips de Ableton (queda reservado).
+- **SWING en Ableton = volumen de auriculares (cue)** en el encoder grande, como VOLUME con el master: componente `CueVolumeComponent` (en MasterVolumeComponent.py) sobre `master_track.mixer_device.cue_volume`, modo de encoder `swing`, pantalla "Cue Volume". Se quitó todo lo anterior de SWING (groove amount y SHIFT + SWING = position) y el Preview Volume de la perilla 1 del Browser.
+- **En modo DJ pasan a Ableton:** PLAY, STOP, TAP (`ABLETON_ALWAYS_BUTTONS`, mensajes y LEDs) y el sysex de SHIFT (`SHIFT_SYSEX_PREFIX`), para SHIFT + STOP.
+- **FOLLOW (CC 56) = Ableton Link de Ableton** solo fuera del modo DJ (en modo DJ es de VirtualDJ): alterna `song.is_ableton_link_enabled`, LED de FOLLOW con el estado (`_update_link_led`). Reemplaza su función anterior (record quantize).
+- **Pads fijados en Ableton:** `Pad_Modes` pasa al modo vacío `vdj_locked` (definido en Mappings.py) para que ninguna página use los pads; al soltar se restaura el modo anterior (`_sync_pad_lock_mode`).
+- **Pad lock** (`_pad_lock`, `PAD_LOCK_BUTTON` = LOCK CC 48 canal 2): LOCK en modo VirtualDJ lo alterna. Al volver a Ableton con el pad lock activo, los pads siguen siendo de VirtualDJ: el script descarta sus notas 60-75 (y las reenvía al script en `build_midi_map` para que una pista armada no suene) y no manda LEDs de pads. En Ableton, LOCK con pad lock activo solo lo suelta (se traga apretar y soltar) y redibuja; si no, LOCK hace su función normal de Ableton.
+
+## Consistencia Ableton ↔ VirtualDJ (revisar al tocar modos, LOCK o pads)
+
+Cada programa lleva su propio estado; tienen que moverse igual con los mismos botones.
+
+| Evento | Ableton (`_vdj_mode`, `_pad_lock`) | VirtualDJ (`$vdj`, `$padlock`, `$pads`) |
+|---|---|---|
+| Arranque | F, F | 0, 0, 0 |
+| SAMPLING | modo VDJ (ignora todo, no envía nada) | `$vdj`=1, `$pads`=1, key lock on |
+| LOCK en modo VDJ | alterna `_pad_lock` | alterna `$padlock` (LED de LOCK) |
+| MIXER/PLUGIN | sale del modo; si `_pad_lock`, ignora la sección de pads y no pinta sus LEDs | `$vdj`=0, `$pads`=`$padlock` |
+| LOCK en Ableton con pads fijados | suelta (se traga apretar/soltar) y redibuja | `$padlock`=0, `$pads`=0 |
+| LOCK en Ableton sin fijar | función normal de Ableton | sin cambios |
+
+- **Sección de pads** = pads (notas 60-75) + botones de página PAD MODE/KEYBOARD/CHORDS/STEP (CC 81-84). Mientras está fijada a VirtualDJ, Ableton ignora esos mensajes y no manda sus LEDs ni el de LOCK (queda prendido por VirtualDJ).
+- Del lado de VirtualDJ, todo lo de la sección de pads se condiciona con `$pads`; el resto con `$vdj`.
+- Reiniciar solo uno de los dos desincroniza: se recupera con MIXER/PLUGIN (sale del modo en ambos), SAMPLING (entra en ambos) y LOCK en Ableton (suelta los pads).
+
+## VirtualDJ: lógica del mapeo
+
+Variables: `$vdj` (modo), `$pads`, `$padlock`, `$encmode`, `$select`, `$help`, `$stem1`, `$stem2`, `$shift`, `$erase`, `$knob` (perilla tocada, 0 = ninguna), `$xf` (tramo 1-16 del crossfader), `$padpage` (0 cues / 1 transporte / 2 stems / 3 apagado), `$browse`, `$preview`. Todo se inicializa en `ONINIT`.
+Todas las acciones están envueltas en `var '$vdj' ? (...) : nothing`.
+
+- **Pads: cuatro páginas** (`$padpage`). **KEYBOARD** (CC 82) = 0 = hot cues; **PAD MODE** (CC 81) = 1 = transporte; **CHORDS** (CC 83) = 2 = stems; **STEP** (CC 84) = 3 = todos los pads apagados y sin función. Columnas 1-2 = deck 1, columnas 3-4 = deck 2.
+  Cues 1-8 de arriba hacia abajo, izquierda a derecha; ERASE + pad = borrar; LED azul (D1) o naranja (D2) si hay cue.
+  Transporte por deck, de abajo hacia arriba: PLAY verde | PAUSA rojo, (vacío) | SYNC amarillo (arriba de PAUSA, pads 6 y 8; INICIO se sacó a pedido del usuario) — su luz y el SYNC / NO SYNC de la pantalla usan la consulta `sync` (igual que el botón SYNC del skin de VirtualDJ); con `is_sync` el pad no se prendía, LOOP 4 violeta | PITCH LOCK naranja (`pitch_lock` = el candado de VirtualDJ; el usuario quiere que solo active/desactive el candado), LOOP ½ | LOOP ×2 celeste (el usuario quiere PLAY/PAUSA en la fila de abajo). Tenue siempre, fuerte cuando está activo.
+  Stems por deck: columna derecha, de arriba hacia abajo; en la izquierda solo HATS (abajo, al lado de KICK). **Pads independientes, puede haber varios prendidos** (pedido del usuario): RESET amarillo = prende todo, fuerte si suenan todos; INSTRUMENTAL azul = alterna Instru y Bass juntos (si suenan los dos los apaga, si no los prende), fuerte si suenan Instru y Bass; VOZ verde (antes ACAPELLA) = alterna solo la voz, fuerte si suena la voz; KICK rojo (antes DRUMLESS) = alterna solo el kick, fuerte si suena el kick (el usuario lo quiere así); HATS naranja = alterna solo el hihat, fuerte si suena. Después de RESET quedan prendidos los cuatro. Se usa **`stem_pad 'vocal'|'instru'|'bass'|'kick'|'hihat'`** (lo mismo que la página de stems propia de VirtualDJ, con `autodim="query"`): como consulta es true mientras el stem **suena**, como acción alterna el mute. Con `mute_stem` como consulta DRUMLESS sacaba la voz (semántica dudosa), así que no se usa `mute_stem` ni `only_stem`. Para fijar un stem se lo toca solo si hace falta (`set_mute` en `generate_pads.py`). VirtualDJ también tiene `stem_pad 'acapella'` / `'instrumental'` (grupos). `DECK` se expande a `deck n`.
+  **Toda la sección de pads (acciones + LEDs) y el modo info se generan con `VirtualDJ/generate_pads.py`**: editar `TRANSPORT`/`STEMS`/`HELP_BUTTONS` ahí y correrlo, no a mano. Si se agrega un botón nuevo al mapeo, sumarlo a `HELP_BUTTONS`. **Después de correrlo, instalar los DOS XML (Devices y Mappers)**: si cambia un color, el elemento LED nuevo está en la definición, y con solo el mapeo el pad queda sin esa luz.
+  LEDs de pads: un `<sysex>` por (pad, color) llamado `LED_P<pad>_<color hex>`, cuya condición es verdadera solo en ese estado y página. Las luces de KEYBOARD/PAD MODE/CHORDS (CC canal 2) marcan la página.
+- **Perillas:** 1 = jog deck 1, 2 = jog deck 2 (`jogwheel ±0.05` por paso; SHIFT = `goto ±16`, 4 compases; ERASE + tocar = `deck n pitch_reset`, vuelve suave al tempo original). 3 = tempo D1, 4 = tempo D2 (`pitch +1 bpm` / `pitch -1 bpm` por paso, sintaxis con espacio según el foro de VirtualDJ; al tocarlas, pantalla izquierda "BPM Dn" + BPM entero; ERASE + tocar = `deck n pitch_reset`, vuelve suave al tempo original del tema; antes había un `repeat_start` gradual que no llegaba bien). 5 = volumen D1, 6 = volumen D2, 7 = filtro D1, 8 = filtro D2 (2% por paso; ERASE + tocar = filtro al centro, volumen al 100%). El kick se sacó.
+- **Tocar una perilla de mezcla:** la pantalla depende de la **posición** de la perilla (1-4 izquierda, 5-8 derecha), no del deck: arriba `VOLUMEN D1` / `FILTRO D2`…, abajo el valor (filtro −50%..+50%, volumen 0-100%, como texto). Tocar un jog: pantalla izquierda "MOVIENDO JOG" arriba y "DECK 1/2" abajo ($knob 1/2).
+- **Encoder grande:** girar = `browser_scroll` en la zona activa. Apretar = `browser_window 'folders,songs'` (como la DDJ-400). Inclinar arriba/abajo = scroll ±1. Inclinar a los costados: en carpetas abre/cierra la carpeta, en temas carga en deck 1/2. SHIFT + costado = `clone_from_deck` (copia el tema que suena en el otro deck, misma posición). Ojo: dos `load` seguidos rápido hacen el "instant double" nativo de VirtualDJ (igual que la DDJ-400).
+- **Pads siguen a `$pads`** (= modo VirtualDJ o pad lock). SAMPLING → `$pads` 1; MIXER/PLUGIN → `$pads` = `$padlock`. LOCK en modo VirtualDJ alterna `$padlock` (LED de LOCK); en Ableton lo pone en 0. Debe coincidir con `_pad_lock` del script de Ableton (si uno se reinicia solo, quedan desfasados).
+- **Stem tocado en pantalla:** al tocar un pad de stems, la pantalla de su deck muestra el nombre arriba y ON/OFF abajo (RESET: "TODOS ON") durante `STEM_DISPLAY_TIME` (1,5 s), con `$stem1`/`$stem2` y un temporizador `repeat_start 'stemN' 1500ms 1 & set '$stemN' 0` (se usa temporizador porque detectar soltar un pad no es confiable). Lo genera `generate_pads.py`.
+- **SELECT = modo info** (CC 90, slider; solo en modo VirtualDJ, `$select`): mientras se mantiene, tocar un pad o un botón de `HELP_BUTTONS` no hace su acción, guarda un código en `$help` y la pantalla izquierda muestra su nombre arriba (abajo vacía). Nombres sin deck (el usuario no quiere D1/D2). Todo lo genera `generate_pads.py` (envuelve las acciones con `var '$select' 1 ? (set '$help' N) : (...)`; correrlo de nuevo no duplica). SAMPLING/MIXER/PLUGIN quedan afuera porque Ableton también los escucha; MIXER/PLUGIN ponen `$select` en 0.
+- **VOLUME (CC 44) / SWING (CC 45) = modos del encoder grande** (`$encmode`: 0 lista, 1 volumen master, 2 volumen de auriculares; se excluyen, apretar de nuevo vuelve a 0). Girar = `master_volume` / `headphone_volume` ±2%. Mientras el modo está activo, la pantalla izquierda muestra "VOLUMEN MASTER" / "VOLUMEN AURIS" y el %. LEDs de VOLUME / SWING. **Compartido con Ableton:** VirtualDJ registra VOLUME/SWING también fuera del modo DJ (TEMPO en cualquier modo pone `$encmode` 0: VOLUME/SWING/TEMPO exclusivos) y el script de Ableton deja pasar VOLUME/SWING/TEMPO en modo DJ (`SHARED_ENCODER_MODE_BUTTONS`, sin LEDs), así el modo queda igual al cambiar. Textos iguales en los dos: "VOLUMEN MASTER" / "VOLUMEN AURIS". Limitación: en las vistas Browser/Settings de Ableton, VOLUME/SWING no hacen nada en Ableton pero sí en VirtualDJ (se desincroniza; se arregla apretando de nuevo). Capa de pantalla: SELECT > stem > `$encmode` > browser > perillas > normal. Con `$encmode` ≠ 0 el toque/clic del encoder no activa `$browse` (si no, la pantalla derecha quedaba en blanco al girar).
+- **Key lock (el tono no cambia con el tempo) siempre activo:** `deck n key_lock ? nothing : deck n key_lock` (`key_lock on` parecía alternar) en ONINIT, al apretar SAMPLING y en cada paso de las perillas de tempo 3-4. **No es el pad PITCH LOCK**: ese pad es el candado (`pitch_lock`, verbo distinto; `key_lock` y `pitch_lock` existen los dos en VirtualDJ).
+- **Transporte:** PLAY, STOP y SHIFT + STOP son **de Ableton también en modo DJ** (el script de Ableton los deja pasar con el sysex de SHIFT; VirtualDJ no los mapea). RESTART = goto_start del deck elegido con LEFT/RIGHT (el usuario sacó el pad INICIO, no este botón).
+- **FOLLOW en modo DJ = Ableton Link de VirtualDJ:** `deck master effect_active 'Ableton Link'`, LED de FOLLOW (B1 38). En Ableton, FOLLOW alterna el Link de Ableton (lo maneja el script de Ableton solo fuera del modo DJ).
+- **TAP es siempre de Ableton** (tap tempo; SHIFT + TAP = metrónomo): VirtualDJ no lo mapea y el script de Ableton lo deja pasar en modo DJ.
+- **Browser en pantalla:** mientras se toca el encoder grande (CC 9) **y** el foco está en la lista de temas (`$browse`; se recalcula al tocar y al apretar el encoder): izquierda arriba `get_browsed_song 'title'`, abajo `'artist'`; derecha arriba vacía, abajo `get_browsed_song 'bpm'`. Sin desplazamiento. En la vista de carpetas (`$browse` = 2) solo se muestra `get_browsed_folder` arriba a la izquierda; el resto en blanco.
+- **NOTES (CC 52) = preescucha tipo gate:** `prelisten on` al apretar, `prelisten_stop` al soltar (definido como slider). Con `prelisten` a secas no sonaba: probablemente tomaba el valor del slider (1.0) como posición = final del tema. (Antes estaba en PITCH; el usuario la movió a NOTES. PITCH quedó sin uso.)
+- **Touch strip:** crossfader. Sus LEDs muestran el tramo guardado en `$xf`.
+- **Grupos A-H (CC 100-107):** A C E G = deck 1 (LED azul), B D F H = deck 2 (LED naranja). A/B Reverb, C/D Flanger, E/F Echo (`effect_active 'Nombre'`), G/H preescucha (`pfl`). LED solo cuando está activo. Echo Out se probó y no le gustó al usuario.
+- **Botones sobre la pantalla (notas 0-7): NO usar en VirtualDJ.** El usuario tiene asignaciones MIDI propias de Ableton ahí; las asignaciones MIDI de Live no pasan por el script, así que se pisarían aunque esté en modo SAMPLING.
+- **Pantallas:** izquierda deck 1, derecha deck 2; un campo de 27 caracteres + `0x00` fijo por línea, `scroll="false"`. Arriba el título (o "DECK n"). Abajo `get_text` combinando con comillas invertidas: "`` `deck n get_bpm & param_cast 'text' 6` `` + 8 espacios + MASTER/SYNC/NO SYNC" (`---` si está vacío). Fuera del modo se manda `''` para forzar el redibujado al volver.
+
+## Lecciones (comportamientos de VirtualDJ que costaron)
+
+1. **El valor implícito de un encoder o slider se pierde dentro de una condición** (`var ? (browser_scroll) : ...`). Usar `param_greater 0 ? X +1 : X -1`. El crossfader con `(crossfader)` sí anduvo.
+2. **`down ? a : b` funcionó al revés** en botones CC. Para controles de "mantener" (ERASE, toque de perillas) se definen como `<slider>` y se usa `param_bigger 0.5 ? apretado : soltado`.
+3. **Los `<led note|cc ...>` nunca encendieron.** Las luces se mandan como `<sysex value="903C2F">` crudo (sirve para cualquier MIDI, no solo sysex), con un elemento ON y otro OFF por LED. El elemento se envía cuando su acción pasa a verdadera.
+4. **`get_text` acepta comillas invertidas** para insertar resultados (`get_text "BPM `get_bpm`"`); dentro del atributo XML las comillas dobles van como `&quot;`.
+4b. **Textos numéricos en `<text>`:** parece que VirtualDJ solo reenvía un número cuando el número cambia, así que el BPM no volvía tras pisarlo. Se mandó como texto (`param_cast 'text' 6`). El campo del BPM usa la misma cadena `var '$knob' N ? valor : ...` que ya funcionaba bien en el campo del SYNC (el usuario prefiere el valor de la perilla en el lugar del BPM).
+5. Los botones CC necesitan `value="0x7F" off="0x00"` en la definición.
+6. **Elementos `<slider>`:** VirtualDJ le pasa su valor al comando si este no tiene parámetro. Darle siempre un parámetro explícito (`prelisten on`, `set '$x' 1`).
+6b. **Comillas invertidas en acciones no funcionan** (probado: ``pitch `get_bpm & ...` bpm`` no hace nada). Solo sirven dentro de `get_text`. No se puede calcular un BPM entero de destino.
+7. Las expresiones muy largas o con condiciones anidadas dentro de `&` dejaron de evaluar. Mantenerlas simples.
+8. **Acentos:** Windows MIDI descarta los bytes > 0x7F en el camino (probado: "Rebelión" llega como "Rebelin"). Con `encoding="ascii"` VirtualDJ manda "?". No hay solución.
+9. **Nombres de botones/perillas en pantalla** ("V-Pot 1", nombres de los botones 1-8): son fijos de la plantilla. El Controller Editor no relee `Configuration.ncc` en vivo (probado).
+10. **Alineación de líneas (resuelto):** el Maschine centra cada línea según su largo sin contar los espacios finales. Solución confirmada: cada `<text>` tiene 27 caracteres de texto y un `0x00` fijo en la columna 28 (en la plantilla del sysex), así ninguna línea termina en espacio y todas quedan alineadas a la izquierda; el `0x00` no se ve.
+11. **Imágenes en las pantallas:** no se puede por MIDI. Requiere el protocolo NIHIA de Native Instruments (ver github mo0kid/maschine-md-mm, solo macOS) y probablemente choca con el modo MIDI.
+
+## Intentos descartados
+
+- **Puente** (`maschine_vdj_bridge.py`, VirtualDJ → puerto virtual "Maschine VDJ Out" → Maschine): con `drivernameout` apuntando ahí, VirtualDJ no mandó nada al puerto y siguió usando la definición anterior. Se volvió a salida directa. El script funciona (probado aparte) por si hace falta loguear.
+- **Plantilla con otro canal para VirtualDJ:** evaluada y descartada. La pantalla Mackie no tiene canal y Ableton la seguiría pisando.
+
+## Estado y pendientes (al 2026-10-05)
+
+Confirmado por el usuario: modo SAMPLING/MIXER/PLUGIN, encoder/browser, crossfader y sus LEDs, ERASE + pad, guardar cues, nombre de la perilla al tocarla, LEDs por sysex crudo (pads, grupos, SAMPLING), alineación de pantallas, ±1 BPM en las perillas 3-4.
+
+**Sin confirmar con el equipo** (últimos cambios; requieren reiniciar VirtualDJ y recargar el script de Ableton):
+- Stems con `stem_pad` (RESET / INSTRUMENTAL / VOZ / KICK / HATS independientes) y sus luces.
+- PITCH LOCK = `pitch_lock` (candado) y key lock forzado en las perillas de tempo.
+- ERASE + perilla 1-4 = `pitch_reset`.
+- Luz del pad SYNC y SYNC / NO SYNC en pantalla con la consulta `sync`.
+- Luces del touch strip en PITCH (Ableton, commit `17f2989`).
+- VOLUME / SWING / TEMPO exclusivos y compartidos (commits `228dddb`, `658309f`).
+- SHIFT en VirtualDJ (sysex `sysexin`): nunca se confirmó; si SHIFT + jog no salta, VirtualDJ no recibe el SHIFT.
+- "El pitch se mueve solo": probablemente Ableton Link o SYNC activo.
+
+## Touch strip en modo PITCH (Ableton)
+En PITCH el pitch bend va directo al track (playable) y Live nunca lo devuelve, así que las luces no se movían. Ahora `pitchbend_encoder` / `pitchbend_reset` usan `MODE_PLAYABLE_LISTENABLE` (el track sigue recibiendo el pitch bend) y `_echo_pitch_touchstrip` en `CustomMaschineMK3.py` reenvía cada `E0` a las luces y manda el centro (`E0 00 40`) al soltar (`E1 7F 3F`). Solo con `TouchStrip_Modes` = `pitch` y fuera del modo DJ (commit 17f2989).

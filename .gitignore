@@ -1,0 +1,4 @@
+# Historial del script: ya esta en el repo (git subtree)
+*.bundle
+__pycache__/
+*.pyc
