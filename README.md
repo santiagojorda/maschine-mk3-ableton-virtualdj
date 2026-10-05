@@ -62,6 +62,8 @@ Incluye:
 | 8 botones sobre la pantalla | Asignaciones MIDI propias de Ableton | Siguen siendo de Ableton |
 
 VOLUME, SWING y TEMPO se excluyen entre sí y se comparten: el que dejes activo sigue activo al cambiar de programa.
+En Ableton tienen prioridad sobre el Browser y Settings: toman el encoder en cualquier vista, y al apretar de nuevo
+el encoder vuelve a navegar.
 Las pantallas dicen **VOLUMEN MASTER** y **VOLUMEN AURIS**.
 
 ### Pads en VirtualDJ
@@ -122,6 +124,7 @@ Los acentos no se ven (Windows MIDI los descarta).
 - **FOLLOW** = Ableton Link (antes: cuantización de grabación).
 - **SWING** = volumen de auriculares (cue) en el encoder; se sacaron el groove y SHIFT + SWING (posición del arrangement).
 - En el Browser, la perilla 1 ya no cambia el volumen de la preescucha.
+- VOLUME / SWING / TEMPO también funcionan en el Browser y en Settings (antes ahí no hacían nada).
 - En el touch strip en modo **PITCH**, las luces siguen el dedo y vuelven al centro al soltar.
 
 ## Modificar
@@ -153,7 +156,6 @@ Cambios en la definición de VirtualDJ requieren reiniciar VirtualDJ. Cambios so
 
 ## Limitaciones conocidas
 
-- En las vistas Browser y Settings de Ableton, VOLUME / SWING / TEMPO no cambian el modo en Ableton pero sí en VirtualDJ; se arregla apretando de nuevo.
 - No se pueden mostrar acentos ni imágenes en las pantallas.
 - Los nombres de los controles que muestra el Maschine ("V-Pot 1", etc.) son fijos de la plantilla.
 
