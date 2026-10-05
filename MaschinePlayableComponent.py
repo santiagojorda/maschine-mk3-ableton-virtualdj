@@ -159,6 +159,10 @@ class MaschinePlayableComponent(PlayableComponent, PageComponent, ClipNotesSelec
         self._translation_channel = translation_channel
         self._target_track = target_track
         self.pitchbend_encoder.value = 8192
+        # Also hand the touch strip to the script, so it can echo the position to the strip LEDs
+        # (Live sends playable pitch bend straight to the track and never back to the strip)
+        self.pitchbend_encoder.set_mode(MODE_PLAYABLE_LISTENABLE)
+        self.pitchbend_reset.set_mode(MODE_PLAYABLE_LISTENABLE)
         self.register_slot(self.song, self._scale_root_note_changed, "root_note")
         self.register_slot(self.song, self._scale_intervals_changed, "scale_intervals")
         self.register_slot(self.select_button, self._on_select_button_pressed, "is_pressed")

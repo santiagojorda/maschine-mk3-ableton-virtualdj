@@ -113,6 +113,10 @@ PAD_LOCK_BUTTON = (0xB1, 48)
 PAD_NOTES = range(60, 76)
 # PAD MODE, KEYBOARD, CHORDS and STEP select VirtualDJ's pad page, so they follow the pads while locked
 PAD_PAGE_BUTTONS = ((0xB1, 81), (0xB1, 82), (0xB1, 83), (0xB1, 84))
+# Touch strip: movement is pitch bend on channel 1, finger release is pitch bend on channel 2
+TOUCHSTRIP_STATUS = 0xE0
+TOUCHSTRIP_RELEASE = (0xE1, 0x7F, 0x3F)  # 8191
+TOUCHSTRIP_CENTER = (0xE0, 0x00, 0x40)
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -343,7 +347,19 @@ class CustomMaschineMK3(ControlSurface):
         if self._pad_lock and self._is_pad_section(midi_bytes):
             return False
 
+        if len(midi_bytes) == 3 and (midi_bytes[0] == TOUCHSTRIP_STATUS or midi_bytes == TOUCHSTRIP_RELEASE):
+            self._echo_pitch_touchstrip(midi_bytes)
+
         return True
+
+    def _echo_pitch_touchstrip(self, midi_bytes):
+        # In PITCH mode nothing lights the strip, so its LEDs follow the finger and go back to the center on release
+        if self.component_map["TouchStrip_Modes"].selected_mode != "pitch":
+            return
+        if midi_bytes[0] == TOUCHSTRIP_STATUS:
+            self._send_midi(midi_bytes)
+        else:
+            self._send_midi(TOUCHSTRIP_CENTER)
 
     @staticmethod
     def _is_pad_section(midi_bytes, include_lock = False):
