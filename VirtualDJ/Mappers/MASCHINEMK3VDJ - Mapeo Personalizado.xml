@@ -45,6 +45,10 @@
 	<map value="PAD14" action="var '$pads' ? (var '$select' 1 ? (var '$padpage' 0 ? set '$help' 20 : (var '$padpage' 1 ? set '$help' 21 : (var '$padpage' 2 ? set '$help' 22 : set '$help' 4))) : (var '$padpage' 3 ? nothing : (var '$padpage' 2 ? ((deck 1 stem_pad 'vocal' ? nothing : deck 1 stem_pad 'vocal') &amp; (deck 1 stem_pad 'instru' ? nothing : deck 1 stem_pad 'instru') &amp; (deck 1 stem_pad 'bass' ? nothing : deck 1 stem_pad 'bass') &amp; (deck 1 stem_pad 'kick' ? nothing : deck 1 stem_pad 'kick') &amp; (deck 1 stem_pad 'hihat' ? nothing : deck 1 stem_pad 'hihat') &amp; set '$stem1' 1 &amp; repeat_stop 'stem1' &amp; repeat_start 'stem1' 1500ms 1 &amp; set '$stem1' 0) : (var '$padpage' 1 ? (deck 1 loop_double) : (var '$erase' ? deck 1 delete_cue 2 : deck 1 hot_cue 2))))) : nothing" />
 	<map value="PAD15" action="var '$pads' ? (var '$select' 1 ? (var '$padpage' 0 ? set '$help' 18 : (var '$padpage' 1 ? set '$help' 19 : (var '$padpage' 2 ? set '$help' 9 : set '$help' 4))) : (var '$padpage' 3 ? nothing : (var '$padpage' 2 ? (nothing) : (var '$padpage' 1 ? (deck 2 loop_half) : (var '$erase' ? deck 2 delete_cue 1 : deck 2 hot_cue 1))))) : nothing" />
 	<map value="PAD16" action="var '$pads' ? (var '$select' 1 ? (var '$padpage' 0 ? set '$help' 20 : (var '$padpage' 1 ? set '$help' 21 : (var '$padpage' 2 ? set '$help' 22 : set '$help' 4))) : (var '$padpage' 3 ? nothing : (var '$padpage' 2 ? ((deck 2 stem_pad 'vocal' ? nothing : deck 2 stem_pad 'vocal') &amp; (deck 2 stem_pad 'instru' ? nothing : deck 2 stem_pad 'instru') &amp; (deck 2 stem_pad 'bass' ? nothing : deck 2 stem_pad 'bass') &amp; (deck 2 stem_pad 'kick' ? nothing : deck 2 stem_pad 'kick') &amp; (deck 2 stem_pad 'hihat' ? nothing : deck 2 stem_pad 'hihat') &amp; set '$stem2' 1 &amp; repeat_stop 'stem2' &amp; repeat_start 'stem2' 1500ms 1 &amp; set '$stem2' 0) : (var '$padpage' 1 ? (deck 2 loop_double) : (var '$erase' ? deck 2 delete_cue 2 : deck 2 hot_cue 2))))) : nothing" />
+	<map value="BTN1" action="var '$select' 1 ? (set '$help' 7) : (deck 1 stem_pad 'kick' &amp; set '$stem1' 4 &amp; repeat_stop 'stem1' &amp; repeat_start 'stem1' 1500ms 1 &amp; set '$stem1' 0)" />
+	<map value="BTN2" action="var '$select' 1 ? (set '$help' 3) : (deck 1 stem_pad 'hihat' &amp; set '$stem1' 8 &amp; repeat_stop 'stem1' &amp; repeat_start 'stem1' 1500ms 1 &amp; set '$stem1' 0)" />
+	<map value="BTN3" action="var '$select' 1 ? (set '$help' 7) : (deck 2 stem_pad 'kick' &amp; set '$stem2' 4 &amp; repeat_stop 'stem2' &amp; repeat_start 'stem2' 1500ms 1 &amp; set '$stem2' 0)" />
+	<map value="BTN4" action="var '$select' 1 ? (set '$help' 3) : (deck 2 stem_pad 'hihat' &amp; set '$stem2' 8 &amp; repeat_stop 'stem2' &amp; repeat_start 'stem2' 1500ms 1 &amp; set '$stem2' 0)" />
 
 
 
@@ -186,6 +190,14 @@
 	<map value="LED_P16_14" action="var '$pads' ? (var '$padpage' 2 ? ((deck 2 stem_pad 'vocal' ? (deck 2 stem_pad 'instru' ? (deck 2 stem_pad 'bass' ? (deck 2 stem_pad 'kick' ? (deck 2 stem_pad 'hihat' ? (true) : false) : false) : false) : false) : false) ? false : true) : (false)) : false" />
 	<map value="LED_P16_17" action="var '$pads' ? (var '$padpage' 2 ? ((deck 2 stem_pad 'vocal' ? (deck 2 stem_pad 'instru' ? (deck 2 stem_pad 'bass' ? (deck 2 stem_pad 'kick' ? (deck 2 stem_pad 'hihat' ? (true) : false) : false) : false) : false) : false)) : (false)) : false" />
 	<map value="LED_P16_24" action="var '$pads' ? (var '$padpage' 1 ? (true) : (false)) : false" />
+	<map value="LED_BTN1_ON" action="(deck 1 stem_pad 'kick')" />
+	<map value="LED_BTN1_OFF" action="(deck 1 stem_pad 'kick') ? false : true" />
+	<map value="LED_BTN2_ON" action="(deck 1 stem_pad 'hihat')" />
+	<map value="LED_BTN2_OFF" action="(deck 1 stem_pad 'hihat') ? false : true" />
+	<map value="LED_BTN3_ON" action="(deck 2 stem_pad 'kick')" />
+	<map value="LED_BTN3_OFF" action="(deck 2 stem_pad 'kick') ? false : true" />
+	<map value="LED_BTN4_ON" action="(deck 2 stem_pad 'hihat')" />
+	<map value="LED_BTN4_OFF" action="(deck 2 stem_pad 'hihat') ? false : true" />
 	<map value="LEDON_KEYBOARD" action="var '$pads' ? (var '$padpage' 0) : false" />
 	<map value="LEDOFF_KEYBOARD" action="var '$pads' ? (var '$padpage' 0 ? false : true) : false" />
 	<map value="LEDON_PADMODE" action="var '$pads' ? (var '$padpage' 1) : false" />

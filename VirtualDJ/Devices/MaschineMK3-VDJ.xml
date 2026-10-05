@@ -197,6 +197,14 @@
   <sysex value="904B14" name="LED_P16_14" />
   <sysex value="904B17" name="LED_P16_17" />
   <sysex value="904B24" name="LED_P16_24" />
+  <sysex value="91007F" name="LED_BTN1_ON" />
+  <sysex value="910000" name="LED_BTN1_OFF" />
+  <sysex value="91017F" name="LED_BTN2_ON" />
+  <sysex value="910100" name="LED_BTN2_OFF" />
+  <sysex value="91027F" name="LED_BTN3_ON" />
+  <sysex value="910200" name="LED_BTN3_OFF" />
+  <sysex value="91037F" name="LED_BTN4_ON" />
+  <sysex value="910300" name="LED_BTN4_OFF" />
   <sysex value="B1527F" name="LEDON_KEYBOARD" />
   <sysex value="B15200" name="LEDOFF_KEYBOARD" />
   <sysex value="B1517F" name="LEDON_PADMODE" />

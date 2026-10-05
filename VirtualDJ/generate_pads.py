@@ -112,6 +112,7 @@ STEMS = [
 # Botones con nombre en el modo info: control -> (nombre, es slider). Los sliders se leen con param_bigger 0.5.
 # SAMPLING / MIXER / PLUGIN no van: Ableton tambien los escucha y cambiaria de modo igual.
 HELP_BUTTONS = {
+    "BTN1": ("KICK", False), "BTN2": ("HATS", False), "BTN3": ("KICK", False), "BTN4": ("HATS", False),
     "GROUP_A": ("REVERB", False), "GROUP_B": ("REVERB", False),
     "GROUP_C": ("FLANGER", False), "GROUP_D": ("FLANGER", False),
     "GROUP_E": ("ECHO", False), "GROUP_F": ("ECHO", False),
@@ -126,6 +127,9 @@ HELP_BUTTONS = {
     "CHORDS": ("PAGINA STEMS", False), "STEP": ("PAGINA PADS APAGADOS", False),
     "ERASE": ("BORRAR (CON PAD/PERILLA)", True), "NOTES": ("PREESCUCHA (MANTENER)", True),
 }
+# Botones 1-4 sobre la pantalla (MAICOL, SESSION, EN, TU): KICK y HATS del deck 1 y del deck 2, iguales a sus pads.
+# Son solo de VirtualDJ y andan en los dos modos (el script de Ableton los ignora siempre). Luz prendida = el stem suena.
+STEM_BUTTONS = {"BTN1": (1, "KICK"), "BTN2": (1, "HATS"), "BTN3": (2, "KICK"), "BTN4": (2, "HATS")}
 HELP_IDLE = "INFO: TOCA UN CONTROL"
 STEM_DISPLAY_TIME = "1500ms"  # cuanto se ve el nombre / estado del stem tocado
 
@@ -203,6 +207,9 @@ def generate():
     device = re.sub(r'  <sysex value="90[0-9A-F]{4}" name="LED_P\d+_[0-9A-F]{2}" />\n', "", device)
     mapper = re.sub(r'\t<map value="LED_P\d+_[0-9A-F]{2}" action="[^"]*" />\n', "", mapper)
     mapper = re.sub(r'\t<map value="PAD\d+" action="[^"]*" />\n', "", mapper)
+    device = re.sub(r'  <sysex value="91[0-9A-F]{4}" name="LED_BTN\d_(?:ON|OFF)" />\n', "", device)
+    mapper = re.sub(r'\t<map value="LED_BTN\d_(?:ON|OFF)" action="[^"]*" />\n', "", mapper)
+    mapper = re.sub(r'\t<map value="BTN\d" action="[^"]*" />\n', "", mapper)
 
     help_texts = {}  # code -> text
 
@@ -254,6 +261,19 @@ def generate():
             f"(var '$padpage' 3 ? nothing : "
             f"(var '$padpage' 2 ? ({stems_action}) : "
             f"(var '$padpage' 1 ? ({transport_action}) : ({cue_action}))))) : nothing\" />")
+
+    for control, (deck, name) in STEM_BUTTONS.items():
+        entry = next(e for e in STEMS if e[6] == name)
+        code = STEMS.index(entry) + 1
+        note = int(control[3:]) - 1
+        playing = deck_condition(deck, entry[3])
+        timer = f"stem{deck}"
+        pad_lines.append(
+            f"\t<map value=\"{control}\" action=\"{deck_action(deck, entry[2])} &amp; set '$stem{deck}' {code} &amp; "
+            f"repeat_stop '{timer}' &amp; repeat_start '{timer}' {STEM_DISPLAY_TIME} 1 &amp; set '$stem{deck}' 0\" />")
+        for state, velocity, condition in (("ON", 0x7F, playing), ("OFF", 0x00, f"{playing} ? false : true")):
+            device_lines.append(f'  <sysex value="91{note:02X}{velocity:02X}" name="LED_{control}_{state}" />')
+            led_lines.append(f"\t<map value=\"LED_{control}_{state}\" action=\"{condition}\" />")
 
     def insert_after_line(text, marker, lines):
         start = text.index(marker)
