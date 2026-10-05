@@ -241,6 +241,8 @@
   <sysex value="B16B0B" name="LEDON_GROUP_H" />
   <sysex value="B16B00" name="LEDOFF_GROUP_H" />
   <sysex value="B1277F" name="LEDON_SAMPLING" />
+  <sysex value="B12500" name="LEDOFF_MIXER" />
+  <sysex value="B12300" name="LEDOFF_PLUGIN" />
 
   <!-- Luces del touch strip = posicion del crossfader. VirtualDJ no tiene salida de pitch bend,
        asi que cada <sysex> manda un pitch bend crudo (E0 lsb msb) para uno de 16 tramos.

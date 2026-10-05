@@ -210,6 +210,9 @@
 	<!-- LEDs: X_ON se envia cuando la condicion pasa a verdadera, X_OFF cuando pasa a falsa.
 	     Fuera del modo VirtualDJ no se manda nada (Ableton redibuja sus luces) -->
 	<map value="LEDON_SAMPLING" action="var '$vdj'" />
+	<!-- En modo DJ se apagan las luces de MIXER y PLUGIN (Ableton deja de mandar luces y quedaban prendidas) -->
+	<map value="LEDOFF_MIXER" action="var '$vdj'" />
+	<map value="LEDOFF_PLUGIN" action="var '$vdj'" />
 
 	<!-- Grupos A-H (CC 100-107): A C E G = deck 1 (azul), B D F H = deck 2 (naranja).
 	     A/B reverb, C/D flanger, E/F echo, G/H preescucha (pfl). Apagados; con color solo cuando estan activos -->
