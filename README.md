@@ -91,6 +91,7 @@ estar varios prendidos; RESET prende todos. Al tocar un stem, la pantalla del de
 | 7 / 8 | Filtro del deck 1 / 2 | Filtro al centro |
 
 Al tocar una perilla, la pantalla muestra qué controla y su valor (1-4 en la pantalla izquierda, 5-8 en la derecha).
+Con las perillas de tempo se ve el BPM actual y, al lado, el **BPM original** del tema.
 
 ### Encoder grande en VirtualDJ
 
