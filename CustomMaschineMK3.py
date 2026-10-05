@@ -93,11 +93,12 @@ from . import Config
 # (status byte, CC number) of each button, all of them on MIDI channel 2
 VDJ_ENTER_BUTTON = (0xB1, 39)
 VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
-# Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP (messages and their LEDs).
-# SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP works too.
-ABLETON_ALWAYS_BUTTONS = ((0xB1, 57), (0xB1, 59))
+# Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP, TAP (messages and their LEDs).
+# SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP and SHIFT + TAP (metronome) work too.
+ABLETON_ALWAYS_BUTTONS = ((0xB1, 57), (0xB1, 59), (0xB1, 55))
 SHIFT_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x09)
-# "FOLLOW" toggles Ableton Link in any mode (replaces its record quantize function)
+# "FOLLOW" toggles Ableton's Link in Ableton (replaces its record quantize function).
+# In VirtualDJ mode it belongs to VirtualDJ (its Ableton Link effect) and its LED too.
 LINK_BUTTON = (0xB1, 56)
 PAD_LOCK_MODE = "vdj_locked"
 # Ticks (about 100ms each) to wait before the full LEDs and display refresh after leaving VirtualDJ mode,
@@ -303,7 +304,7 @@ class CustomMaschineMK3(ControlSurface):
                 self._set_vdj_mode(True)
             return False
 
-        if is_cc and midi_bytes[:2] == LINK_BUTTON:
+        if is_cc and midi_bytes[:2] == LINK_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
                 self.song.is_ableton_link_enabled = not self.song.is_ableton_link_enabled
                 self._c_instance.log_message(f"CustomMaschineMK3: Ableton Link = {self.song.is_ableton_link_enabled}")
@@ -403,6 +404,8 @@ class CustomMaschineMK3(ControlSurface):
                 pad_modes.selected_mode = self._pad_mode_before_lock or DEFAULT_MODE
 
     def _update_link_led(self):
+        if self._vdj_mode:
+            return
         value = 127 if self.song.is_ableton_link_enabled else 0
         super()._do_send_midi((LINK_BUTTON[0], LINK_BUTTON[1], value))
 
