@@ -97,6 +97,9 @@ VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
 # SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP and SHIFT + TAP (metronome) work too.
 ABLETON_ALWAYS_BUTTONS = ((0xB1, 57), (0xB1, 59), (0xB1, 55))
 SHIFT_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x09)
+# VOLUME / SWING (encoder = master / cue volume) are shared with VirtualDJ: in VirtualDJ mode Ableton still follows
+# their presses (without LEDs) so the encoder mode stays the same in both programs
+SHARED_ENCODER_MODE_BUTTONS = ((0xB1, 44), (0xB1, 45))
 # "FOLLOW" toggles Ableton's Link in Ableton (replaces its record quantize function).
 # In VirtualDJ mode it belongs to VirtualDJ (its Ableton Link effect) and its LED too.
 LINK_BUTTON = (0xB1, 56)
@@ -335,7 +338,7 @@ class CustomMaschineMK3(ControlSurface):
             # PLAY / STOP (and SHIFT, for SHIFT + STOP) keep driving Ableton's transport
             if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
                 return True
-            return is_cc and midi_bytes[:2] in ABLETON_ALWAYS_BUTTONS
+            return is_cc and (midi_bytes[:2] in ABLETON_ALWAYS_BUTTONS or midi_bytes[:2] in SHARED_ENCODER_MODE_BUTTONS)
 
         if self._pad_lock and self._is_pad_section(midi_bytes):
             return False

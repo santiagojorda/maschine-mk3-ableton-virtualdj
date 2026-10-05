@@ -349,10 +349,10 @@ def create_root_view():
         if TOUCH_STATES.encoder_active:
             encoder_mode = state.encoder_modes.selected_mode
             if encoder_mode == MASTER_VOLUME:
-                content.lines[0] = "Master Volume"
+                content.lines[0] = "VOLUMEN MASTER"
                 content.lines[2] = f"{state.master_volume.gain_string}"
             elif encoder_mode == GROOVE_AMOUNT:
-                content.lines[0] = "Cue Volume"
+                content.lines[0] = "VOLUMEN AURIS"
                 content.lines[2] = f"{state.cue_volume.gain_string}"
             elif encoder_mode == ARRANGE_POSITION:
                 content.lines[0] = "Song Time"
