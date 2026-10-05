@@ -132,6 +132,10 @@ HELP_BUTTONS = {
 STEM_BUTTONS = {"BTN1": (1, "KICK"), "BTN2": (1, "HATS"), "BTN3": (2, "KICK"), "BTN4": (2, "HATS")}
 HELP_IDLE = "INFO: TOCA UN CONTROL"
 STEM_DISPLAY_TIME = "1500ms"  # cuanto se ve el nombre / estado del stem tocado
+# LOOP 1/2 y LOOP X2 (pads 13-16 de PAD MODE) muestran el largo del loop en la pantalla del deck, con la misma capa
+# y el mismo tiempo que los stems ($stemN = LOOP_DISPLAY_CODE). get_loop = largo en tiempos (beats)
+LOOP_DISPLAY_NAMES = ("LOOP 1/2", "LOOP X2")
+LOOP_DISPLAY_CODE = 20
 
 
 def pad_number(row, column):
@@ -250,6 +254,10 @@ def generate():
 
         cue_action = f"var '$erase' ? deck {deck} delete_cue {cue} : deck {deck} hot_cue {cue}"
         transport_action = f"deck {transport[0]} {transport[1]}" if transport[1] else "nothing"
+        if transport[5] in LOOP_DISPLAY_NAMES:
+            timer = f"stem{transport[0]}"
+            transport_action += (f" &amp; set '$stem{transport[0]}' {LOOP_DISPLAY_CODE} &amp; repeat_stop '{timer}' &amp; "
+                                 f"repeat_start '{timer}' {STEM_DISPLAY_TIME} 1 &amp; set '$stem{transport[0]}' 0")
         stems_action = deck_action(stems[0], stems[1]) if stems[1] else "nothing"
         if stems[1]:
             code = [entry[6] for entry in STEMS].index(stems[5]) + 1
@@ -309,6 +317,9 @@ def generate():
             state = f"{deck_condition(deck, on)} ? get_text 'ON' : get_text 'OFF'" if on else "get_text 'TODOS ON'"
             top = f"var '$stem{deck}' {code} ? get_text '{name}' : ({top})"
             bottom = f"var '$stem{deck}' {code} ? ({state}) : ({bottom})"
+        top = f"var '$stem{deck}' {LOOP_DISPLAY_CODE} ? get_text 'LOOP' : ({top})"
+        bottom = (f"var '$stem{deck}' {LOOP_DISPLAY_CODE} ? get_text &quot;`deck {deck} get_loop &amp; param_cast 'text' 6` BEATS&quot; "
+                  f": ({bottom})")
         for field, shown in ((f"LCD_TITLE_D{deck}", top), (f"LCD_BOTTOM_D{deck}", bottom)):
             found = re.search(rf'\t<map value="{field}" action="var \'\$vdj\' \? \((.*)\) : get_text \'\'" />', mapper)
             inner = found[1]
