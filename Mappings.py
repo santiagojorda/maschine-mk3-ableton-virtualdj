@@ -277,7 +277,7 @@ def create_mappings(surface):
             select_button = "select",
         ),
         # Pads locked to VirtualDJ ("pad lock"): no component uses them
-        vdj_locked = dict(),
+        vdj_locked = dict(component = "Pad_Lock"),
     )
 
     mappings["Group_Button_Modes"] = dict(

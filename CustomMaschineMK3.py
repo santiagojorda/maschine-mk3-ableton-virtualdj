@@ -166,6 +166,8 @@ class Specification(ControlSurfaceSpecification):
         "Master_Volume": MasterVolumeComponent,
         "Maschine_Playable": MaschinePlayableComponent,
         "Misc_Control": MiscControlComponent,
+        # Does nothing: the pad mode used while the pads are locked to VirtualDJ
+        "Pad_Lock": Component,
         "Device_Navigation": CustomDeviceNavigationComponent,
     }
     parameter_bank_definitions = CUSTOM_BANK_DEFINITIONS
