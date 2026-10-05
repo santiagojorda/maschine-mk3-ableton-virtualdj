@@ -113,6 +113,10 @@ PAD_LOCK_BUTTON = (0xB1, 48)
 PAD_NOTES = range(60, 76)
 # PAD MODE, KEYBOARD, CHORDS and STEP select VirtualDJ's pad page, so they follow the pads while locked
 PAD_PAGE_BUTTONS = ((0xB1, 81), (0xB1, 82), (0xB1, 83), (0xB1, 84))
+# Buttons 1-4 above the screen (notes 0-3, channel 2) belong to VirtualDJ only (stems KICK / HATS of each deck):
+# Ableton never uses them, in any mode, and never drives their LEDs
+VDJ_ONLY_CHANNEL = 1
+VDJ_ONLY_NOTES = range(0, 4)
 # Touch strip: movement is pitch bend on channel 1, finger release is pitch bend on channel 2
 TOUCHSTRIP_STATUS = 0xE0
 TOUCHSTRIP_RELEASE = (0xE1, 0x7F, 0x3F)  # 8191
@@ -281,6 +285,8 @@ class CustomMaschineMK3(ControlSurface):
         # VirtualDJ owns LEDs and display while VirtualDJ mode is active, except Ableton's own transport buttons
         if self._vdj_mode and tuple(midi_event_bytes[:2]) not in ABLETON_ALWAYS_BUTTONS:
             return True
+        if self._is_vdj_only(midi_event_bytes):
+            return True
         # Pads locked to VirtualDJ keep VirtualDJ's colors, page button LEDs and the lit LOCK button
         if self._pad_lock and self._is_pad_section(midi_event_bytes, include_lock = True):
             return True
@@ -305,6 +311,8 @@ class CustomMaschineMK3(ControlSurface):
 
     def _accept_midi(self, midi_bytes):
         midi_bytes = tuple(midi_bytes)
+        if self._is_vdj_only(midi_bytes):
+            return False
         is_cc = len(midi_bytes) == 3
         # "SAMPLING" never reaches Ableton, it's reserved for entering VirtualDJ mode
         if is_cc and midi_bytes[:2] == VDJ_ENTER_BUTTON:
@@ -360,6 +368,13 @@ class CustomMaschineMK3(ControlSurface):
             self._send_midi(midi_bytes)
         else:
             self._send_midi(TOUCHSTRIP_CENTER)
+
+    @staticmethod
+    def _is_vdj_only(midi_bytes):
+        # Note on / off / poly pressure of the VirtualDJ-only buttons
+        midi_bytes = tuple(midi_bytes)
+        return (len(midi_bytes) == 3 and midi_bytes[0] & 0xF0 in (0x80, 0x90, 0xA0)
+                and midi_bytes[0] & 0x0F == VDJ_ONLY_CHANNEL and midi_bytes[1] in VDJ_ONLY_NOTES)
 
     @staticmethod
     def _is_pad_section(midi_bytes, include_lock = False):
