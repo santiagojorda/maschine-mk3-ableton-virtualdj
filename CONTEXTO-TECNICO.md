@@ -127,6 +127,8 @@ Todas las acciones están envueltas en `var '$vdj' ? (...) : nothing`.
 10. **Alineación de líneas (resuelto):** el Maschine centra cada línea según su largo sin contar los espacios finales. Solución confirmada: cada `<text>` tiene 27 caracteres de texto y un `0x00` fijo en la columna 28 (en la plantilla del sysex), así ninguna línea termina en espacio y todas quedan alineadas a la izquierda; el `0x00` no se ve.
 11. **Imágenes en las pantallas:** no se puede por MIDI. Requiere el protocolo NIHIA de Native Instruments (ver github mo0kid/maschine-md-mm, solo macOS) y probablemente choca con el modo MIDI.
 
+12. **Un botón que deja de mandar MIDI (pasó con CHORDS, 2026-10-05):** el Controller Editor lo veía y la plantilla estaba bien, pero no salía nada por el puerto (ni VirtualDJ ni Ableton lo recibían; se diagnosticó con un monitor MIDI de solo lectura sobre "Maschine MK3 Ctrl MIDI", winmm). Volvió a andar tras reconectar el Maschine / reasignar el botón en el Controller Editor / reiniciar. No era del mapeo. En Ableton CHORDS = modo de velocidad fija y sigue sin responder; al usuario no le importa.
+
 ## Intentos descartados
 
 - **Puente** (`maschine_vdj_bridge.py`, VirtualDJ → puerto virtual "Maschine VDJ Out" → Maschine): con `drivernameout` apuntando ahí, VirtualDJ no mandó nada al puerto y siguió usando la definición anterior. Se volvió a salida directa. El script funciona (probado aparte) por si hace falta loguear.
