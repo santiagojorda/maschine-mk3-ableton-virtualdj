@@ -115,7 +115,7 @@ Con las perillas de tempo se ve el BPM actual y, al lado, el **BPM original** de
 | NOTES | Preescuchar el tema elegido mientras se mantiene |
 | SELECT (mantener) | Modo info: tocar un control muestra su nombre en vez de ejecutarlo |
 | ERASE (mantener) | Borrar hot cues y restablecer perillas |
-| Touch strip | Crossfader (las luces muestran la posición) |
+| Touch strip | Crossfader (las luces muestran la posición; la pantalla izquierda muestra CROSSFADER y el valor) |
 
 Pantalla izquierda = deck 1, derecha = deck 2: título arriba; BPM y MASTER / SYNC / NO SYNC abajo.
 Si un tema no se pudo cargar, arriba aparece su título y abajo **Error al cargar!**.
