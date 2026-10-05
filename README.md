@@ -64,7 +64,7 @@ Incluye:
 VOLUME, SWING y TEMPO se excluyen entre sí y se comparten: el que dejes activo sigue activo al cambiar de programa.
 En Ableton tienen prioridad sobre el Browser y Settings: toman el encoder en cualquier vista, y al apretar de nuevo
 el encoder vuelve a navegar.
-Las pantallas dicen **VOLUMEN MASTER** y **VOLUMEN AURIS**.
+Mientras el modo está activo, la pantalla izquierda lo muestra (**VOLUMEN MASTER**, **VOLUMEN AURIS** o el tempo) sin tocar el encoder.
 
 ### Pads en VirtualDJ
 
