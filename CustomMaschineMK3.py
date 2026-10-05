@@ -12,6 +12,8 @@ from functools import partial
 from itertools import product
 from time import sleep
 
+import Live # type: ignore
+
 from ableton.v3.base import lazy_attribute, const, listens
 from ableton.v3.live import liveobj_valid, scene_index
 from ableton.v3.control_surface import (
@@ -86,6 +88,14 @@ from .PageableBackgroundComponent import PageableBackgroundComponent
 
 from .Logger import logger
 from . import Config
+
+# VirtualDJ mode: "SAMPLING" hands the Maschine over to VirtualDJ, "PLUGIN" or "MIXER" brings it back.
+# (status byte, CC number) of each button, all of them on MIDI channel 2
+VDJ_ENTER_BUTTON = (0xB1, 39)
+VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
+# Ticks (about 100ms each) to wait before redrawing LEDs and display after leaving VirtualDJ mode,
+# so VirtualDJ's last messages don't overwrite Ableton's state
+VDJ_REFRESH_DELAY = 3
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -186,6 +196,7 @@ class CustomMaschineMK3(ControlSurface):
     _current_sliced_simpler = None
     _display_mode = None
     _settings = None
+    _vdj_mode = False
 
     def __init__(self, *a, **k):
         # Settings must be loaded before initialization
@@ -237,6 +248,9 @@ class CustomMaschineMK3(ControlSurface):
             self.refresh_state()
 
     def _do_send_midi(self, midi_event_bytes):
+        # VirtualDJ owns LEDs and display while VirtualDJ mode is active
+        if self._vdj_mode:
+            return True
         logger.debug(f"_do_send_midi {midi_event_bytes}")
         super()._do_send_midi(midi_event_bytes)
         # Insert super short wait between each send to make sure LED feedback correctly.
@@ -245,6 +259,50 @@ class CustomMaschineMK3(ControlSurface):
         # Maybe 500us or more wait prevent issue.
         # This wait doesn't affect response speed, unless if you can play pads at 999 BPM...
         sleep(0.0005)
+
+    def receive_midi(self, midi_bytes):
+        is_cc = len(midi_bytes) == 3
+        # "SAMPLING" never reaches Ableton, it's reserved for entering VirtualDJ mode
+        if is_cc and midi_bytes[:2] == VDJ_ENTER_BUTTON:
+            if midi_bytes[2] > 0 and not self._vdj_mode:
+                self._set_vdj_mode(True)
+            return
+
+        if self._vdj_mode:
+            if is_cc and midi_bytes[:2] in VDJ_EXIT_BUTTONS and midi_bytes[2] > 0:
+                # Leave VirtualDJ mode and let the press through, so it selects mixer / device mode as usual
+                self._set_vdj_mode(False)
+            else:
+                return
+
+        super().receive_midi(midi_bytes)
+
+    def build_midi_map(self, midi_map_handle):
+        if not self._vdj_mode:
+            super().build_midi_map(midi_map_handle)
+            return
+
+        # Knobs and touch strip are normally mapped by Live directly to parameters, bypassing receive_midi.
+        # In VirtualDJ mode, forward every message on Maschine's channels to the script instead,
+        # so receive_midi can drop them and nothing reaches Live (not even armed tracks).
+        script_handle = self._c_instance.handle()
+        for channel in (0, 1):
+            Live.MidiMap.forward_midi_pitchbend(script_handle, midi_map_handle, channel)
+            for identifier in range(128):
+                Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, channel, identifier)
+                Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, channel, identifier)
+
+    def _set_vdj_mode(self, enabled):
+        logger.info(f"VirtualDJ mode = {enabled}")
+        self._vdj_mode = enabled
+        self.request_rebuild_midi_map()
+        if not enabled:
+            self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
+
+    def _refresh_after_vdj_mode(self):
+        if not self._vdj_mode:
+            with self.component_guard():
+                self.refresh_state()
 
     # Session ring highlight is enabled only if hardware is identified by identity request
     # But maschine didn't respond to this message, so bypass identification process
