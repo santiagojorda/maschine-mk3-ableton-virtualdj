@@ -93,9 +93,9 @@ from . import Config
 # (status byte, CC number) of each button, all of them on MIDI channel 2
 VDJ_ENTER_BUTTON = (0xB1, 39)
 VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
-# Ticks (about 100ms each) to wait before redrawing LEDs and display after leaving VirtualDJ mode,
-# so VirtualDJ's last messages don't overwrite Ableton's state
-VDJ_REFRESH_DELAY = 3
+# Ticks (about 100ms each) to wait before the full LEDs and display refresh after leaving VirtualDJ mode,
+# so VirtualDJ's last messages don't overwrite Ableton's state. The display itself is redrawn immediately too.
+VDJ_REFRESH_DELAY = 1
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -309,7 +309,15 @@ class CustomMaschineMK3(ControlSurface):
         self._vdj_mode = enabled
         self.request_rebuild_midi_map()
         if not enabled:
+            self._redisplay()
             self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
+
+    def _redisplay(self):
+        # Clearing the send cache makes each display line re-send its last content right away (only 4 sysex messages)
+        for line in range(4):
+            display_line = getattr(self.elements, f"display_line_{line}", None)
+            if display_line is not None:
+                display_line.clear_send_cache()
 
     def _refresh_after_vdj_mode(self):
         if not self._vdj_mode:
