@@ -54,7 +54,11 @@ class GroupButtonModeControlComponent(Component):
         if self.notes_button.is_on:
             self._group_button_modes.selected_mode = "note_repeat"
         else:
-            self._group_button_modes.selected_mode = self._pad_modes.selected_mode
+            try:
+                self._group_button_modes.selected_mode = self._pad_modes.selected_mode
+            except KeyError:
+                # Pad modes without a group button counterpart (e.g. "vdj_locked") keep the current group buttons
+                pass
 
     @listens("selected_mode")
     def _on_pad_mode_changed(self, component):
