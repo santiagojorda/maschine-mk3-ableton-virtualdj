@@ -260,22 +260,33 @@ class CustomMaschineMK3(ControlSurface):
         # This wait doesn't affect response speed, unless if you can play pads at 999 BPM...
         sleep(0.0005)
 
+    # Live may deliver incoming MIDI one message at a time or in chunks, so filter both entry points
     def receive_midi(self, midi_bytes):
+        if self._accept_midi(midi_bytes):
+            super().receive_midi(midi_bytes)
+
+    def receive_midi_chunk(self, midi_chunk):
+        accepted = tuple(midi_bytes for midi_bytes in midi_chunk if self._accept_midi(midi_bytes))
+        if accepted:
+            super().receive_midi_chunk(accepted)
+
+    def _accept_midi(self, midi_bytes):
+        midi_bytes = tuple(midi_bytes)
         is_cc = len(midi_bytes) == 3
         # "SAMPLING" never reaches Ableton, it's reserved for entering VirtualDJ mode
         if is_cc and midi_bytes[:2] == VDJ_ENTER_BUTTON:
             if midi_bytes[2] > 0 and not self._vdj_mode:
                 self._set_vdj_mode(True)
-            return
+            return False
 
         if self._vdj_mode:
             if is_cc and midi_bytes[:2] in VDJ_EXIT_BUTTONS and midi_bytes[2] > 0:
                 # Leave VirtualDJ mode and let the press through, so it selects mixer / device mode as usual
                 self._set_vdj_mode(False)
-            else:
-                return
+                return True
+            return False
 
-        super().receive_midi(midi_bytes)
+        return True
 
     def build_midi_map(self, midi_map_handle):
         if not self._vdj_mode:
@@ -293,7 +304,8 @@ class CustomMaschineMK3(ControlSurface):
                 Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, channel, identifier)
 
     def _set_vdj_mode(self, enabled):
-        logger.info(f"VirtualDJ mode = {enabled}")
+        # Always written to Live's Log.txt, regardless of Config.LOGGING
+        self._c_instance.log_message(f"CustomMaschineMK3: VirtualDJ mode = {enabled}")
         self._vdj_mode = enabled
         self.request_rebuild_midi_map()
         if not enabled:
