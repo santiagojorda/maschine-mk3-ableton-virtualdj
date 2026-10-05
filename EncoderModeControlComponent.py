@@ -50,28 +50,31 @@ class EncoderModeControlComponent(Component):
             return
         
         selected_mode = self._encoder_modes.selected_mode
-        # In browser mode, encoder mode buttons do nothing to avoid confusing 
-        if selected_mode != "browser" and selected_mode != "settings":
-            shift = self.shift_button.is_pressed
-            if len(modes) > 1:
-                # If a mode button has two modes and press mode button with shift when non-shift mode is selected, don't return to default
-                do_return = (selected_mode == modes[0] and not shift) or selected_mode == modes[1]
-            else:
-                do_return = selected_mode == modes[0]
-        
-            if do_return:
-                display_mode = self._display_modes.selected_mode
-                if display_mode == "device":
-                    self._encoder_modes.selected_mode = "device"
-                else:
-                    self._encoder_modes.selected_mode = "default"
-                self._selected_encoder_mode = None
-            else:
-                # Otherwise push mode chosen by shift button state
-                self._selected_encoder_mode = modes[1 if self.shift_button.is_pressed and len(modes) > 1 else 0]
-                self._encoder_modes.selected_mode = self._selected_encoder_mode
-                
+        # VOLUME / SWING / TEMPO take over the encoder in every view, browser and settings included (like VirtualDJ),
+        # so both programs always agree on the selected mode. Pressing again gives the encoder back to the view.
+        shift = self.shift_button.is_pressed
+        if len(modes) > 1:
+            # If a mode button has two modes and press mode button with shift when non-shift mode is selected, don't return to default
+            do_return = (selected_mode == modes[0] and not shift) or selected_mode == modes[1]
+        else:
+            do_return = selected_mode == modes[0]
+
+        if do_return:
+            self._selected_encoder_mode = None
+            self._encoder_modes.selected_mode = self._view_encoder_mode()
+        else:
+            # Otherwise push mode chosen by shift button state
+            self._selected_encoder_mode = modes[1 if shift and len(modes) > 1 else 0]
+            self._encoder_modes.selected_mode = self._selected_encoder_mode
+
         self._update_led_feedback()
+
+    def _view_encoder_mode(self):
+        # Encoder mode of the current view when no VOLUME / SWING / TEMPO mode is selected
+        display_mode = self._display_modes.selected_mode if self._display_modes != None else None
+        if display_mode in ("browser", "settings", "device"):
+            return display_mode
+        return "default"
 
     def set_encoder_modes(self, modes):
         self._encoder_modes = modes
@@ -84,18 +87,11 @@ class EncoderModeControlComponent(Component):
 
     @listens("selected_mode")
     def _on_display_mode_changed(self, component):
-        display_mode = self._display_modes.selected_mode
-        if display_mode == "browser":
-            self._encoder_modes.selected_mode = "browser"
-        elif display_mode == "settings":
-            self._encoder_modes.selected_mode = "settings"
+        # A selected VOLUME / SWING / TEMPO mode keeps the encoder when the view changes (browser and settings too)
+        if self._selected_encoder_mode != None:
+            self._encoder_modes.selected_mode = self._selected_encoder_mode
         else:
-            if self._selected_encoder_mode != None:
-                self._encoder_modes.selected_mode = self._selected_encoder_mode
-            elif display_mode == "device":
-                self._encoder_modes.selected_mode = "device"
-            else:
-                self._encoder_modes.selected_mode = "default"
+            self._encoder_modes.selected_mode = self._view_encoder_mode()
 
         self._update_led_feedback()
 
