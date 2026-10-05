@@ -276,6 +276,8 @@ def create_mappings(surface):
             next_page_button = "row0_pads_with_shift_raw[3]",
             select_button = "select",
         ),
+        # Pads locked to VirtualDJ ("pad lock"): no component uses them
+        vdj_locked = dict(),
     )
 
     mappings["Group_Button_Modes"] = dict(

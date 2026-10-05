@@ -93,6 +93,13 @@ from . import Config
 # (status byte, CC number) of each button, all of them on MIDI channel 2
 VDJ_ENTER_BUTTON = (0xB1, 39)
 VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
+# Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP (messages and their LEDs).
+# SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP works too.
+ABLETON_ALWAYS_BUTTONS = ((0xB1, 57), (0xB1, 59))
+SHIFT_SYSEX_PREFIX = (0xF0, 0x00, 0x21, 0x09)
+# "FOLLOW" toggles Ableton Link in any mode (replaces its record quantize function)
+LINK_BUTTON = (0xB1, 56)
+PAD_LOCK_MODE = "vdj_locked"
 # Ticks (about 100ms each) to wait before the full LEDs and display refresh after leaving VirtualDJ mode,
 # so VirtualDJ's last messages don't overwrite Ableton's state. The display itself is redrawn immediately too.
 VDJ_REFRESH_DELAY = 1
@@ -205,6 +212,7 @@ class CustomMaschineMK3(ControlSurface):
     _vdj_mode = False
     _pad_lock = False
     _swallow_lock_release = False
+    _pad_mode_before_lock = None
 
     def __init__(self, *a, **k):
         # Settings must be loaded before initialization
@@ -256,8 +264,11 @@ class CustomMaschineMK3(ControlSurface):
             self.refresh_state()
 
     def _do_send_midi(self, midi_event_bytes):
-        # VirtualDJ owns LEDs and display while VirtualDJ mode is active
-        if self._vdj_mode:
+        # FOLLOW's LED shows Ableton Link (sent by _update_link_led only)
+        if tuple(midi_event_bytes[:2]) == LINK_BUTTON:
+            return True
+        # VirtualDJ owns LEDs and display while VirtualDJ mode is active, except Ableton's own transport buttons
+        if self._vdj_mode and tuple(midi_event_bytes[:2]) not in ABLETON_ALWAYS_BUTTONS:
             return True
         # Pads locked to VirtualDJ keep VirtualDJ's colors, page button LEDs and the lit LOCK button
         if self._pad_lock and self._is_pad_section(midi_event_bytes, include_lock = True):
@@ -290,6 +301,13 @@ class CustomMaschineMK3(ControlSurface):
                 self._set_vdj_mode(True)
             return False
 
+        if is_cc and midi_bytes[:2] == LINK_BUTTON:
+            if midi_bytes[2] > 0:
+                self.song.is_ableton_link_enabled = not self.song.is_ableton_link_enabled
+                self._c_instance.log_message(f"CustomMaschineMK3: Ableton Link = {self.song.is_ableton_link_enabled}")
+                self._update_link_led()
+            return False
+
         if is_cc and midi_bytes[:2] == PAD_LOCK_BUTTON:
             if midi_bytes[2] > 0:
                 if self._vdj_mode:
@@ -310,7 +328,10 @@ class CustomMaschineMK3(ControlSurface):
                 # Leave VirtualDJ mode and let the press through, so it selects mixer / device mode as usual
                 self._set_vdj_mode(False)
                 return True
-            return False
+            # PLAY / STOP (and SHIFT, for SHIFT + STOP) keep driving Ableton's transport
+            if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
+                return True
+            return is_cc and midi_bytes[:2] in ABLETON_ALWAYS_BUTTONS
 
         if self._pad_lock and self._is_pad_section(midi_bytes):
             return False
@@ -353,6 +374,7 @@ class CustomMaschineMK3(ControlSurface):
         # Always written to Live's Log.txt, regardless of Config.LOGGING
         self._c_instance.log_message(f"CustomMaschineMK3: VirtualDJ mode = {enabled}")
         self._vdj_mode = enabled
+        self._sync_pad_lock_mode()
         self.request_rebuild_midi_map()
         if not enabled:
             self._redisplay()
@@ -361,10 +383,26 @@ class CustomMaschineMK3(ControlSurface):
     def _set_pad_lock(self, enabled):
         self._c_instance.log_message(f"CustomMaschineMK3: pad lock = {enabled}")
         self._pad_lock = enabled
+        self._sync_pad_lock_mode()
         self.request_rebuild_midi_map()
         if not enabled:
             # Pads are Ableton's again: redraw their LEDs
             self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
+
+    def _sync_pad_lock_mode(self):
+        # While the pads are locked to VirtualDJ in Ableton, no pad mode (session, keyboard, chords, step...) uses them
+        pad_modes = self.component_map["Pad_Modes"]
+        locked = self._pad_lock and not self._vdj_mode
+        with self.component_guard():
+            if locked and pad_modes.selected_mode != PAD_LOCK_MODE:
+                self._pad_mode_before_lock = pad_modes.selected_mode
+                pad_modes.selected_mode = PAD_LOCK_MODE
+            elif not locked and pad_modes.selected_mode == PAD_LOCK_MODE:
+                pad_modes.selected_mode = self._pad_mode_before_lock or DEFAULT_MODE
+
+    def _update_link_led(self):
+        value = 127 if self.song.is_ableton_link_enabled else 0
+        super()._do_send_midi((LINK_BUTTON[0], LINK_BUTTON[1], value))
 
     def _redisplay(self):
         # Clearing the send cache makes each display line re-send its last content right away (only 4 sysex messages)
@@ -377,6 +415,7 @@ class CustomMaschineMK3(ControlSurface):
         if not self._vdj_mode:
             with self.component_guard():
                 self.refresh_state()
+            self._update_link_led()
 
     # Session ring highlight is enabled only if hardware is identified by identity request
     # But maschine didn't respond to this message, so bypass identification process
