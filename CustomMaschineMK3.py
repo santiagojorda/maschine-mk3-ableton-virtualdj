@@ -96,6 +96,10 @@ VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
 # Ticks (about 100ms each) to wait before the full LEDs and display refresh after leaving VirtualDJ mode,
 # so VirtualDJ's last messages don't overwrite Ableton's state. The display itself is redrawn immediately too.
 VDJ_REFRESH_DELAY = 1
+# "LOCK" pressed in VirtualDJ mode keeps the pads with VirtualDJ after going back to Ableton ("pad lock").
+# Pressing "LOCK" in Ableton releases them. VirtualDJ's mapping mirrors the same logic.
+PAD_LOCK_BUTTON = (0xB1, 48)
+PAD_NOTES = range(60, 76)
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -197,6 +201,8 @@ class CustomMaschineMK3(ControlSurface):
     _display_mode = None
     _settings = None
     _vdj_mode = False
+    _pad_lock = False
+    _swallow_lock_release = False
 
     def __init__(self, *a, **k):
         # Settings must be loaded before initialization
@@ -251,6 +257,9 @@ class CustomMaschineMK3(ControlSurface):
         # VirtualDJ owns LEDs and display while VirtualDJ mode is active
         if self._vdj_mode:
             return True
+        # Pads locked to VirtualDJ keep VirtualDJ's colors
+        if self._pad_lock and self._is_pad_note(midi_event_bytes):
+            return True
         logger.debug(f"_do_send_midi {midi_event_bytes}")
         super()._do_send_midi(midi_event_bytes)
         # Insert super short wait between each send to make sure LED feedback correctly.
@@ -279,6 +288,21 @@ class CustomMaschineMK3(ControlSurface):
                 self._set_vdj_mode(True)
             return False
 
+        if is_cc and midi_bytes[:2] == PAD_LOCK_BUTTON:
+            if midi_bytes[2] > 0:
+                if self._vdj_mode:
+                    self._pad_lock = not self._pad_lock
+                    self._c_instance.log_message(f"CustomMaschineMK3: pad lock = {self._pad_lock}")
+                    return False
+                if self._pad_lock:
+                    # In Ableton, LOCK only releases the pads; the press (and its release) never reach Ableton
+                    self._set_pad_lock(False)
+                    self._swallow_lock_release = True
+                    return False
+            elif self._swallow_lock_release:
+                self._swallow_lock_release = False
+                return False
+
         if self._vdj_mode:
             if is_cc and midi_bytes[:2] in VDJ_EXIT_BUTTONS and midi_bytes[2] > 0:
                 # Leave VirtualDJ mode and let the press through, so it selects mixer / device mode as usual
@@ -286,17 +310,30 @@ class CustomMaschineMK3(ControlSurface):
                 return True
             return False
 
+        if self._pad_lock and self._is_pad_note(midi_bytes):
+            return False
+
         return True
 
+    @staticmethod
+    def _is_pad_note(midi_bytes):
+        # Note on / off / poly pressure on any channel for the 16 pads
+        return len(midi_bytes) == 3 and midi_bytes[0] & 0xF0 in (0x80, 0x90, 0xA0) and midi_bytes[1] in PAD_NOTES
+
     def build_midi_map(self, midi_map_handle):
+        script_handle = self._c_instance.handle()
         if not self._vdj_mode:
             super().build_midi_map(midi_map_handle)
+            if self._pad_lock:
+                # Pads locked to VirtualDJ: forward their notes to the script so receive_midi drops them
+                # instead of Live playing them on an armed track
+                for note in PAD_NOTES:
+                    Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, 0, note)
             return
 
         # Knobs and touch strip are normally mapped by Live directly to parameters, bypassing receive_midi.
         # In VirtualDJ mode, forward every message on Maschine's channels to the script instead,
         # so receive_midi can drop them and nothing reaches Live (not even armed tracks).
-        script_handle = self._c_instance.handle()
         for channel in (0, 1):
             Live.MidiMap.forward_midi_pitchbend(script_handle, midi_map_handle, channel)
             for identifier in range(128):
@@ -310,6 +347,14 @@ class CustomMaschineMK3(ControlSurface):
         self.request_rebuild_midi_map()
         if not enabled:
             self._redisplay()
+            self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
+
+    def _set_pad_lock(self, enabled):
+        self._c_instance.log_message(f"CustomMaschineMK3: pad lock = {enabled}")
+        self._pad_lock = enabled
+        self.request_rebuild_midi_map()
+        if not enabled:
+            # Pads are Ableton's again: redraw their LEDs
             self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
 
     def _redisplay(self):
