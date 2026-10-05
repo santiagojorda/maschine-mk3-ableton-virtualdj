@@ -100,6 +100,8 @@ VDJ_REFRESH_DELAY = 1
 # Pressing "LOCK" in Ableton releases them. VirtualDJ's mapping mirrors the same logic.
 PAD_LOCK_BUTTON = (0xB1, 48)
 PAD_NOTES = range(60, 76)
+# PAD MODE, KEYBOARD, CHORDS and STEP select VirtualDJ's pad page, so they follow the pads while locked
+PAD_PAGE_BUTTONS = ((0xB1, 81), (0xB1, 82), (0xB1, 83), (0xB1, 84))
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -257,8 +259,8 @@ class CustomMaschineMK3(ControlSurface):
         # VirtualDJ owns LEDs and display while VirtualDJ mode is active
         if self._vdj_mode:
             return True
-        # Pads locked to VirtualDJ keep VirtualDJ's colors
-        if self._pad_lock and self._is_pad_note(midi_event_bytes):
+        # Pads locked to VirtualDJ keep VirtualDJ's colors, page button LEDs and the lit LOCK button
+        if self._pad_lock and self._is_pad_section(midi_event_bytes, include_lock = True):
             return True
         logger.debug(f"_do_send_midi {midi_event_bytes}")
         super()._do_send_midi(midi_event_bytes)
@@ -310,25 +312,32 @@ class CustomMaschineMK3(ControlSurface):
                 return True
             return False
 
-        if self._pad_lock and self._is_pad_note(midi_bytes):
+        if self._pad_lock and self._is_pad_section(midi_bytes):
             return False
 
         return True
 
     @staticmethod
-    def _is_pad_note(midi_bytes):
-        # Note on / off / poly pressure on any channel for the 16 pads
-        return len(midi_bytes) == 3 and midi_bytes[0] & 0xF0 in (0x80, 0x90, 0xA0) and midi_bytes[1] in PAD_NOTES
+    def _is_pad_section(midi_bytes, include_lock = False):
+        # The 16 pads (note on / off / poly pressure on any channel) and the pad page buttons
+        midi_bytes = tuple(midi_bytes)
+        if len(midi_bytes) != 3:
+            return False
+        if midi_bytes[0] & 0xF0 in (0x80, 0x90, 0xA0) and midi_bytes[1] in PAD_NOTES:
+            return True
+        return midi_bytes[:2] in PAD_PAGE_BUTTONS or (include_lock and midi_bytes[:2] == PAD_LOCK_BUTTON)
 
     def build_midi_map(self, midi_map_handle):
         script_handle = self._c_instance.handle()
         if not self._vdj_mode:
             super().build_midi_map(midi_map_handle)
             if self._pad_lock:
-                # Pads locked to VirtualDJ: forward their notes to the script so receive_midi drops them
-                # instead of Live playing them on an armed track
+                # Pads locked to VirtualDJ: forward their notes and page buttons to the script so receive_midi
+                # drops them, instead of Live playing the notes on an armed track
                 for note in PAD_NOTES:
                     Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, 0, note)
+                for _, cc in PAD_PAGE_BUTTONS:
+                    Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, 1, cc)
             return
 
         # Knobs and touch strip are normally mapped by Live directly to parameters, bypassing receive_midi.
