@@ -34,13 +34,16 @@ DECK_CUE_COLOR = {1: color(BLUE, BRIGHT), 2: color(ORANGE, BRIGHT)}
 
 # (fila desde abajo, columna dentro del deck, accion, condicion activa, condicion inactiva, color, nombre)
 # Sin condiciones = color tenue fijo. El nombre se muestra en el modo info (sin deck: el mismo para los dos lados)
-SYNCED = "DECK is_sync ? true : (deck 1 is_sync ? true : (deck 2 is_sync ? true : false))"
+# Sincronizados = mismo BPM (match_bpm, queda fijo) o is_sync. is_sync solo no alcanza: mientras suena exige
+# tambien la fase, y si se corre un poco se apaga y prende. Fuerte en los dos pads SYNC a la vez.
+SYNCED = ("DECK match_bpm ? true : (deck 1 match_bpm ? true : (deck 2 match_bpm ? true : "
+          "(deck 1 is_sync ? true : (deck 2 is_sync ? true : false))))")
 
 TRANSPORT = [
     (0, 0, "play", "play", "play ? false : true", GREEN, "PLAY"),
     (0, 1, "pause", "play ? false : true", "play", RED, "PAUSA"),
     (1, 0, None, None, None, None, None),
-    # Luz: fuerte en los dos pads SYNC cuando los decks estan sincronizados entre si (is_sync de cualquiera de los dos).
+    # Luz: fuerte en los dos pads SYNC cuando los decks estan sincronizados (SYNCED).
     # No usar la consulta "sync": titila con el ritmo aunque el deck no este sincronizado.
     (1, 1, "sync", f"({SYNCED})", f"({SYNCED}) ? false : true", YELLOW, "SYNC"),  # arriba de PAUSA (INICIO se saco)
     (2, 0, "loop 4", "loop", "loop ? false : true", VIOLET, "LOOP 4"),
