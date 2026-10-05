@@ -118,6 +118,7 @@ Con las perillas de tempo se ve el BPM actual y, al lado, el **BPM original** de
 | Touch strip | Crossfader (las luces muestran la posición) |
 
 Pantalla izquierda = deck 1, derecha = deck 2: título arriba; BPM y MASTER / SYNC / NO SYNC abajo.
+Si un tema no se pudo cargar, arriba aparece el nombre del archivo y abajo **ERROR AL CARGAR**.
 Los acentos no se ven (Windows MIDI los descarta).
 
 ### Cambios en Ableton respecto del script original
