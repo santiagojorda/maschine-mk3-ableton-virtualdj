@@ -339,8 +339,10 @@ def create_root_view():
                         content.lines[1] = "Warp mode"
                         content.lines[3] = WarpModeList.to_string(clip.warp_mode) if clip.warping else "No Warp"
 
-        if TOUCH_STATES.encoder_active:
-            encoder_mode = state.encoder_modes.selected_mode
+        encoder_mode = state.encoder_modes.selected_mode
+        # VOLUME / SWING / TEMPO (and scale) stay on screen while selected, like in VirtualDJ; a touched knob still wins
+        mode_selected = encoder_mode in (MASTER_VOLUME, GROOVE_AMOUNT, SONG_TEMPO, CLIP_SCALE) and TOUCH_STATES.active_index == -1
+        if TOUCH_STATES.encoder_active or mode_selected:
             if encoder_mode == MASTER_VOLUME:
                 content.lines[0] = "VOLUMEN MASTER"
                 content.lines[2] = f"{state.master_volume.gain_string}"
