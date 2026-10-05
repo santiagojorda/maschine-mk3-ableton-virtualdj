@@ -56,7 +56,7 @@ from .DisplayDefinitions import (
     make_display_sysex_message
 )
 from .GroovePoolComponent import GroovePoolComponent
-from .MasterVolumeComponent import MasterVolumeComponent
+from .MasterVolumeComponent import MasterVolumeComponent, CueVolumeComponent
 from .MaschinePlayableComponent import MaschinePlayableComponent, DEFAULT_NOTE_TRANSLATION_CHANNEL
 from .CustomDrumGroupComponent import CustomDrumGroupComponent
 from .MiscControlComponent import MiscControlComponent
@@ -165,6 +165,7 @@ class Specification(ControlSurfaceSpecification):
         "Clip_Actions": CustomClipActionsComponent,
         "Groove_Pool": GroovePoolComponent,
         "Master_Volume": MasterVolumeComponent,
+        "Cue_Volume": CueVolumeComponent,
         "Maschine_Playable": MaschinePlayableComponent,
         "Misc_Control": MiscControlComponent,
         # Does nothing: the pad mode used while the pads are locked to VirtualDJ

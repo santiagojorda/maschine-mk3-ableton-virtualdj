@@ -109,10 +109,11 @@ def create_mappings(surface):
             component = "Master_Volume",
             master_volume = "encoder",
             reset_button = "encoderpush"),
+        # SWING: headphones (cue) volume, like VOLUME does with the master volume
         swing = dict(
-            component = "Groove_Pool",
-            coarse_groove_amount = "encoder",
-            fine_groove_amount = "encoder_with_shift"),
+            component = "Cue_Volume",
+            master_volume = "encoder",
+            reset_button = "encoderpush"),
         position = dict(
             component = "Transport",
             arrangement_position_encoder = "encoder",
@@ -360,7 +361,6 @@ def create_mappings(surface):
             behaviour = ToggleBehaviour(),
             component = "Browser",
             preview_toggle_button = "track_buttons_with_macro_raw[0]",
-            preview_volume_encoder = "knobs_raw[0]",
             select_folder_buttons = "track_buttons",
             hotswap_button = "variation",
             hotswap_content_button = "variation_with_select"

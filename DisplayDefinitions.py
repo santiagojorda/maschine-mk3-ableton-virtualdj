@@ -352,8 +352,8 @@ def create_root_view():
                 content.lines[0] = "Master Volume"
                 content.lines[2] = f"{state.master_volume.gain_string}"
             elif encoder_mode == GROOVE_AMOUNT:
-                content.lines[0] = "Groove Amount"
-                content.lines[2] = f"{state.groove_pool.amount_string}"
+                content.lines[0] = "Cue Volume"
+                content.lines[2] = f"{state.cue_volume.gain_string}"
             elif encoder_mode == ARRANGE_POSITION:
                 content.lines[0] = "Song Time"
                 content.lines[2] = f"{state.transport.current_song_time_in_bars}({state.transport.current_song_time})"

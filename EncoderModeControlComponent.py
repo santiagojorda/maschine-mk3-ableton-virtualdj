@@ -22,7 +22,8 @@ class EncoderModeControlComponent(Component):
     shift_button = ButtonControl(color = None)
 
     volume_modes = ("volume",)
-    swing_modes = ("swing", "position")
+    # SWING only switches the encoder to the cue (headphones) volume, like VOLUME with the master volume
+    swing_modes = ("swing",)
     tempo_modes = ("tempo", "scale")
 
     _encoder_modes = None

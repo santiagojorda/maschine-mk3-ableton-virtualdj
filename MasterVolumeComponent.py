@@ -42,3 +42,11 @@ class MasterVolumeComponent(Component, Renderable):
     @listens("value")
     def _on_master_volume_changed(self):
         self.notify_gain_string()
+
+
+class CueVolumeComponent(MasterVolumeComponent):
+    # Same encoder behaviour as the master volume, for the cue (headphones / preview) volume
+    def __init__(self, name = "Cue_Volume", *a, **k):
+        super().__init__(name, *a, **k)
+        self._master_volume = self.song.master_track.mixer_device.cue_volume
+        self._on_master_volume_changed.subject = self._master_volume
