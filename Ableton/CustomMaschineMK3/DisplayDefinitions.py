@@ -343,6 +343,10 @@ def create_root_view():
         # VOLUME / SWING / TEMPO (and scale) stay on screen while selected, like in VirtualDJ; a touched knob still wins
         mode_selected = encoder_mode in (MASTER_VOLUME, GROOVE_AMOUNT, SONG_TEMPO, CLIP_SCALE) and TOUCH_STATES.active_index == -1
         if TOUCH_STATES.encoder_active or mode_selected:
+            if mode_selected:
+                # The right screen stays empty while VOLUME / SWING / TEMPO is on (like VirtualDJ)
+                content.lines[1] = ""
+                content.lines[3] = ""
             if encoder_mode == MASTER_VOLUME:
                 content.lines[0] = "VOLUMEN MASTER"
                 content.lines[2] = f"{state.master_volume.gain_string}"
