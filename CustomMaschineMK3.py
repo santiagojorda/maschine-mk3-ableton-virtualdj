@@ -119,6 +119,9 @@ VDJ_ONLY_CHANNEL = 1
 # CHANNEL, PLUGIN, MIXER, BROWSER, SETTINGS: moving through Ableton's views turns VOLUME / SWING / TEMPO off
 VIEW_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37), (0xB1, 38), (0xB1, 41))
 VDJ_ONLY_NOTES = range(0, 4)
+# PITCH, MOD, PERFORM: the Maschine turns NOTES' light off by itself when they are pressed, so it's sent again
+TOUCHSTRIP_MODE_BUTTONS = ((0xB1, 49), (0xB1, 50), (0xB1, 51))
+NOTES_BUTTON = (0xB1, 52)
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -345,6 +348,9 @@ class CustomMaschineMK3(ControlSurface):
             with self.component_guard():
                 self.component_map["Encoder_Mode_Control"].reset_selected_mode()
 
+        if is_cc and midi_bytes[:2] in TOUCHSTRIP_MODE_BUTTONS and not self._vdj_mode:
+            self.schedule_message(1, self._refresh_notes_led)
+
         if self._vdj_mode:
             if is_cc and midi_bytes[:2] in VDJ_EXIT_BUTTONS and midi_bytes[2] > 0:
                 # Leave VirtualDJ mode and let the press through, so it selects mixer / device mode as usual
@@ -428,6 +434,12 @@ class CustomMaschineMK3(ControlSurface):
                 pad_modes.selected_mode = PAD_LOCK_MODE
             elif not locked and pad_modes.selected_mode == PAD_LOCK_MODE:
                 pad_modes.selected_mode = self._pad_mode_before_lock or DEFAULT_MODE
+
+    def _refresh_notes_led(self):
+        if self._vdj_mode:
+            return
+        notes_on = self.component_map["Group_Button_Mode_Control"].notes_button.is_on
+        self._send_midi(NOTES_BUTTON + (127 if notes_on else 0,))
 
     def _update_link_led(self):
         if self._vdj_mode:
