@@ -210,10 +210,6 @@ class MaschineLEDColors:
         Off = BasicColors.OFF
         Disabled = BasicColors.OFF
 
-    class PerformButtons:
-        On = make_color(ORANGE, LEVEL_3)
-        Off = BasicColors.OFF
-
     class TargetTrack:
         LockOn = BasicColors.ON
         LockOff = BasicColors.OFF
