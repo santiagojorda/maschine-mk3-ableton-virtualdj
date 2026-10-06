@@ -63,6 +63,7 @@ Canales 0-based como en VirtualDJ (`channel="0"` = MIDI 1).
 - **En modo DJ pasan a Ableton:** PLAY, STOP, TAP (`ABLETON_ALWAYS_BUTTONS`, mensajes y LEDs) y el sysex de SHIFT (`SHIFT_SYSEX_PREFIX`), para SHIFT + STOP.
 - **FOLLOW (CC 56) = Ableton Link de Ableton** solo fuera del modo DJ (en modo DJ es de VirtualDJ): alterna `song.is_ableton_link_enabled`, LED de FOLLOW con el estado (`_update_link_led`). Reemplaza su función anterior (record quantize).
 - **Pads fijados en Ableton:** `Pad_Modes` pasa al modo vacío `vdj_locked` (definido en Mappings.py) para que ninguna página use los pads; al soltar se restaura el modo anterior (`_sync_pad_lock_mode`).
+- **Note repeat arranca en 1/16** (pedido del usuario): `NoteRepeatComponent` elige al iniciar el botón de grupo cuyo rate en Settings es `DEFAULT_REPEAT_RATE` = "1/16" (por defecto el C); antes arrancaba en el primero (A).
 - **Pad lock** (`_pad_lock`, `PAD_LOCK_BUTTON` = LOCK CC 48 canal 2): LOCK en modo VirtualDJ lo alterna. Al volver a Ableton con el pad lock activo, los pads siguen siendo de VirtualDJ: el script descarta sus notas 60-75 (y las reenvía al script en `build_midi_map` para que una pista armada no suene) y no manda LEDs de pads. En Ableton, LOCK con pad lock activo solo lo suelta (se traga apretar y soltar) y redibuja; si no, LOCK hace su función normal de Ableton.
 
 ## Consistencia Ableton ↔ VirtualDJ (revisar al tocar modos, LOCK o pads)

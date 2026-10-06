@@ -130,6 +130,7 @@ Los acentos no se ven (Windows MIDI los descarta).
 - **SWING** = volumen de auriculares (cue) en el encoder; se sacaron el groove y SHIFT + SWING (posición del arrangement).
 - En el Browser, la perilla 1 ya no cambia el volumen de la preescucha.
 - VOLUME / SWING / TEMPO también funcionan en el Browser y en Settings (antes ahí no hacían nada).
+- El note repeat arranca en **1/16**.
 
 ## Modificar
 
