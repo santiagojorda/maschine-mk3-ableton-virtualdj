@@ -131,7 +131,7 @@ Los acentos no se ven (Windows MIDI los descarta).
 - En el Browser, la perilla 1 ya no cambia el volumen de la preescucha.
 - VOLUME / SWING / TEMPO también funcionan en el Browser y en Settings (antes ahí no hacían nada).
 - El note repeat arranca en **1/16**.
-- **PERFORM + A-H = 8 botones asignables:** hacé clic en un parámetro de Ableton (on/off de un efecto, dry/wet, send…) y apretá **SHIFT + PERFORM + A-H**. Después **PERFORM + A-H** lo prende y apaga; mientras mantenés PERFORM, se prenden solo los activos. Se guarda con el proyecto. (Antes asignaba el crossfader.)
+- **PERFORM + A-H = MIDI libre para mapear en Ableton:** entrá en modo MIDI Map (Ctrl+M), clickeá lo que quieras y apretá **PERFORM + A-H**. A-H solos siguen con su función (bancos del drum rack, etc.). Mientras mantenés PERFORM, A-H se apagan y solo se prenden los mapeados que están activos. (Antes asignaba el crossfader.)
 
 ## Modificar
 
