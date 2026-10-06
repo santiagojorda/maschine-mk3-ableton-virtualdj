@@ -83,6 +83,21 @@ def all_playing(names):
     return condition
 
 
+def all_muted(names):
+    condition = "true"
+    for n in reversed(names):
+        condition = f"{playing(n)} ? false : ({condition})"
+    return condition
+
+
+def exact_state(muted):  # true cuando estan silenciados exactamente esos stems
+    condition = "true"
+    for n in reversed(STEM_NAMES):
+        condition = (f"{playing(n)} ? false : ({condition})" if n in muted
+                     else f"{playing(n)} ? ({condition}) : false")
+    return condition
+
+
 def stems_apply(muted):
     return " & ".join(set_mute(n, n in muted) for n in STEM_NAMES)
 
@@ -95,6 +110,14 @@ ALL_ON = all_playing(STEM_NAMES)
 INSTRUMENTS_ON = all_playing(["Instru", "Bass"])
 INSTRUMENTAL = (f"(({INSTRUMENTS_ON}) ? ({set_mute('Instru', True)} & {set_mute('Bass', True)}) : "
                 f"({set_mute('Instru', False)} & {set_mute('Bass', False)}))")
+
+DRUMLESS_STATE = all_muted(["Kick", "HiHat"])
+DRUMLESS = (f"(({DRUMLESS_STATE}) ? ({set_mute('Kick', False)} & {set_mute('HiHat', False)}) : "
+            f"({set_mute('Kick', True)} & {set_mute('HiHat', True)}))")
+BATERIA_STATE = exact_state(("Vocal", "Instru", "Bass"))
+BATERIA = f"(({BATERIA_STATE}) ? ({stems_apply(())}) : ({stems_apply(('Vocal', 'Instru', 'Bass'))}))"
+# nombre -> (accion, estado activo, codigo en $stemN para la pantalla)
+BUTTON_MODES = {"DRUMLESS": (DRUMLESS, DRUMLESS_STATE, 21), "BATERIA": (BATERIA, BATERIA_STATE, 22)}
 
 STEMS = [
     # columna derecha de cada deck, de arriba hacia abajo: RESET, INSTRUMENTAL, VOZ, KICK
@@ -112,7 +135,7 @@ STEMS = [
 # Botones con nombre en el modo info: control -> (nombre, es slider). Los sliders se leen con param_bigger 0.5.
 # SAMPLING / MIXER / PLUGIN no van: Ableton tambien los escucha y cambiaria de modo igual.
 HELP_BUTTONS = {
-    "BTN1": ("KICK", False), "BTN2": ("HATS", False), "BTN3": ("KICK", False), "BTN4": ("HATS", False),
+    "BTN1": ("DRUMLESS", False), "BTN2": ("BATERIA", False), "BTN3": ("DRUMLESS", False), "BTN4": ("BATERIA", False),
     "GROUP_A": ("REVERB", False), "GROUP_B": ("REVERB", False),
     "GROUP_C": ("FLANGER", False), "GROUP_D": ("FLANGER", False),
     "GROUP_E": ("ECHO", False), "GROUP_F": ("ECHO", False),
@@ -127,9 +150,10 @@ HELP_BUTTONS = {
     "CHORDS": ("PAGINA STEMS", False), "STEP": ("PAGINA PADS APAGADOS", False),
     "ERASE": ("BORRAR (CON PAD/PERILLA)", True), "NOTES": ("PREESCUCHA (MANTENER)", True),
 }
-# Botones 1-4 sobre la pantalla (MAICOL, SESSION, EN, TU): KICK y HATS del deck 1 y del deck 2, iguales a sus pads.
-# Son solo de VirtualDJ y andan en los dos modos (el script de Ableton los ignora siempre). Luz prendida = el stem suena.
-STEM_BUTTONS = {"BTN1": (1, "KICK"), "BTN2": (1, "HATS"), "BTN3": (2, "KICK"), "BTN4": (2, "HATS")}
+# Botones 1-4 sobre la pantalla (MAICOL, SESSION, EN, TU): 1 y 3 = DRUMLESS (saca kick y hihat) del deck 1 / 2,
+# 2 y 4 = BATERIA (deja solo kick y hihat). Volver a tocarlo deshace (DRUMLESS devuelve kick y hihat, BATERIA prende todo).
+# Luz prendida = el modo esta activo. Son solo de VirtualDJ y andan en los dos modos (el script de Ableton los ignora siempre).
+STEM_BUTTONS = {"BTN1": (1, "DRUMLESS"), "BTN2": (1, "BATERIA"), "BTN3": (2, "DRUMLESS"), "BTN4": (2, "BATERIA")}
 HELP_IDLE = "INFO: TOCA UN CONTROL"
 STEM_DISPLAY_TIME = "1500ms"  # cuanto se ve el nombre / estado del stem tocado
 # LOOP 1/2 y LOOP X2 (pads 13-16 de PAD MODE) muestran el largo del loop en la pantalla del deck, con la misma capa
@@ -271,15 +295,14 @@ def generate():
             f"(var '$padpage' 1 ? ({transport_action}) : ({cue_action}))))) : nothing\" />")
 
     for control, (deck, name) in STEM_BUTTONS.items():
-        entry = next(e for e in STEMS if e[6] == name)
-        code = STEMS.index(entry) + 1
+        mode_action, mode_state, code = BUTTON_MODES[name]
         note = int(control[3:]) - 1
-        playing = deck_condition(deck, entry[3])
+        active = deck_condition(deck, f"({mode_state})")
         timer = f"stem{deck}"
         pad_lines.append(
-            f"\t<map value=\"{control}\" action=\"{deck_action(deck, entry[2])} &amp; set '$stem{deck}' {code} &amp; "
+            f"\t<map value=\"{control}\" action=\"{deck_action(deck, mode_action)} &amp; set '$stem{deck}' {code} &amp; "
             f"repeat_stop '{timer}' &amp; repeat_start '{timer}' {STEM_DISPLAY_TIME} 1 &amp; set '$stem{deck}' 0\" />")
-        for state, velocity, condition in (("ON", 0x7F, playing), ("OFF", 0x00, f"{playing} ? false : true")):
+        for state, velocity, condition in (("ON", 0x7F, active), ("OFF", 0x00, f"{active} ? false : true")):
             device_lines.append(f'  <sysex value="91{note:02X}{velocity:02X}" name="LED_{control}_{state}" />')
             led_lines.append(f"\t<map value=\"LED_{control}_{state}\" action=\"{condition}\" />")
 
@@ -318,6 +341,10 @@ def generate():
             top = f"var '$stem{deck}' {code} ? get_text '{name}' : ({top})"
             bottom = f"var '$stem{deck}' {code} ? ({state}) : ({bottom})"
         top = f"var '$stem{deck}' {LOOP_DISPLAY_CODE} ? get_text 'LOOP' : ({top})"
+        for name, (_, mode_state, code) in BUTTON_MODES.items():
+            top = f"var '$stem{deck}' {code} ? get_text '{name}' : ({top})"
+            bottom = (f"var '$stem{deck}' {code} ? (({deck_condition(deck, mode_state)}) ? get_text 'ON' : get_text 'OFF') "
+                      f": ({bottom})")
         bottom = (f"var '$stem{deck}' {LOOP_DISPLAY_CODE} ? get_text &quot;`deck {deck} get_loop &amp; param_cast 'text' 6` BEATS&quot; "
                   f": ({bottom})")
         for field, shown in ((f"LCD_TITLE_D{deck}", top), (f"LCD_BOTTOM_D{deck}", bottom)):

@@ -59,7 +59,7 @@ Incluye:
 | **FOLLOW** | Ableton Link de Ableton | Ableton Link de VirtualDJ |
 | **VOLUME** / **SWING** / **TEMPO** | Encoder = volumen master / auriculares / tempo | Encoder = volumen master / auriculares; TEMPO los apaga |
 | **REC** | Grabar | No hace nada |
-| Botones 1-4 sobre la pantalla | Nada (son de VirtualDJ) | KICK y HATS del deck 1 (1, 2) y del deck 2 (3, 4); también andan estando en Ableton |
+| Botones 1-4 sobre la pantalla | Nada (son de VirtualDJ) | 1 y 3 = DRUMLESS (sin bombo ni hi-hat) del deck 1 / 2; 2 y 4 = solo batería (bombo y hi-hat). También andan estando en Ableton |
 | Botones 5-8 sobre la pantalla | Asignaciones MIDI propias de Ableton | Siguen siendo de Ableton |
 
 VOLUME, SWING y TEMPO se excluyen entre sí y se comparten: el que dejes activo sigue activo al cambiar de programa.
