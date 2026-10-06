@@ -69,6 +69,13 @@ class EncoderModeControlComponent(Component):
 
         self._update_led_feedback()
 
+    def reset_selected_mode(self):
+        # Back to the encoder of the current view, VOLUME / SWING / TEMPO off (VirtualDJ does the same with $encmode)
+        self._selected_encoder_mode = None
+        if self._encoder_modes != None:
+            self._encoder_modes.selected_mode = self._view_encoder_mode()
+        self._update_led_feedback()
+
     def _view_encoder_mode(self):
         # Encoder mode of the current view when no VOLUME / SWING / TEMPO mode is selected
         display_mode = self._display_modes.selected_mode if self._display_modes != None else None
@@ -87,13 +94,8 @@ class EncoderModeControlComponent(Component):
 
     @listens("selected_mode")
     def _on_display_mode_changed(self, component):
-        # A selected VOLUME / SWING / TEMPO mode keeps the encoder when the view changes (browser and settings too)
-        if self._selected_encoder_mode != None:
-            self._encoder_modes.selected_mode = self._selected_encoder_mode
-        else:
-            self._encoder_modes.selected_mode = self._view_encoder_mode()
-
-        self._update_led_feedback()
+        # Changing the view (mixer, device, browser, settings...) drops the VOLUME / SWING / TEMPO mode
+        self.reset_selected_mode()
 
     def _update_led_feedback(self):
         mode = self._encoder_modes.selected_mode if self._encoder_modes != None else ""
