@@ -55,6 +55,8 @@ class CustomSendValueEncoderControl(SendValueEncoderControl):
 # This object has 2 property, "enabled" and "repeat_rate"
 # enabled: Enable or disable note repeat function, type is boolean
 # repeat_rate: Interval of repetition, type is float, 1.0 means 1/4 synced length in ableton
+DEFAULT_REPEAT_RATE = "1/16"
+
 class NoteRepeatComponent(Component, Renderable):
     repeat_button = ButtonControl(color = "NoteRepeat.Off", on_color = "NoteRepeat.On")
     lock_button = ButtonControl(color = "NoteRepeat.LockOff", on_color = "NoteRepeat.LockOn")
@@ -76,6 +78,10 @@ class NoteRepeatComponent(Component, Renderable):
         self._repeat_rates = [(1.0, "")] * self.rate_select_buttons.control_count
         self._on_settings_changed.subject = self._settings
         self._on_settings_changed()
+        # Start on 1/16 (the group button that has it in Settings), not on the first rate
+        names = [name for _, name in self._repeat_rates]
+        if DEFAULT_REPEAT_RATE in names:
+            self._selected_index = names.index(DEFAULT_REPEAT_RATE)
         self.update()
 
     def set_group_button_control(self, control):
