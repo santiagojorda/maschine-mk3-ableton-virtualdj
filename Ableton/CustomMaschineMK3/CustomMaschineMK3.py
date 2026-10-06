@@ -119,10 +119,6 @@ VDJ_ONLY_CHANNEL = 1
 # CHANNEL, PLUGIN, MIXER, BROWSER, SETTINGS: moving through Ableton's views turns VOLUME / SWING / TEMPO off
 VIEW_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37), (0xB1, 38), (0xB1, 41))
 VDJ_ONLY_NOTES = range(0, 4)
-# Touch strip: movement is pitch bend on channel 1, finger release is pitch bend on channel 2
-TOUCHSTRIP_STATUS = 0xE0
-TOUCHSTRIP_RELEASE = (0xE1, 0x7F, 0x3F)  # 8191
-TOUCHSTRIP_CENTER = (0xE0, 0x00, 0x40)
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -362,19 +358,7 @@ class CustomMaschineMK3(ControlSurface):
         if self._pad_lock and self._is_pad_section(midi_bytes):
             return False
 
-        if len(midi_bytes) == 3 and (midi_bytes[0] == TOUCHSTRIP_STATUS or midi_bytes == TOUCHSTRIP_RELEASE):
-            self._echo_pitch_touchstrip(midi_bytes)
-
         return True
-
-    def _echo_pitch_touchstrip(self, midi_bytes):
-        # In PITCH mode nothing lights the strip, so its LEDs follow the finger and go back to the center on release
-        if self.component_map["TouchStrip_Modes"].selected_mode != "pitch":
-            return
-        if midi_bytes[0] == TOUCHSTRIP_STATUS:
-            self._send_midi(midi_bytes)
-        else:
-            self._send_midi(TOUCHSTRIP_CENTER)
 
     @staticmethod
     def _is_vdj_only(midi_bytes):
