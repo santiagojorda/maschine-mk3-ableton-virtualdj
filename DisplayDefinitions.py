@@ -181,14 +181,6 @@ class Notifications(DefaultNotifications):
         repeat_rate = "Note repeat rate\n{}".format
         repeat_rate: "Notification[Fn[str]]"
 
-    class PerformButtons:
-        assigned = "PERFORM {}\n{}".format
-        assigned: "Notification[Fn[str, str]]"
-        empty = "PERFORM {} libre\nSHIFT+PERFORM: asignar".format
-        empty: "Notification[Fn[str]]"
-        no_parameter = "PERFORM {}\nElegi un parametro".format
-        no_parameter: "Notification[Fn[str]]"
-
     class VelocityLevels:
         select = "Sequencer velocity\n{}".format
         select: "Notification[Fn[int]]"
