@@ -81,6 +81,7 @@ from .BrowserComponent import BrowserComponent
 from .RecordingMethod import FixedLengthRecordingMethod, CustomViewBasedRecordingComponent
 from .EncoderModeControlComponent import EncoderModeControlComponent
 from .GroupButtonModeControlComponent import GroupButtonModeControlComponent
+from .PerformButtonsComponent import PerformButtonsComponent
 from .CustomTransportComponent import CustomTransportComponent
 from .SettingsComponent import SettingsRepository, SettingsComponent
 from .CustomClipSlotComponent import LEDBlinker, CustomClipSlotComponent
@@ -164,6 +165,7 @@ class Specification(ControlSurfaceSpecification):
         "Session": partial(SessionComponent, clip_slot_component_type = CustomClipSlotComponent),
         "Encoder_Mode_Control": EncoderModeControlComponent,
         "Group_Button_Mode_Control": GroupButtonModeControlComponent,
+        "Perform_Buttons": PerformButtonsComponent,
         "View_Based_Recording": partial(CustomViewBasedRecordingComponent, recording_method_type = recording_method_type),
         "Browser": BrowserComponent,
         "Clip_Editor": ClipEditorComponent,
