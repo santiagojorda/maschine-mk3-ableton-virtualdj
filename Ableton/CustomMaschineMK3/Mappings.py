@@ -396,9 +396,9 @@ def create_mappings(surface):
             knob_touch_buttons = "knob_touch_buttons",
             erase_button = "erase"
         )
-        mappings["Mixer"] = dict(
-            crossfade_cycle_buttons = "upper_group_buttons_with_perform"
-        )
+        # PERFORM + group buttons no longer cycle the crossfader assignment: the group buttons are left for
+        # the user's own MIDI mappings in Live (PERFORM still switches the touch strip to the crossfader)
+        mappings["Mixer"] = dict()
     else:
         mappings["Display_Modes"]["default"] = dict(
             component = "Mixer",
@@ -416,9 +416,9 @@ def create_mappings(surface):
             knob_touch_buttons = "knob_touch_buttons",
             erase_button = "erase"
         )
-        mappings["Mixer"] = dict(
-            crossfade_cycle_buttons = "group_buttons_with_perform"
-        )
+        # PERFORM + group buttons no longer cycle the crossfader assignment: the group buttons are left for
+        # the user's own MIDI mappings in Live (PERFORM still switches the touch strip to the crossfader)
+        mappings["Mixer"] = dict()
 
     mappings["Session"] = dict(stop_all_clips_button = "stop_with_shift")
 
