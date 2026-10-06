@@ -121,12 +121,6 @@ VIEW_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37), (0xB1, 38), (0xB1, 41))
 VDJ_ONLY_NOTES = range(0, 4)
 # PITCH, MOD, PERFORM: NOTES (note repeat rate selector on the group buttons) turns off when one of them is pressed
 TOUCHSTRIP_MODE_BUTTONS = ((0xB1, 49), (0xB1, 50), (0xB1, 51))
-# While PERFORM is held, the group buttons A-H (CC 100-107) skip the script and go to Live's MIDI mapping (Ctrl+M),
-# so PERFORM + A-H can be mapped to anything in Live while plain A-H keep their function (drum rack banks...).
-# Their LEDs turn off and only show Live's feedback (mapped parameters that are on); releasing PERFORM redraws them.
-PERFORM_BUTTON = (0xB1, 51)
-GROUP_BUTTON_STATUS = 0xB1
-GROUP_BUTTON_CCS = range(100, 108)
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -234,7 +228,6 @@ class CustomMaschineMK3(ControlSurface):
     _pad_lock = False
     _swallow_lock_release = False
     _pad_mode_before_lock = None
-    _perform_held = False
 
     def __init__(self, *a, **k):
         # Settings must be loaded before initialization
@@ -349,9 +342,6 @@ class CustomMaschineMK3(ControlSurface):
                 self._swallow_lock_release = False
                 return False
 
-        if is_cc and midi_bytes[:2] == PERFORM_BUTTON:
-            self._set_perform_held(midi_bytes[2] > 0)
-
         if is_cc and midi_bytes[:2] in VIEW_BUTTONS and midi_bytes[2] > 0 and (not self._vdj_mode or midi_bytes[:2] in VDJ_EXIT_BUTTONS):
             # Also when the view doesn't change (e.g. MIXER while already in the mixer)
             with self.component_guard():
@@ -446,20 +436,6 @@ class CustomMaschineMK3(ControlSurface):
                 pad_modes.selected_mode = PAD_LOCK_MODE
             elif not locked and pad_modes.selected_mode == PAD_LOCK_MODE:
                 pad_modes.selected_mode = self._pad_mode_before_lock or DEFAULT_MODE
-
-    def _set_perform_held(self, held):
-        if held == self._perform_held:
-            return
-        self._perform_held = held
-        with self.component_guard():
-            for button in self.elements.group_buttons_raw:
-                button.suppress_script_forwarding = held
-        self.request_rebuild_midi_map()
-        if held:
-            for cc in GROUP_BUTTON_CCS:
-                self._do_send_midi((GROUP_BUTTON_STATUS, cc, 0))
-        else:
-            self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
 
     def _update_link_led(self):
         if self._vdj_mode:
