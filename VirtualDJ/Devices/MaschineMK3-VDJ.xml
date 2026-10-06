@@ -106,6 +106,7 @@
 
   <!-- Touch strip (pitch bend, MIDI ch 1) -->
   <slider pitch="true" channel="0" name="TOUCHSTRIP" ghost="false" />
+  <slider pitch="true" channel="1" name="TOUCHSTRIP_RELEASE" ghost="false" />
 
   <!-- Pads 1-16 (notas 60-75, MIDI ch 1). PAD1 = abajo a la izquierda, PAD16 = arriba a la derecha -->
   <button note="0x3C" channel="0" name="PAD1" />
@@ -263,6 +264,7 @@
   <sysex value="E0776E" name="XF_LED_14" />
   <sysex value="E03B77" name="XF_LED_15" />
   <sysex value="E07F7F" name="XF_LED_16" />
+  <sysex value="E00040" name="STRIP_LED_CENTER" />
 
   <!-- Pantallas: protocolo Mackie, 4 lineas x 28 caracteres.
        Lineas 0 y 2 = pantalla izquierda (deck 1), lineas 1 y 3 = pantalla derecha (deck 2). Un campo de 27 por linea + un 0x00 fijo en la columna 28 (el Maschine centra las lineas que terminan en espacios), sin desplazamiento.
