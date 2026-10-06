@@ -116,6 +116,8 @@ PAD_PAGE_BUTTONS = ((0xB1, 81), (0xB1, 82), (0xB1, 83), (0xB1, 84))
 # Buttons 1-4 above the screen (notes 0-3, channel 2) belong to VirtualDJ only (stems KICK / HATS of each deck):
 # Ableton never uses them, in any mode, and never drives their LEDs
 VDJ_ONLY_CHANNEL = 1
+# CHANNEL, PLUGIN, MIXER, BROWSER, SETTINGS: moving through Ableton's views turns VOLUME / SWING / TEMPO off
+VIEW_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37), (0xB1, 38), (0xB1, 41))
 VDJ_ONLY_NOTES = range(0, 4)
 # Touch strip: movement is pitch bend on channel 1, finger release is pitch bend on channel 2
 TOUCHSTRIP_STATUS = 0xE0
@@ -341,6 +343,11 @@ class CustomMaschineMK3(ControlSurface):
             elif self._swallow_lock_release:
                 self._swallow_lock_release = False
                 return False
+
+        if is_cc and midi_bytes[:2] in VIEW_BUTTONS and midi_bytes[2] > 0 and (not self._vdj_mode or midi_bytes[:2] in VDJ_EXIT_BUTTONS):
+            # Also when the view doesn't change (e.g. MIXER while already in the mixer)
+            with self.component_guard():
+                self.component_map["Encoder_Mode_Control"].reset_selected_mode()
 
         if self._vdj_mode:
             if is_cc and midi_bytes[:2] in VDJ_EXIT_BUTTONS and midi_bytes[2] > 0:
