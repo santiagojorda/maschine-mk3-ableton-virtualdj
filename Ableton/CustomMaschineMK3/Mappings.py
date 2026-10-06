@@ -464,6 +464,12 @@ def create_mappings(surface):
         notes_button = "notes"
     )
 
+    # PERFORM + A-H: user-assignable toggles (SHIFT + PERFORM + A-H assigns the last clicked parameter)
+    mappings["Perform_Buttons"] = dict(
+        buttons = "group_buttons_with_perform",
+        shift_button = "shift"
+    )
+
     mappings["Maschine_Playable"] = dict(
         pedal_tip_encoder = "pedaltip",
         pedal_ring_encoder = "pedalring",
