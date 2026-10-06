@@ -75,7 +75,7 @@ Cada programa lleva su propio estado; tienen que moverse igual con los mismos bo
 | Evento | Ableton (`_vdj_mode`, `_pad_lock`) | VirtualDJ (`$vdj`, `$padlock`, `$pads`) |
 |---|---|---|
 | Arranque | F, F | 0, 0, 0 |
-| SAMPLING | modo VDJ (ignora todo, no envía nada) | `$vdj`=1, `$pads`=1, key lock on |
+| SAMPLING | modo VDJ (ignora todo, no envía nada) | `$vdj`=1, `$pads`=1, key lock on; al entrar desde Ableton los pads pasan a PAD MODE (`$padpage` 1) salvo que el pad lock (`$padlock`) ya estuviera activo |
 | LOCK en modo VDJ | alterna `_pad_lock` | alterna `$padlock` (LED de LOCK) |
 | MIXER/PLUGIN | sale del modo; si `_pad_lock`, ignora la sección de pads y no pinta sus LEDs | `$vdj`=0, `$pads`=`$padlock` |
 | LOCK en Ableton con pads fijados | suelta (se traga apretar/soltar) y redibuja | `$padlock`=0, `$pads`=0 |

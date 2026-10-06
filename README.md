@@ -45,7 +45,7 @@ Incluye:
 
 | Control | Qué hace |
 |---|---|
-| **SAMPLING** | Pasa a VirtualDJ ("modo DJ"). Ableton deja de responder y de escribir luces y pantalla. Activa el key lock en los dos decks. |
+| **SAMPLING** | Pasa a VirtualDJ ("modo DJ"). Ableton deja de responder y de escribir luces y pantalla. Activa el key lock en los dos decks. Los pads arrancan en la página PAD MODE, salvo que LOCK ya los tuviera fijados a VirtualDJ (quedan donde estaban). |
 | **MIXER** / **PLUGIN** | Vuelve a Ableton (y entra a su modo mixer o dispositivo). |
 | **LOCK** en modo DJ | Fija los pads a VirtualDJ: al volver a Ableton, los pads y sus 4 botones de página siguen siendo de VirtualDJ. |
 | **LOCK** en Ableton | Suelta los pads fijados. Si no estaban fijados, hace su función normal de Ableton. |

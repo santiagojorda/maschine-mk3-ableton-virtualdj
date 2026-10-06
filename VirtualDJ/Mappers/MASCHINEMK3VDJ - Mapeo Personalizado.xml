@@ -10,7 +10,7 @@
 
 	<!-- SAMPLING pasa el control a VirtualDJ; MIXER o PLUGIN lo devuelven a Ableton.
 	     Con el modo apagado, el resto de los controles no hace nada en VirtualDJ -->
-	<map value="SAMPLING" action="set '$vdj' 1 &amp; set '$pads' 1 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock)" />
+	<map value="SAMPLING" action="(var '$vdj' ? nothing : (var '$padlock' ? nothing : set '$padpage' 1)) &amp; set '$vdj' 1 &amp; set '$pads' 1 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock)" />
 	<!-- Moverse por las vistas de Ableton (CHANNEL, BROWSER, SETTINGS, y MIXER / PLUGIN) apaga VOLUME / SWING / TEMPO, igual que en Ableton -->
 	<map value="CHANNEL" action="var '$vdj' ? nothing : set '$encmode' 0" />
 	<map value="BROWSER" action="var '$vdj' ? nothing : set '$encmode' 0" />
