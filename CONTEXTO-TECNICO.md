@@ -146,10 +146,9 @@ Confirmado por el usuario: modo SAMPLING/MIXER/PLUGIN, encoder/browser, crossfad
 - PITCH LOCK = `pitch_lock` (candado) y key lock forzado en las perillas de tempo.
 - ERASE + perilla 1-4 = `pitch_reset`.
 - Luz del pad SYNC y SYNC / NO SYNC en pantalla con la consulta `sync`.
-- Luces del touch strip en PITCH (Ableton, commit `17f2989`).
 - VOLUME / SWING / TEMPO exclusivos y compartidos (commits `228dddb`, `658309f`).
 - SHIFT en VirtualDJ (sysex `sysexin`): nunca se confirmó; si SHIFT + jog no salta, VirtualDJ no recibe el SHIFT.
 - "El pitch se mueve solo": probablemente Ableton Link o SYNC activo.
 
 ## Touch strip en modo PITCH (Ableton)
-En PITCH el pitch bend va directo al track (playable) y Live nunca lo devuelve, así que las luces no se movían. Ahora `pitchbend_encoder` / `pitchbend_reset` usan `MODE_PLAYABLE_LISTENABLE` (el track sigue recibiendo el pitch bend) y `_echo_pitch_touchstrip` en `CustomMaschineMK3.py` reenvía cada `E0` a las luces y manda el centro (`E0 00 40`) al soltar (`E1 7F 3F`). Solo con `TouchStrip_Modes` = `pitch` y fuera del modo DJ (commit 17f2989).
+**No tocar el forwarding del touch strip.** Se probó que las luces siguieran el dedo pasando `pitchbend_encoder` a `MODE_PLAYABLE_LISTENABLE` (ScriptForwarding.non_consuming) y reenviando cada `E0` a las luces: el script recibía el pitch bend pero **Ableton dejaba de pasárselo a la pista** y el pitch dejó de sonar (diagnosticado con un log temporal, el usuario confirmó que en el original siempre anduvo). Se revirtió (commit `bc0a6cb`): queda como el original (`MODE_PLAYABLE` = ScriptForwarding.none, el pitch bend va directo a la pista) y las luces del strip no siguen el dedo en PITCH.
