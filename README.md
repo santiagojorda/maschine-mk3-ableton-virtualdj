@@ -131,6 +131,7 @@ Los acentos no se ven (Windows MIDI los descarta).
 - En el Browser, la perilla 1 ya no cambia el volumen de la preescucha.
 - VOLUME / SWING / TEMPO también funcionan en el Browser y en Settings (antes ahí no hacían nada).
 - El note repeat arranca en **1/16**.
+- **PERFORM + A-H** ya no asigna el crossfader: los botones de grupo quedan libres para tus asignaciones MIDI en Ableton (Ctrl+M). PERFORM sigue poniendo el touch strip en crossfader.
 
 ## Modificar
 
