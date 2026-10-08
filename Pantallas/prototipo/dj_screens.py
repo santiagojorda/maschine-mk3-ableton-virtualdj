@@ -188,8 +188,10 @@ def start_vdj_port():
             continue
 
 
-PROJECT_NAME = "Maschine MK3 as Ableton Push"
-AUTHOR = "Santiago Jorda"
+PROJECT_TITLE = "MASCHINE MK3 AS PUSH"
+# Pantalla derecha del reposo: (texto, tamaño máximo, y, color)
+AUTHOR_LINES = (("by", 22, 70, (140, 140, 140)), ("@santiagojorda", 38, 100, (255, 255, 255)),
+                ("Maicol", 30, 155, (255, 150, 30)))
 
 
 def _truetype(name, size):
@@ -199,23 +201,28 @@ def _truetype(name, size):
         return ImageFont.load_default()
 
 
-def splash(status=None):
-    """Las pantallas de reposo, iguales para Ableton y para VirtualDJ: el nombre del proyecto a la izquierda y el
-    autor a la derecha; status (por ejemplo "ABLETON · sin conexión") va abajo del autor, en gris."""
+def _centered_text(draw, text, y, max_size, color, max_width=WIDTH - 40):
+    """Texto centrado en negrita; achica la letra hasta que entre en el ancho."""
+    size = max_size
+    font = _truetype("arialbd.ttf", size)
+    while size > 14 and draw.textlength(text, font=font) > max_width:
+        size -= 2
+        font = _truetype("arialbd.ttf", size)
+    draw.text(((WIDTH - draw.textlength(text, font=font)) / 2, y), text, fill=color, font=font)
+
+
+def splash(title=PROJECT_TITLE, status=None):
+    """Las pantallas de reposo, iguales para Ableton y para VirtualDJ. Izquierda: el título (el del proyecto, o el
+    del programa que falta) y abajo, en gris, qué hacer (status). Derecha: el autor."""
     left = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(left)
-    for line, size, y, color in (("MASCHINE MK3", 44, 70, (255, 255, 255)),
-                                 ("as Ableton Push", 30, 130, (255, 150, 30))):
-        font = _truetype("arialbd.ttf", size)
-        draw.text(((WIDTH - draw.textlength(line, font=font)) / 2, y), line, fill=color, font=font)
+    _centered_text(draw, title, 95, 40, (255, 255, 255))
+    if status:
+        _centered_text(draw, status, 165, 26, (150, 150, 150))
     right = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(right)
-    lines = [("by", 22, 85, (140, 140, 140)), (AUTHOR, 40, 115, (255, 255, 255))]
-    if status:
-        lines.append((status, 20, 190, (120, 120, 120)))
-    for line, size, y, color in lines:
-        font = _truetype("arialbd.ttf", size)
-        draw.text(((WIDTH - draw.textlength(line, font=font)) / 2, y), line, fill=color, font=font)
+    for line, size, y, color in AUTHOR_LINES:
+        _centered_text(draw, line, y, size, color)
     return left, right
 
 
@@ -265,7 +272,7 @@ def main():
 
     # Sin datos de Ableton (cerrado, o el script sin cargar): un cartel; nunca el último texto, que queda viejo
     # Reposo: Ableton cerrado, sin mandar datos o en standby (SHIFT + CHANNEL): la bienvenida del proyecto
-    idle_images = {"standby": splash(), "ableton": splash("ABLETON · sin conexión")}  # Ableton en reposo / sin datos
+    idle_images = {"standby": splash(), "ableton": splash(status="Iniciá Ableton")}  # en reposo / sin datos
     browser_view = BrowserView(config.get("browser"))
     mode = None
     showing_browser = False
@@ -292,7 +299,7 @@ def main():
                 displays.send_rgb(display, np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8))
 
     report = Throttled()
-    vdj_idle = splash("VIRTUAL DJ · sin conexión")
+    vdj_idle = splash("VIRTUAL DJ", "Iniciá VirtualDJ")
     vdj_idle_left = np.asarray(vdj_idle[0].crop((0, (HEIGHT - screens[0]["height"]) // 2, WIDTH,
                                                  (HEIGHT + screens[0]["height"]) // 2)))
     vdj_idle_right = np.asarray(vdj_idle[1])

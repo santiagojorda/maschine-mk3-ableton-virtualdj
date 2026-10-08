@@ -108,7 +108,7 @@ resolución o skin, ajustar las zonas en `prototipo/config.json`.
 ### Reposo (standby)
 
 En reposo la Maschine está apagada del todo: pads y botones sin luz y sin respuesta, y las pantallas muestran
-*MASCHINE MK3 as Ableton Push · by Santiago Jorda* en vez de lo que haya detrás. Pasa lo mismo cuando Ableton
+*MASCHINE MK3 AS PUSH* a la izquierda y *by @santiagojorda / Maicol* a la derecha, en vez de lo que haya detrás. Pasa lo mismo cuando Ableton
 está cerrado.
 
 | Control | Qué hace |
