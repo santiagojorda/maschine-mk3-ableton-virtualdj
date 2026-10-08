@@ -338,9 +338,11 @@ class MaschineLEDColors:
         Navigation = make_color(WHITE, LEVEL_2)
 
     class Zooming:
+        # A-H (the session overview): only the zone that is on the pads and the screens is lit. The zones that have
+        # clips (dim white) or a clip playing (green) stay off
         Selected = make_color(WHITE, LEVEL_4)
-        Stopped = make_color(WHITE, LEVEL_2)
-        Playing = make_color(GREEN, LEVEL_3)
+        Stopped = BasicColors.OFF
+        Playing = BasicColors.OFF
         Empty = BasicColors.OFF
 
     class ClipActions:
