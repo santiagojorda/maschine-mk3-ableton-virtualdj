@@ -73,6 +73,7 @@ from .CustomDeviceComponent import (
 )
 from .CustomDeviceNavigationComponent import CustomDeviceNavigationComponent
 from .SessionVolumeComponent import SessionVolumeComponent
+from .SessionZonesComponent import SessionZonesComponent
 from .CustomMixerComponent import CustomMixerComponent
 from .MaschineMixerComponent import MaschineMixerComponent
 from .CustomClipActionsComponent import CustomClipActionsComponent
@@ -251,6 +252,7 @@ class Specification(ControlSurfaceSpecification):
         "Pad_Lock": Component,
         "Device_Navigation": CustomDeviceNavigationComponent,
         "Session_Volume": SessionVolumeComponent,
+        "Session_Zones": SessionZonesComponent,
     }
     parameter_bank_definitions = CUSTOM_BANK_DEFINITIONS
 
@@ -732,7 +734,7 @@ class CustomMaschineMK3(ControlSurface):
             delta = SESSION_NAV_TILTS[key]
         with self.component_guard():
             if self.elements.shift.is_pressed:
-                self._move_session_ring(*delta)
+                self._move_session_ring(delta[0] * SESSION_GRID_STEP, delta[1])  # 4 tracks sideways, 1 scene
             else:
                 self._move_session_selection(*delta)
 
@@ -844,6 +846,7 @@ class CustomMaschineMK3(ControlSurface):
         ring = getattr(self, "_session_ring", None)
         if ring is None or self._standby:
             return
+        self.component_map["Session_Zones"].refresh()
         if self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE:
             # The mixer shows the same 8 tracks as the session grid, and a selected track outside the pads' grid
             # moves the grid (4 tracks at a time), as in the session view

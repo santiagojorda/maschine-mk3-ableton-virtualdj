@@ -136,12 +136,14 @@ El script arranca en reposo. Para que arranque despierto, poner `START_IN_STANDB
 | Girar la rueda | Mover el cursor de track en track |
 | Inclinar la rueda arriba / abajo | Mover el cursor de escena en escena |
 | Apretar la rueda | Lanzar el clip (o el slot) donde está el cursor |
-| SHIFT + girar / inclinar | Mover los pads y la grilla a mano |
+| SHIFT + girar / inclinar | Mover los pads y la grilla a mano: de a 4 tracks al costado, de a 1 escena |
+| A–H | Saltar de a 4 tracks: A son los tracks 1-4, B los 5-8, y así hasta H. Se prende solo la zona donde están los pads |
 | ◀ / ▶ | Perillas en el volumen de los 8 tracks / en el dispositivo seleccionado |
 | VARIATION | Borrar el clip del track fijado (Ctrl+Z lo recupera) |
 
-Cuando el cursor sale de los pads, los pads se corren 4 tracks; cuando salen de la grilla, la grilla se corre 4
-tracks. Hacia arriba o abajo, de a 1 escena.
+**Todo se mueve de a 4 tracks hacia los costados y de a 1 escena hacia arriba y abajo**: la grilla, los pads, el mixer,
+A–H y la inclinación de la rueda. Cuando el cursor sale de los pads, los pads se corren 4 tracks; cuando salen de la
+grilla, la grilla se corre 4 tracks.
 
 ### Perillas
 

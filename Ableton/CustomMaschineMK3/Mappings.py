@@ -85,15 +85,12 @@ def create_mappings(surface):
                     select_track_encoder = "encoder",
                     exclusive_arm_button = "encoderpush",
                     arm_button = "encoderpush_with_shift"),
+                # The grid moves 4 tracks sideways (a page) and 1 scene up / down
                 dict(component = "Session_Navigation",
                     up_button = "encoderup",
                     down_button = "encoderdown",
-                    left_button = "encoderleft",
-                    right_button = "encoderright",
-                    page_up_button = "encoderup_with_shift",
-                    page_down_button = "encoderdown_with_shift",
-                    page_left_button = "encoderleft_with_shift",
-                    page_right_button = "encoderright_with_shift",
+                    page_left_button = "encoderleft",
+                    page_right_button = "encoderright",
                 )]),
         device = dict(
             modes = [
@@ -283,8 +280,9 @@ def create_mappings(surface):
 
     mappings["Group_Button_Modes"] = dict(
         default = dict(
-            component = "Session_Overview",
-            matrix = "group_buttons",
+            # A-H = 8 zones of 4 tracks (the grid moves 4 tracks sideways, 1 scene up / down)
+            component = "Session_Zones",
+            zone_buttons = "group_buttons",
         ),
         keyboard = dict(
             component = "Maschine_Playable",
