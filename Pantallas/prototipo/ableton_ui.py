@@ -229,7 +229,7 @@ PLAYING = (60, 220, 90)
 PADS_FRAME = (0, 230, 80)  # marco de las columnas que están en los pads
 PADS_FRAME_WIDTH = 4
 RECORDING = (230, 50, 40)
-PLAYING_BORDER = (165, 165, 165)  # gris: el blanco queda para el clip seleccionado
+PLAYING_BORDER = PLAYING  # borde verde de los clips que suenan; el blanco queda para el clip seleccionado
 SESSION_TEXT = (0, 0, 0)  # en session todo el texto va en negro...
 TARGET_TEXT = (255, 255, 255)  # ...menos el del track seleccionado o fijado
 BLINK_SECONDS = 0.25
@@ -262,7 +262,7 @@ def _draw_clip(draw, box, slot, dim, text_color):
     name = _fit_text(draw, slot.get("name") or "", font, x1 - left - 4)
     draw.text((left, y0 + 5), name, font=font, fill=text_color)
     if slot.get("playing") or slot.get("recording"):
-        # Gris y no verde: el verde marca la zona de los pads y el blanco, el clip seleccionado
+        # Verde: los clips que suenan; el blanco queda para el clip seleccionado
         draw.rectangle(box, outline=PLAYING_BORDER if slot.get("playing") else RECORDING, width=3)
 
 
