@@ -384,6 +384,8 @@ def create_mappings(surface):
             modes = [
                 dict(component = "Session_Volume",
                     volume_controls = "knobs",
+                    # Mapped so Live forwards the knob touches: the screens draw a pop-up for each touched knob
+                    knob_touch_buttons = "knob_touch_buttons",
                     volume_page_button = "left",
                     fx_page_button = "right"),
                 dict(component = "Device"),

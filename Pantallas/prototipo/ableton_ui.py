@@ -395,10 +395,11 @@ class PopupTracker:
 
 
 def touched_knobs(state):
-    """Las perillas que se están tocando: la lista completa si el script la manda, si no la única activa."""
-    if "touched_all" in state:
-        return list(state["touched_all"])
-    return [state["touched"]] if state.get("touched", -1) >= 0 else []
+    """Las perillas que se están tocando: la lista del script más la activa (si la lista llega vacía, la activa vale)."""
+    knobs = set(state.get("touched_all") or [])
+    if state.get("touched", -1) >= 0:
+        knobs.add(state["touched"])
+    return sorted(knobs)
 
 
 def _draw_pads_frame(draw, display, ring_start, ring_end):

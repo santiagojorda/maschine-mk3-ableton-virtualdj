@@ -1186,7 +1186,7 @@ class CustomMaschineMK3(ControlSurface):
                 if button is not None and button.is_pressed:
                     touched.append(index)
         except Exception:
-            pass
+            self._log_error_once("touched knobs", traceback.format_exc())
         return touched
 
     @staticmethod

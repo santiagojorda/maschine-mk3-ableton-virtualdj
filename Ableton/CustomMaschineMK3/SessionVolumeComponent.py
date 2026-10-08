@@ -28,6 +28,7 @@ class SessionVolumeComponent(Component):
     """
 
     volume_controls = control_list(MappedControl)
+    knob_touch_buttons = control_list(ButtonControl, color = None)  # no action: only so the touches reach the script
     volume_page_button = ButtonControl(color = "DefaultButton.Off", on_color = "DefaultButton.On")
     fx_page_button = ButtonControl(color = "DefaultButton.Off", on_color = "DefaultButton.On")
 
