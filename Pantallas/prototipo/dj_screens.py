@@ -129,6 +129,7 @@ class Heartbeat:
             pass
 
 
+FIRST_CAPTURE_WAIT_SECONDS = 1.0  # tope de espera de la primera captura de VirtualDJ al entrar a DJ
 IDLE_BLANK_SECONDS = 15.0  # en reposo, cada cuánto se vuelven a apagar las luces
 VDJ_SILENT_SECONDS = 4.0  # un deck sonando manda su posición todo el tiempo
 
@@ -277,6 +278,15 @@ def main():
     last_full_refresh = time.perf_counter()
     last_port_check = time.perf_counter()
     last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
+    capture_mark = None  # al entrar a DJ: cuántas capturas había; se espera una más antes de dibujar
+    capture_deadline = 0.0
+
+    def blank_unused_bands():
+        # Si la zona capturada de una pantalla no la llena (height < 272), el resto tiene que quedar en negro
+        for display, screen in enumerate(screens):
+            if screen["height"] < HEIGHT:
+                displays.send_rgb(display, np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8))
+
     report = Throttled()
     vdj_idle = splash("VIRTUAL DJ · sin conexión")
     vdj_idle_left = np.asarray(vdj_idle[0].crop((0, (HEIGHT - screens[0]["height"]) // 2, WIDTH,
@@ -318,8 +328,11 @@ def main():
                   if hasattr(capture, "set_active"):
                       capture.set_active(mode == DJ)
                   if mode == DJ:
-                      # Las bandas fuera de la zona de cada pantalla quedan en negro desde acá
-                      displays.clear()
+                      # Sin pasar por negro: lo que había se queda hasta que llega la primera captura nueva (la que
+                      # está guardada es de la vez anterior en DJ)
+                      capture_mark = getattr(capture, "captures", None)
+                      capture_deadline = time.perf_counter() + FIRST_CAPTURE_WAIT_SECONDS
+                      blank_unused_bands()
 
               browser = mode == DJ and watcher.browser
               if browser != showing_browser:
@@ -328,8 +341,6 @@ def main():
                   last_sent = [None, None]
                   last_frame = [None, None]
                   next_due = [0.0, 0.0]
-                  if mode == DJ and not browser:
-                      displays.clear()
 
               if mode != DJ:
                   frame_start = time.perf_counter()
@@ -393,6 +404,13 @@ def main():
                       stats_start = time.perf_counter()
                   time.sleep(max(0.0, 1.0 / ABLETON_FPS - (time.perf_counter() - frame_start)))
                   continue
+
+              if capture_mark is not None:
+                  if getattr(capture, "captures", capture_mark + 1) <= capture_mark \
+                          and time.perf_counter() < capture_deadline:
+                      time.sleep(0.01)
+                      continue
+                  capture_mark = None
 
               now = time.perf_counter()
               vdj_open = capture.process_started() is not None if hasattr(capture, "process_started") else True
