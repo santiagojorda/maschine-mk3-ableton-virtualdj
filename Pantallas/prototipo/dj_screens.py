@@ -188,7 +188,9 @@ def start_vdj_port():
             continue
 
 
-PROJECT_TITLE = "MASCHINE MK3 AS PUSH"
+WHITE = (255, 255, 255)
+YELLOW = (255, 210, 0)
+PROJECT_TITLE = (("MASCHINE", WHITE), ("as push", YELLOW))
 # Pantalla derecha del reposo: (texto, tamaño máximo, y, color)
 AUTHOR_LINES = (("by", 22, 70, (140, 140, 140)), ("@santiagojorda", 38, 100, (255, 255, 255)),
                 ("Maicol", 30, 155, (255, 150, 30)))
@@ -213,12 +215,18 @@ def _centered_text(draw, text, y, max_size, color, max_width=WIDTH - 40):
 
 def splash(title=PROJECT_TITLE, status=None):
     """Las pantallas de reposo, iguales para Ableton y para VirtualDJ. Izquierda: el título (el del proyecto, o el
-    del programa que falta) y abajo, en gris, qué hacer (status). Derecha: el autor."""
+    del programa que falta; un texto o varias líneas con su color) y abajo, en gris, qué hacer (status). Derecha:
+    el autor."""
+    lines = ((title, WHITE),) if isinstance(title, str) else title
     left = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(left)
-    _centered_text(draw, title, 95, 40, (255, 255, 255))
+    y = 85 - (len(lines) - 1) * 24
+    for index, (line, color) in enumerate(lines):
+        size = 52 if index == 0 else 42
+        _centered_text(draw, line, y, size, color)
+        y += size + 12
     if status:
-        _centered_text(draw, status, 165, 26, (150, 150, 150))
+        _centered_text(draw, status, 190, 26, (150, 150, 150))
     right = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(right)
     for line, size, y, color in AUTHOR_LINES:
