@@ -872,7 +872,7 @@ class CustomMaschineMK3(ControlSurface):
         ring, tracks, _ = self._session_tracks_and_scenes()
         new_offset = min(max(ring.track_offset + direction * SESSION_GRID_STEP, 0), max(len(tracks) - 1, 0))
         if new_offset == ring.track_offset:
-            self._c_instance.show_message("No more tracks that way")
+            self._log(f"grid already at the {'end' if direction > 0 else 'start'} of the tracks")  # nothing shown
             return
         ring.set_offsets(new_offset, ring.scene_offset)
 
