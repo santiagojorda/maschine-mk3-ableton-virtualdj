@@ -158,6 +158,8 @@ KNOB_TOUCH_CCS = tuple((0xB1, 10 + index) for index in range(KNOB_COUNT))
 # RESTART + touching a knob sets it to its default value; RESTART alone still toggles the loop, on release
 RESTART_BUTTON = (0xB1, 53)
 SOLO_BUTTON = (0xB1, 91)
+# EVENTS in the session view: a new scene under the cursor's, the cursor's clip stopped, the cursor moved there
+NEW_SCENE_BUTTON = (0xB1, 87)
 ERASE_DOUBLE_TOUCH_SECONDS = 0.4
 MIXER_DISPLAY_MODE = "default"
 # ARRANGER shows Live's Session view and the clip grid on the Maschine's screens (both screens: 4 tracks each);
@@ -545,6 +547,12 @@ class CustomMaschineMK3(ControlSurface):
             # MACRO held they still change the mixer page: volume, pan, sends)
             if midi_bytes[2] > 0:
                 self._scroll_grid(1 if midi_bytes[:2] == RIGHT_BUTTON else -1)
+            return False
+
+        if (is_cc and midi_bytes[:2] == NEW_SCENE_BUTTON and not self._vdj_mode and self._session_view
+                and not self.elements.erase.is_pressed):
+            if midi_bytes[2] > 0:
+                self._new_scene_below_cursor()
             return False
 
         if is_cc and midi_bytes[:2] == DELETE_CLIP_BUTTON and not self._vdj_mode:
@@ -1041,6 +1049,18 @@ class CustomMaschineMK3(ControlSurface):
             self._c_instance.show_message("That knob doesn't control a track")
             return None
         return owner
+
+    def _new_scene_below_cursor(self):
+        # A new empty scene under the selected one: the clip of the cursor's track stops (the other tracks keep
+        # playing) and the cursor goes to the new scene, so the next clip of that track is recorded or put there
+        view = self.song.view
+        scenes = list(self.song.scenes)
+        position = scenes.index(view.selected_scene) + 1 if view.selected_scene in scenes else len(scenes)
+        track = view.selected_track
+        if liveobj_valid(track) and len(getattr(track, "clip_slots", ())) > 0:
+            track.stop_all_clips()
+        view.selected_scene = self.song.create_scene(position)
+        self._log(f"EVENTS: new scene {position + 1}, the cursor's track stopped, the cursor is there")
 
     def _clear_prelisten(self):
         count = 0
