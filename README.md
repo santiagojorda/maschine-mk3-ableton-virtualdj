@@ -213,7 +213,7 @@ Botones 1-4 sobre la pantalla: **DRUMLESS** (sin kick ni hats) y **BATERÍA** (s
   - script de Ableton: `Preferences\Log.txt` de Live (líneas `CustomMaschineMK3:`) y `CustomMaschineMK3.log`
     (detalle del marco, se apaga con `LOGGING = False` en `Config.py`);
   - pantallas y supervisor: `%LOCALAPPDATA%\MaschineMK3AsPush\pantallas.log`;
-  - puerto de datos de VirtualDJ: `%LOCALAPPDATA%\MaschineMK3AsPushdj_puerto.log`.
+  - puerto de datos de VirtualDJ: `%LOCALAPPDATA%\MaschineMK3AsPush\vdj_puerto.log`.
 - **Pantallas:** más detalles en
   [`Pantallas/README.md`](Pantallas/README.md) y [`CONTEXTO-TECNICO.md`](CONTEXTO-TECNICO.md).
 
