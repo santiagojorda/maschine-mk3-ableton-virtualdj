@@ -157,6 +157,7 @@ KNOB_COUNT = 8
 KNOB_TOUCH_CCS = tuple((0xB1, 10 + index) for index in range(KNOB_COUNT))
 # RESTART + touching a knob sets it to its default value; RESTART alone still toggles the loop, on release
 RESTART_BUTTON = (0xB1, 53)
+SOLO_BUTTON = (0xB1, 91)
 ERASE_DOUBLE_TOUCH_SECONDS = 0.4
 MIXER_DISPLAY_MODE = "default"
 # ARRANGER shows Live's Session view and the clip grid on the Maschine's screens (both screens: 4 tracks each);
@@ -312,6 +313,8 @@ class CustomMaschineMK3(ControlSurface):
     _screen_bridge_stall_logged = False
     _restart_held = False
     _restart_used = False
+    _follow_held = False
+    _follow_used = False
     _erase_touch = (None, 0.0)  # (knob index, time) of the last ERASE + knob touch
     _browser_bridge_key = None  # browser folder whose items are cached for the screens
     _browser_bridge_items = ()
@@ -451,11 +454,25 @@ class CustomMaschineMK3(ControlSurface):
                     self._set_vdj_mode(True)
             return False
 
+        # FOLLOW is also a modifier: FOLLOW + knob launches the clip of that knob's track in the cursor's scene, so
+        # Link toggles on release, only if no knob was touched meanwhile
         if is_cc and midi_bytes[:2] == LINK_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
-                self.song.is_ableton_link_enabled = not self.song.is_ableton_link_enabled
-                self._c_instance.log_message(f"CustomMaschineMK3: Ableton Link = {self.song.is_ableton_link_enabled}")
-                self._update_link_led()
+                self._follow_held, self._follow_used = True, False
+            else:
+                if self._follow_held and not self._follow_used:
+                    self.song.is_ableton_link_enabled = not self.song.is_ableton_link_enabled
+                    self._c_instance.log_message(f"CustomMaschineMK3: Ableton Link = {self.song.is_ableton_link_enabled}")
+                    self._update_link_led()
+                self._follow_held = False
+            return False
+
+        # RESTART + SOLO (in either order): every track out of the prelisten / solo
+        if (is_cc and midi_bytes[2] > 0 and not self._vdj_mode
+                and ((midi_bytes[:2] == SOLO_BUTTON and self._restart_held)
+                     or (midi_bytes[:2] == RESTART_BUTTON and self.elements.solo.is_pressed))):
+            self._restart_held, self._restart_used = midi_bytes[:2] == RESTART_BUTTON or self._restart_held, True
+            self._clear_prelisten()
             return False
 
         if is_cc and midi_bytes[:2] == PAD_LOCK_BUTTON:
@@ -507,6 +524,13 @@ class CustomMaschineMK3(ControlSurface):
             elif self.elements.mute.is_pressed and volume_view:
                 # MUTE + knob: stop the clip playing on that knob's track
                 self._stop_knob_track_clip(index)
+            elif self.elements.solo.is_pressed and volume_view:
+                # SOLO + knob: that knob's track to the prelisten (solo / cue, as Live's Solo / Cue switch says)
+                self._toggle_knob_track_prelisten(index)
+            elif self._follow_held and volume_view:
+                # FOLLOW + knob: launch the clip of that knob's track in the scene under the cursor
+                self._follow_used = True
+                self._launch_knob_track_clip(index)
 
         if (is_cc and not self._vdj_mode and self._session_view
                 and (midi_bytes[:2] in (SESSION_NAV_TURN, SESSION_NAV_PUSH) or midi_bytes[:2] in SESSION_NAV_TILTS)
@@ -1007,14 +1031,49 @@ class CustomMaschineMK3(ControlSurface):
             value = 0.0 if parameter.min < 0 < parameter.max else parameter.min
         parameter.value = min(max(value, parameter.min), parameter.max)
 
-    def _stop_knob_track_clip(self, index):
+    def _knob_track(self, index, what):
         # The track of a knob is the owner of the parameter it controls (volume, pan or send of a track). In the
-        # device page of the session view the knobs control a device, not a track: nothing to stop there
+        # device page of the session view the knobs control a device, not a track: nothing to do there
         parameter = self._get_knob_mapped_parameter(index)
         owner = parameter_owner(parameter) if liveobj_valid(parameter) else None
         if not isinstance(owner, Live.Track.Track):
-            self._log(f"MUTE + knob {index + 1}: that knob doesn't control a track")
+            self._log(f"{what} + knob {index + 1}: that knob doesn't control a track")
             self._c_instance.show_message("That knob doesn't control a track")
+            return None
+        return owner
+
+    def _clear_prelisten(self):
+        count = 0
+        for track in list(self.song.tracks) + list(self.song.return_tracks):
+            if track.solo:
+                track.solo = False
+                count += 1
+        self._log(f"RESTART + SOLO: {count} tracks out of the prelisten")
+
+    def _toggle_knob_track_prelisten(self, index):
+        track = self._knob_track(index, "SOLO")
+        if track is None:
+            return
+        track.solo = not track.solo
+        self._log(f"SOLO + knob {index + 1}: '{track.name}' prelisten = {track.solo}")
+
+    def _launch_knob_track_clip(self, index):
+        track = self._knob_track(index, "FOLLOW")
+        scene = self.song.view.selected_scene
+        scenes = list(self.song.scenes)
+        if track is None or scene not in scenes:
+            return
+        slots = getattr(track, "clip_slots", ())
+        position = scenes.index(scene)
+        if position >= len(slots) or not slots[position].has_clip:
+            self._log(f"FOLLOW + knob {index + 1}: no clip on '{track.name}' in scene {position + 1}")
+            return
+        slots[position].fire()
+        self._log(f"FOLLOW + knob {index + 1}: launched '{slots[position].clip.name}' on '{track.name}' (scene {position + 1})")
+
+    def _stop_knob_track_clip(self, index):
+        owner = self._knob_track(index, "MUTE")
+        if owner is None:
             return
         try:
             has_clips = len(owner.clip_slots) > 0

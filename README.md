@@ -153,6 +153,9 @@ grilla, la grilla se corre 4 tracks.
 | ERASE + doble toque | A cero (mixer y vista session) |
 | **SHIFT + RESTART** | Todos los volúmenes del mixer (tracks y retornos) a su valor por defecto; el master no se toca |
 | MUTE + tocar | Detiene el clip que suena en el track de esa perilla (mixer y vista session) |
+| SOLO + tocar | Pone el track de esa perilla en la preescucha (o la saca) |
+| RESTART + SOLO | Saca a todos los tracks de la preescucha |
+| FOLLOW + tocar | Lanza el clip del track de esa perilla en la escena donde está el cursor (FOLLOW solo sigue activando Ableton Link, al soltarlo) |
 
 ### Browser
 
