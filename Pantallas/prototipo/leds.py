@@ -11,8 +11,10 @@ import time
 import mido
 
 PAD_NOTES = range(60, 76)  # notas de los 16 pads (canal 1)
-BUTTON_NOTES = range(8)  # botones 1-8 sobre las pantallas (canal 2)
-BUTTON_CCS = range(128)  # el resto de los botones: CC en el canal 2
+BUTTON_NOTES = range(4)  # botones 1-4 sobre las pantallas (canal 2)
+# Solo los controles que son luces. Mandarle algo a los 128 también toca los mensajes especiales de MIDI
+# (CC 120-127, RPN / NRPN, bank select...) y puede dejar a la Maschine en un estado raro
+BUTTON_CCS = (34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 47, 48, 49, 52, 53, 55, 56, 57, 58, 59, 80, 81, 82, 83, 84, 87, 88, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111)
 GAP_SECONDS = 0.0005  # la Maschine pierde luces si se le manda todo de golpe
 
 

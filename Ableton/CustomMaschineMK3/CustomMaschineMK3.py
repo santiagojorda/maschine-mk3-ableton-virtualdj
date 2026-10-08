@@ -102,8 +102,10 @@ VDJ_ENTER_BUTTON = (0xB1, 39)
 # and so do the mode buttons (SAMPLING also enters VirtualDJ mode, MIXER and PLUGIN select their view)
 STANDBY_BUTTON = (0xB1, 34)
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
-STANDBY_LED_CCS = range(128)
-STANDBY_LED_NOTES = range(8)  # buttons 1-8 above the screens (channel 2)
+# Only the controllers that are LEDs: sending a value to all 128 also hits MIDI's special messages
+# (CC 120-127 channel mode, RPN / NRPN, bank select...) and can leave the Maschine in an odd state
+STANDBY_LED_CCS = (34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 47, 48, 49, 52, 53, 55, 56, 57, 58, 59, 80, 81, 82, 83, 84, 87, 88, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111)
+STANDBY_LED_NOTES = range(4)  # buttons 1-4 above the screens (channel 2)
 VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
 # Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP, TAP (messages and their LEDs).
 # SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP and SHIFT + TAP (metronome) work too.

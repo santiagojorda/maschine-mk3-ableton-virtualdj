@@ -27,6 +27,7 @@ HERE = Path(__file__).resolve().parent
 LOG_PATH = DATA_DIR / "pantallas.log"
 LOG_MAX_BYTES = 5 * 1024 * 1024
 HEARTBEAT_FILE = DATA_DIR / "dj_screens.heartbeat"
+STOP_FILE = DATA_DIR / "detener"  # dj_screens.py lo mira y se cierra solo, terminando el cuadro que manda
 ALREADY_RUNNING = 2
 SINGLE_INSTANCE_ADDRESS = ("127.0.0.1", 9020)
 HEARTBEAT_TIMEOUT = 15.0  # sin pulso por más que esto = colgado
@@ -96,6 +97,21 @@ class Screens:
     def _copy_output(self, process):
         for raw in process.stdout:
             self._log.write(raw.decode("utf-8", "replace"))
+
+    def stop_gracefully(self, timeout=8.0):
+        """Pide el cierre ordenado y espera; matarlo a la fuerza en medio de una transferencia USB puede dejar
+        a la Maschine esperando el resto de un cuadro."""
+        if self.process is None:
+            return
+        STOP_FILE.write_text("1", encoding="ascii")
+        try:
+            self.process.wait(timeout=timeout)
+            self._log.write("[supervisor] dj_screens.py se cerró en orden")
+        except subprocess.TimeoutExpired:
+            self._log.write("[supervisor] dj_screens.py no cerró a tiempo: lo fuerzo")
+            kill_tree(self.process.pid)
+        STOP_FILE.unlink(missing_ok=True)
+        self.process = None
 
     def stop(self, reason):
         if self.process is None:
@@ -188,8 +204,7 @@ def main():
     except KeyboardInterrupt:
         log.write("[supervisor] cerrado con Ctrl+C")
     finally:
-        if screens.process is not None:
-            kill_tree(screens.process.pid)
+        screens.stop_gracefully()
         if _port_process is not None and _port_process.poll() is None:
             kill_tree(_port_process.pid)
     return 0

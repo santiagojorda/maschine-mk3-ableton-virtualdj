@@ -98,6 +98,7 @@ def load_config(path):
 
 
 HEARTBEAT_FILE = DATA_DIR / "dj_screens.heartbeat"
+STOP_FILE = DATA_DIR / "detener"  # el supervisor lo crea para pedir un cierre ordenado
 MODE_FILE = DATA_DIR / "ultimo_modo.txt"  # para volver al mismo modo tras un reinicio
 
 
@@ -255,6 +256,7 @@ def main():
     screens = [config["screens"][name] for name in SCREEN_NAMES]
 
     set_dpi_aware()
+    STOP_FILE.unlink(missing_ok=True)  # uno viejo cerraría el programa apenas arranque
     beat = Heartbeat()
     beat()
     displays = MaschineDisplays.wait_for_device(on_wait=beat)
@@ -308,6 +310,9 @@ def main():
     try:
         while True:
           beat()
+          if STOP_FILE.exists():
+              print("Cierre ordenado pedido por el supervisor")
+              break
           try:
               # Lo que se puede caer sin que el prototipo se entere: el puerto MIDI de la Maschine
               # (al apagarla) y vdj_puerto.py (se vuelve a lanzar)
@@ -508,7 +513,9 @@ def main():
             vdj_data.close()
         capture.close()
         try:
-            displays.clear()
+            # Al cerrar quedan en las pantallas la bienvenida (el reposo), no un cuadro cortado
+            for display, image in enumerate(splash()):
+                displays.send_image(display, image)
         except Exception:
             pass
         finally:
