@@ -149,7 +149,7 @@ tracks. Hacia arriba o abajo, de a 1 escena.
 |---|---|
 | RESTART + tocar una perilla | Valor por defecto (en el mixer, volumen a 0 dB) |
 | ERASE + doble toque | A cero (mixer y vista session) |
-| **RESTART + STEP** | Todos los volúmenes del mixer (tracks y retornos) a su valor por defecto; el master no se toca |
+| **SHIFT + RESTART** | Todos los volúmenes del mixer (tracks y retornos) a su valor por defecto; el master no se toca |
 | MUTE + tocar | A cero; repetirlo vuelve al valor anterior (mixer y vista session) |
 
 ### Browser
@@ -196,7 +196,7 @@ Botones 1-4 sobre la pantalla: **DRUMLESS** (sin kick ni hats) y **BATERÍA** (s
 | Perillas 5 / 6 | Volumen del deck 1 / 2 |
 | Perillas 7 / 8 | Filtro del deck 1 / 2 |
 | RESTART + tocar una perilla | Jog: inicio del tema. Las demás: valor por defecto |
-| SHIFT + RESTART | Apaga todos los efectos, filtros al centro y volúmenes al 100 % (el tempo no cambia) |
+| SHIFT + RESTART | Apaga todos los efectos de los dos decks y pone los dos filtros en el centro |
 | A / C / E / G | Deck 1: Reverb / Flanger / Echo / preescucha |
 | B / D / F / H | Deck 2: lo mismo |
 | ◀ / ▶ | Elegir el deck 1 / 2 |

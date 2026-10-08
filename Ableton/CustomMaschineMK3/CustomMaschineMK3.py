@@ -143,7 +143,6 @@ KNOB_COUNT = 8
 KNOB_TOUCH_CCS = tuple((0xB1, 10 + index) for index in range(KNOB_COUNT))
 # RESTART + touching a knob sets it to its default value; RESTART alone still toggles the loop, on release
 RESTART_BUTTON = (0xB1, 53)
-STEP_BUTTON = (0xB1, 84)  # RESTART + STEP: every volume in the mixer back to its default
 ERASE_DOUBLE_TOUCH_SECONDS = 0.4
 MIXER_DISPLAY_MODE = "default"
 # ARRANGER shows Live's Session view and the clip grid on the Maschine's screens (both screens: 4 tracks each);
@@ -459,16 +458,15 @@ class CustomMaschineMK3(ControlSurface):
         if is_cc and midi_bytes[:2] == RESTART_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
                 self._restart_held, self._restart_used = True, False
+                if self._shift_down or self.elements.shift.is_pressed:
+                    # SHIFT + RESTART: every volume in the mixer back to its default (not the loop toggle)
+                    self._restart_used = True
+                    self._reset_all_volumes()
             else:
                 if self._restart_held and not self._restart_used:
                     self.song.loop = not self.song.loop
                 self._restart_held = False
             return False
-
-        if is_cc and midi_bytes[:2] == STEP_BUTTON and midi_bytes[2] > 0 and self._restart_held and not self._vdj_mode:
-            self._restart_used = True  # so letting go of RESTART doesn't toggle the loop
-            self._reset_all_volumes()
-            return False  # STEP's own function (the pad page) is not used with RESTART
 
         if is_cc and midi_bytes[:2] in KNOB_TOUCH_CCS and midi_bytes[2] > 0 and not self._vdj_mode:
             index = KNOB_TOUCH_CCS.index(midi_bytes[:2])

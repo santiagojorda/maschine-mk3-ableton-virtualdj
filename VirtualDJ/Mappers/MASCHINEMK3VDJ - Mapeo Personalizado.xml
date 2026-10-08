@@ -115,7 +115,7 @@
 	<!-- Transporte (deck seleccionado con LEFT / RIGHT). PLAY y STOP (y SHIFT + STOP) son de Ableton tambien en modo DJ -->
 	<!-- RESTART + tocar la perilla 1 / 2 = inicio del tema del deck 1 / 2 ($restart 1 = apretado, 2 = ya se uso con una perilla).
 	     RESTART solo = inicio del tema del deck elegido, al soltarlo y solo si no se toco una perilla -->
-	<map value="RESTART" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 29 : nothing) : (param_bigger 0.5 ? (var '$shift' ? (var '$vdj' ? (deck 1 effect_active 1 off &amp; deck 1 effect_active 2 off &amp; deck 1 effect_active 3 off &amp; deck 2 effect_active 1 off &amp; deck 2 effect_active 2 off &amp; deck 2 effect_active 3 off &amp; deck 1 filter 50% &amp; deck 1 volume 100% &amp; deck 2 filter 50% &amp; deck 2 volume 100% &amp; set '$restart' 2) : nothing) : set '$restart' 1) : set '$restart' 0)" />
+	<map value="RESTART" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 29 : nothing) : (param_bigger 0.5 ? (var '$shift' ? (var '$vdj' ? (deck 1 effect_active 1 off &amp; deck 1 effect_active 2 off &amp; deck 1 effect_active 3 off &amp; deck 2 effect_active 1 off &amp; deck 2 effect_active 2 off &amp; deck 2 effect_active 3 off &amp; deck 1 filter 50% &amp; deck 2 filter 50% &amp; set '$restart' 2) : nothing) : set '$restart' 1) : set '$restart' 0)" />
 	<map value="LEFT" action="var '$select' 1 ? (set '$help' 30) : (var '$vdj' ? (deck 1 select) : nothing)" />
 	<map value="RIGHT" action="var '$select' 1 ? (set '$help' 31) : (var '$vdj' ? (deck 2 select) : nothing)" />
 	<!-- STOP pausa el tema donde esta (no vuelve al cue) -->
@@ -283,7 +283,7 @@
 	<!-- Tocar una perilla de mezcla muestra su nombre y valor: perillas 1-4 en la pantalla izquierda, 5-8 en la derecha.
 	     ERASE + tocar: vuelve al centro (volumen al 100%; en los jogs y en las perillas de BPM, ERASE + tocar vuelve al tempo original de a poco) -->
 	<map value="ERASE" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 44 : nothing) : (param_bigger 0.5 ? set '$erase' 1 : set '$erase' 0)" />
-	<!-- RESTART solo no hace nada. SHIFT + RESTART: apaga los efectos de los dos decks y pone filtros al centro y volumenes al 100% (el tempo no).
+	<!-- RESTART solo no hace nada. SHIFT + RESTART: apaga los efectos de los dos decks y pone los filtros al centro (volumenes y tempo no).
 	     RESTART + tocar una perilla: inicio del tema (jogs 1-2) o valor por defecto (tempo, volumen 100%, filtro al centro), como en Ableton.
 	     ERASE + tocar sigue reseteando igual. -->
 	<map value="KNOB1_TOUCH" action="param_bigger 0.5 ? ((var '$vdj' ? (var '$erase' ? deck 1 pitch_reset : (var '$restart' 0 ? nothing : (deck 1 goto_start &amp; set '$restart' 2))) : nothing) &amp; set '$knob' 1) : set '$knob' 0" />
