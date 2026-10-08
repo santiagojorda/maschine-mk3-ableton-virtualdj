@@ -32,7 +32,8 @@
   <button cc="0x32" value="0x7F" off="0x00" channel="1" name="MOD" />
   <button cc="0x33" value="0x7F" off="0x00" channel="1" name="PERFORM" />
   <slider cc="0x34" channel="1" ghost="false" name="NOTES" />
-  <button cc="0x35" value="0x7F" off="0x00" channel="1" name="RESTART" />
+  <!-- RESTART es slider (como ERASE) para saber cuando se suelta: tambien es modificador de las perillas 1-2 -->
+  <slider cc="0x35" channel="1" ghost="false" name="RESTART" />
   <slider cc="0x36" channel="1" ghost="false" name="ERASE" />
   <button cc="0x37" value="0x7F" off="0x00" channel="1" name="TAP" />
   <button cc="0x38" value="0x7F" off="0x00" channel="1" name="FOLLOW" />
@@ -72,10 +73,11 @@
   <button cc="0x6B" value="0x7F" off="0x00" channel="1" name="GROUP_H" />
 
   <!-- 8 botones sobre la pantalla (notas 0-7, MIDI ch 2) -->
-  <button note="0x00" channel="1" name="BTN1" />
-  <button note="0x01" channel="1" name="BTN2" />
-  <button note="0x02" channel="1" name="BTN3" />
-  <button note="0x03" channel="1" name="BTN4" />
+  <!-- 1-4 son slider (como ERASE): VirtualDJ corre la accion de un boton tambien al soltarlo y deshacia el toggle de stems -->
+  <slider note="0x00" channel="1" ghost="no" name="BTN1" />
+  <slider note="0x01" channel="1" ghost="no" name="BTN2" />
+  <slider note="0x02" channel="1" ghost="no" name="BTN3" />
+  <slider note="0x03" channel="1" ghost="no" name="BTN4" />
   <button note="0x04" channel="1" name="BTN5" />
   <button note="0x05" channel="1" name="BTN6" />
   <button note="0x06" channel="1" name="BTN7" />

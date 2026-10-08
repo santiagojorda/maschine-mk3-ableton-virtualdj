@@ -29,6 +29,7 @@ from .Logger import logger
 from . import Config
 
 COLLECTION_COLORS = ["Red", "Orange", "Yellow", "Green", "Blue", "Purple", "Gray"]
+USER_LIBRARY_NAME = "User Library"
 
 class BrowserCollectionRootItem:
 
@@ -122,6 +123,7 @@ class BrowserRootItem:
             WrapBrowserItem(browser.plugins, "Plug-Ins"),
             browser.packs,
             WrapBrowserItem(browser.current_project, "Current Project"),
+            WrapBrowserItem(browser.user_library, USER_LIBRARY_NAME),
             BrowserUserFoldersRootItem(browser)]
 
 
@@ -326,6 +328,8 @@ class BrowserComponent(Component, Renderable):
         self._browser = self.application.browser
         self._root_item = BrowserRootItem(self._browser)
         self._explorer = BrowserTreeExplorer(self._root_item)
+        # Opens inside the User Library; leaving it (left) shows everything else
+        self._enter_user_library()
 
         # Folder iteration related
         self.selected_item_name = self._explorer.selected_item.name
@@ -346,6 +350,12 @@ class BrowserComponent(Component, Renderable):
         # It seems be not triggered on Live 12.3.5
         self._on_hotswap_filter_type_changed.subject = self._browser
         self._on_hotswap_target_changed.subject = self._browser
+
+    def _enter_user_library(self):
+        for item in self._root_item.children:
+            if item.name == USER_LIBRARY_NAME:
+                self._explorer.force_navigate_to([self._root_item, item])
+                return
 
     def set_display_modes(self, modes):
         self._display_modes = modes

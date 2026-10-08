@@ -2,3 +2,6 @@
 *.bundle
 __pycache__/
 *.pyc
+Pantallas/.venv/
+Pantallas/prototipo/config.json
+.venv/

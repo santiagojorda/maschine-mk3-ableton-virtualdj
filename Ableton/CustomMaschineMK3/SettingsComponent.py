@@ -166,9 +166,9 @@ SETTINGS = [
     },
     {
         "key": "__version",
-        "description": "CustomMaschineMK3 by chiaki",
+        "description": "Maschine MK3 as Ableton Push",
         "type": "none",
-        "default_value": "Version 1.4",
+        "default_value": "by Santiago Jorda",
     },    
 ]
 

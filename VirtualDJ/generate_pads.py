@@ -46,7 +46,8 @@ TRANSPORT = [
     # Luz: fuerte en los dos pads SYNC cuando los decks estan sincronizados (SYNCED).
     # No usar la consulta "sync": titila con el ritmo aunque el deck no este sincronizado.
     (1, 1, "sync", f"({SYNCED})", f"({SYNCED}) ? false : true", YELLOW, "SYNC"),  # arriba de PAUSA (INICIO se saco)
-    (2, 0, "loop 4", "loop", "loop ? false : true", VIOLET, "LOOP 4"),
+    # LOOP prende y apaga el loop con el largo que tenga (1/2, x2 lo cambian); "loop 4" lo volvia siempre a 4
+    (2, 0, "loop", "loop", "loop ? false : true", VIOLET, "LOOP"),
     # PITCH LOCK = el candado de VirtualDJ (pitch_lock). El key lock (no cambia el tono) queda siempre activo:
     # se activa al entrar a SAMPLING y en cada cambio de tempo con las perillas 3-4
     (2, 1, "pitch_lock", "pitch_lock", "pitch_lock ? false : true", ORANGE, "PITCH LOCK"),
@@ -67,13 +68,26 @@ STEM_NAMES = ["Vocal", "Instru", "Bass", "Kick", "HiHat"]
 # Despues de RESET quedan prendidos todos. DECK se reemplaza por "deck n".
 # Se usa stem_pad, igual que la pagina de stems propia de VirtualDJ: como consulta es true mientras el stem
 # suena, y como accion alterna el mute. (mute_stem como consulta no queda claro y DRUMLESS terminaba sacando la voz.)
+# El estado de cada stem lo guarda el mapeo en '$muteN_<stem>' (1 = silenciado), en vez de preguntarle a
+# VirtualDJ con stem_pad: como consulta no queda claro qué devuelve, y los toggles (INSTRUMENTAL, botones 1-4)
+# no volvían. #N se reemplaza por el número de deck. RESET pone todo en 0.
+def muted_var(name):
+    return f"'$mute#N_{name.lower()}'"
+
+
 def playing(name):
-    return f"DECK stem_pad '{name.lower()}'"
+    return f"var {muted_var(name)} 0"
 
 
-def set_mute(name, muted):  # cada stem se toca solo si hace falta
-    toggle = playing(name)
-    return f"({playing(name)} ? {toggle if muted else 'nothing'} : {'nothing' if muted else toggle})"
+# Las acciones fijan el estado con mute_stem on / off. stem_pad como accion en un pad es un toggle temporal
+# si se mantiene apretado, y dos stem_pad en la misma accion (INSTRUMENTAL) VirtualDJ los toma como dos pads
+# juntos: INSTRUMENTAL no volvia. Las consultas siguen con stem_pad.
+def set_mute(name, muted):
+    return f"(DECK mute_stem '{name.lower()}' {'on' if muted else 'off'} & set {muted_var(name)} {1 if muted else 0})"
+
+
+def toggle(name):  # VOZ, KICK, HATS: si suena lo silencia, si no lo prende
+    return f"({playing(name)} ? {set_mute(name, True)} : {set_mute(name, False)})"
 
 
 def all_playing(names):
@@ -111,11 +125,22 @@ INSTRUMENTS_ON = all_playing(["Instru", "Bass"])
 INSTRUMENTAL = (f"(({INSTRUMENTS_ON}) ? ({set_mute('Instru', True)} & {set_mute('Bass', True)}) : "
                 f"({set_mute('Instru', False)} & {set_mute('Bass', False)}))")
 
+# Botones 1-4 (DRUMLESS / BATERIA): toggles puros (pedido del usuario). stem_pad como accion, con un toque
+# largo, funciona mientras se mantiene y vuelve atras al soltar ("long press will work as temporary toggle"),
+# asi que aca se fija el estado con mute_stem on / off. Las consultas siguen con stem_pad.
+def force_mute(name, muted):
+    return set_mute(name, muted)
+
+
+def force_apply(muted):
+    return " & ".join(force_mute(n, n in muted) for n in STEM_NAMES)
+
+
 DRUMLESS_STATE = all_muted(["Kick", "HiHat"])
-DRUMLESS = (f"(({DRUMLESS_STATE}) ? ({set_mute('Kick', False)} & {set_mute('HiHat', False)}) : "
-            f"({set_mute('Kick', True)} & {set_mute('HiHat', True)}))")
+DRUMLESS = (f"(({DRUMLESS_STATE}) ? ({force_mute('Kick', False)} & {force_mute('HiHat', False)}) : "
+            f"({force_mute('Kick', True)} & {force_mute('HiHat', True)}))")
 BATERIA_STATE = exact_state(("Vocal", "Instru", "Bass"))
-BATERIA = f"(({BATERIA_STATE}) ? ({stems_apply(())}) : ({stems_apply(('Vocal', 'Instru', 'Bass'))}))"
+BATERIA = f"(({BATERIA_STATE}) ? ({force_apply(())}) : ({force_apply(('Vocal', 'Instru', 'Bass'))}))"
 # nombre -> (accion, estado activo, codigo en $stemN para la pantalla)
 BUTTON_MODES = {"DRUMLESS": (DRUMLESS, DRUMLESS_STATE, 21), "BATERIA": (BATERIA, BATERIA_STATE, 22)}
 
@@ -123,24 +148,24 @@ STEMS = [
     # columna derecha de cada deck, de arriba hacia abajo: RESET, INSTRUMENTAL, VOZ, KICK
     stems_pad(3, stems_apply(()), ALL_ON, YELLOW, "RESET STEMS"),
     stems_pad(2, INSTRUMENTAL, INSTRUMENTS_ON, BLUE, "INSTRUMENTAL"),
-    stems_pad(1, playing("Vocal"), playing("Vocal"), GREEN, "VOZ"),
-    stems_pad(0, playing("Kick"), playing("Kick"), RED, "KICK"),
+    stems_pad(1, toggle("Vocal"), playing("Vocal"), GREEN, "VOZ"),
+    stems_pad(0, toggle("Kick"), playing("Kick"), RED, "KICK"),
     # columna izquierda: vacia (apagada)
     (3, 0, None, None, None, None, None),
     (2, 0, None, None, None, None, None),
     (1, 0, None, None, None, None, None),
-    (0, 0, playing("HiHat"), f"({playing('HiHat')})", f"({playing('HiHat')}) ? false : true", ORANGE, "HATS"),  # a la izquierda de KICK
+    (0, 0, toggle("HiHat"), f"({playing('HiHat')})", f"({playing('HiHat')}) ? false : true", ORANGE, "HATS"),  # a la izquierda de KICK
 ]
 
 # Botones con nombre en el modo info: control -> (nombre, es slider). Los sliders se leen con param_bigger 0.5.
 # SAMPLING / MIXER / PLUGIN no van: Ableton tambien los escucha y cambiaria de modo igual.
 HELP_BUTTONS = {
-    "BTN1": ("DRUMLESS", False), "BTN2": ("BATERIA", False), "BTN3": ("DRUMLESS", False), "BTN4": ("BATERIA", False),
+    "BTN1": ("DRUMLESS", True), "BTN2": ("BATERIA", True), "BTN3": ("DRUMLESS", True), "BTN4": ("BATERIA", True),
     "GROUP_A": ("REVERB", False), "GROUP_B": ("REVERB", False),
     "GROUP_C": ("FLANGER", False), "GROUP_D": ("FLANGER", False),
     "GROUP_E": ("ECHO", False), "GROUP_F": ("ECHO", False),
     "GROUP_G": ("PREESCUCHA", False), "GROUP_H": ("PREESCUCHA", False),
-    "RESTART": ("INICIO DECK ELEGIDO", False), "LEFT": ("ELEGIR DECK 1", False),
+    "RESTART": ("+PERILLA / SHIFT=RESET", True), "LEFT": ("ELEGIR DECK 1", False),
     "RIGHT": ("ELEGIR DECK 2", False), "FOLLOW": ("ABLETON LINK", False),
     "ENCODER_PUSH": ("CARPETAS / TEMAS", False), "ENCODER_UP": ("SUBIR EN LA LISTA", False),
     "ENCODER_DOWN": ("BAJAR EN LA LISTA", False), "ENCODER_LEFT": ("CARGAR / ABRIR CARPETA", False),
@@ -181,14 +206,14 @@ def build_pads():
 
 
 def deck_action(deck, action):
-    if "DECK" in action:
-        return action.replace("DECK", f"deck {deck}").replace(" & ", " &amp; ")
+    if "DECK" in action or "#N" in action:
+        return action.replace("DECK", f"deck {deck}").replace("#N", str(deck)).replace(" & ", " &amp; ")
     return " &amp; ".join(f"deck {deck} {part}" for part in action.split(" & "))
 
 
 def deck_condition(deck, condition):
-    if "DECK" in condition:
-        return condition.replace("DECK", f"deck {deck}")
+    if "DECK" in condition or "#N" in condition:
+        return condition.replace("DECK", f"deck {deck}").replace("#N", str(deck))
     return f"deck {deck} {condition}"
 
 
@@ -299,9 +324,11 @@ def generate():
         note = int(control[3:]) - 1
         active = deck_condition(deck, f"({mode_state})")
         timer = f"stem{deck}"
+        # Slider en la definicion: solo al apretar (al soltar VirtualDJ volveria a correr el toggle y lo desharia)
         pad_lines.append(
-            f"\t<map value=\"{control}\" action=\"{deck_action(deck, mode_action)} &amp; set '$stem{deck}' {code} &amp; "
-            f"repeat_stop '{timer}' &amp; repeat_start '{timer}' {STEM_DISPLAY_TIME} 1 &amp; set '$stem{deck}' 0\" />")
+            f"\t<map value=\"{control}\" action=\"param_bigger 0.5 ? ({deck_action(deck, mode_action)} &amp; "
+            f"set '$stem{deck}' {code} &amp; repeat_stop '{timer}' &amp; repeat_start '{timer}' {STEM_DISPLAY_TIME} 1 "
+            f"&amp; set '$stem{deck}' 0) : nothing\" />")
         for state, velocity, condition in (("ON", 0x7F, active), ("OFF", 0x00, f"{active} ? false : true")):
             device_lines.append(f'  <sysex value="91{note:02X}{velocity:02X}" name="LED_{control}_{state}" />')
             led_lines.append(f"\t<map value=\"LED_{control}_{state}\" action=\"{condition}\" />")

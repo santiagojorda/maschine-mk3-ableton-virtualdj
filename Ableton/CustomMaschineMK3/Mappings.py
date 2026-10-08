@@ -329,9 +329,9 @@ def create_mappings(surface):
                     prev_bank_button = "left",
                     next_bank_button = "right",
                     bank_select_buttons = "track_buttons_with_macro",
-                    erase_button = "erase",
-                    compare_ab_button = "variation",
-                    copy_to_other_button = "variation_with_duplicate"
+                    erase_button = "erase"
+                    # VARIATION deletes the locked track's clip now (CustomMaschineMK3._delete_target_clip):
+                    # no more compare A/B or copy to other here
                 ),
                 dict(component = "Device_Navigation",
                     select_buttons = "track_buttons",
@@ -361,9 +361,8 @@ def create_mappings(surface):
             behaviour = ToggleBehaviour(),
             component = "Browser",
             preview_toggle_button = "track_buttons_with_macro_raw[0]",
-            select_folder_buttons = "track_buttons",
-            hotswap_button = "variation",
-            hotswap_content_button = "variation_with_select"
+            select_folder_buttons = "track_buttons"
+            # VARIATION deletes the locked track's clip now: no more hotswap here
         ),
         settings = dict(
             behaviour = ToggleBehaviour(),
@@ -378,7 +377,19 @@ def create_mappings(surface):
             knob_touch_buttons = "knob_touch_buttons",
             scroll_up_button = "left",
             scroll_down_button = "right"
-        )
+        ),
+        # ARRANGER: clip grid on the screens, the 8 knobs control the volume of its 8 tracks, or with the
+        # right arrow the selected device's parameters like PLUGIN (left arrow: volumes again).
+        # (selected by CustomMaschineMK3._set_session_view; the other view buttons leave it)
+        # Device stays enabled, without controls, so it keeps following the selected device and bank
+        session = dict(
+            modes = [
+                dict(component = "Session_Volume",
+                    volume_controls = "knobs",
+                    volume_page_button = "left",
+                    fx_page_button = "right"),
+                dict(component = "Device"),
+            ])
     )
 
     if mixer_mode == "4Track":
@@ -393,8 +404,9 @@ def create_mappings(surface):
             mute_buttons = "left_half_track_buttons_with_mute",
             solo_buttons = "left_half_track_buttons_with_solo",
             track_select_buttons = "right_half_track_buttons",
-            knob_touch_buttons = "knob_touch_buttons",
-            erase_button = "erase"
+            knob_touch_buttons = "knob_touch_buttons"
+            # No erase_button: ERASE + knob sends it to zero and RESTART + knob to its default
+            # (CustomMaschineMK3._accept_midi); ERASE + double touch would fight with that
         )
         mappings["Mixer"] = dict(
             crossfade_cycle_buttons = "upper_group_buttons_with_perform"
@@ -413,8 +425,9 @@ def create_mappings(surface):
             mute_buttons = "track_buttons_with_mute",
             solo_buttons = "track_buttons_with_solo",
             track_select_buttons = "track_buttons",
-            knob_touch_buttons = "knob_touch_buttons",
-            erase_button = "erase"
+            knob_touch_buttons = "knob_touch_buttons"
+            # No erase_button: ERASE + knob sends it to zero and RESTART + knob to its default
+            # (CustomMaschineMK3._accept_midi); ERASE + double touch would fight with that
         )
         mappings["Mixer"] = dict(
             crossfade_cycle_buttons = "group_buttons_with_perform"
@@ -422,8 +435,9 @@ def create_mappings(surface):
 
     mappings["Session"] = dict(stop_all_clips_button = "stop_with_shift")
 
+    # ARRANGER no longer toggles Session / Arrangement: it shows the clip grid on the Maschine's screens
+    # (CustomMaschineMK3._set_session_view)
     mappings["View_Toggle"] = dict(
-        main_view_toggle_button = "arranger",
         browser_view_toggle_button = "browser_with_shift",
     )
 
