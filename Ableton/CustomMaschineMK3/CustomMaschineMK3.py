@@ -101,6 +101,7 @@ VDJ_ENTER_BUTTON = (0xB1, 39)
 # Standby: SHIFT + CHANNEL puts the Maschine to rest (everything off, welcome on the screens); CHANNEL wakes it,
 # and so do the mode buttons (SAMPLING also enters VirtualDJ mode, MIXER and PLUGIN select their view)
 STANDBY_BUTTON = (0xB1, 34)
+SHIFT_BUTTON = (0xB1, 119)
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
 # Only the controllers that are LEDs: sending a value to all 128 also hits MIDI's special messages
 # (CC 120-127 channel mode, RPN / NRPN, bank select...) and can leave the Maschine in an odd state
@@ -281,6 +282,7 @@ class CustomMaschineMK3(ControlSurface):
     _settings = None
     _vdj_mode = False
     _standby = Config.START_IN_STANDBY
+    _shift_down = False
     _pad_lock = False
     _swallow_lock_release = False
     _pad_mode_before_lock = None
@@ -393,6 +395,15 @@ class CustomMaschineMK3(ControlSurface):
         if self._is_vdj_only(midi_bytes):
             return False
         is_cc = len(midi_bytes) == 3
+        # SHIFT's state, tracked here as well: SHIFT + CHANNEL must not depend on the framework having seen it
+        if midi_bytes[:4] == SHIFT_SYSEX_PREFIX and len(midi_bytes) > 12:
+            self._shift_down = midi_bytes[-2] > 0
+        elif is_cc and midi_bytes[:2] == SHIFT_BUTTON:
+            self._shift_down = midi_bytes[2] > 0
+        if is_cc and midi_bytes[:2] == STANDBY_BUTTON and midi_bytes[2] > 0:
+            self._c_instance.log_message(
+                f"CustomMaschineMK3: CHANNEL pressed (shift = {self._shift_down or self.elements.shift.is_pressed}, "
+                f"standby = {self._standby})")
         if self._standby:
             # Everything is ignored, except SHIFT's state and the buttons that wake the Maschine
             if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
@@ -406,7 +417,8 @@ class CustomMaschineMK3(ControlSurface):
                     self._set_standby(False)
                     return key != STANDBY_BUTTON  # MIXER / PLUGIN also go on to select their view
             return False
-        if is_cc and midi_bytes[:2] == STANDBY_BUTTON and midi_bytes[2] > 0 and self.elements.shift.is_pressed:
+        if (is_cc and midi_bytes[:2] == STANDBY_BUTTON and midi_bytes[2] > 0
+                and (self._shift_down or self.elements.shift.is_pressed)):
             self._set_standby(True)
             return False
         # "SAMPLING" never reaches Ableton, it's reserved for entering VirtualDJ mode
