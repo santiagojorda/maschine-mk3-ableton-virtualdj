@@ -345,7 +345,6 @@ class ControlElements(ElementsBase):
         self.add_modified_control(self.mod, self.erase)
         self.add_modified_control(self.lock, self.plugin)
         self.add_modified_control(self.lock, self.noterep)
-        self.add_modified_control(self.events, self.erase)
         self.add_modified_control(self.variation, self.duplicate)
         self.add_modified_control(self.variation, self.select)
         self.add_modified_control(self.duplicate, self.shift)

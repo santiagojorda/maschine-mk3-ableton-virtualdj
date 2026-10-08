@@ -158,7 +158,8 @@ KNOB_TOUCH_CCS = tuple((0xB1, 10 + index) for index in range(KNOB_COUNT))
 # RESTART + touching a knob sets it to its default value; RESTART alone still toggles the loop, on release
 RESTART_BUTTON = (0xB1, 53)
 SOLO_BUTTON = (0xB1, 91)
-# EVENTS in the session view: a new scene under the cursor's, the cursor's clip stopped, the cursor moved there
+# EVENTS: a new scene under the cursor's, the cursor's clip stopped, the cursor moved there (in every view; its old
+# note selection / erase functions are gone)
 NEW_SCENE_BUTTON = (0xB1, 87)
 ERASE_DOUBLE_TOUCH_SECONDS = 0.4
 MIXER_DISPLAY_MODE = "default"
@@ -549,8 +550,7 @@ class CustomMaschineMK3(ControlSurface):
                 self._scroll_grid(1 if midi_bytes[:2] == RIGHT_BUTTON else -1)
             return False
 
-        if (is_cc and midi_bytes[:2] == NEW_SCENE_BUTTON and not self._vdj_mode and self._session_view
-                and not self.elements.erase.is_pressed):
+        if is_cc and midi_bytes[:2] == NEW_SCENE_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
                 self._new_scene_below_cursor()
             return False
