@@ -79,27 +79,45 @@ Reiniciar VirtualDJ.
 1. **Zadig** (Options → List All Devices): poner **WinUSB** solo en **"Maschine MK3 BD (Interface 5)"**.
    No tocar las otras interfaces de la Maschine (0, 4 y 6): las usa el programa de Native Instruments y la 6 es
    la del firmware. Después, desenchufar y volver a enchufar la Maschine.
-2. Instalar las dependencias, desde la carpeta `Pantallas`:
+2. Armar el ejecutable, desde la carpeta `Pantallas` (hace falta Python 3.12 solo para este paso):
 
    ```
    python -m venv .venv
    .venv\Scripts\pip install -r requirements.txt
-   copy prototipo\config.example.json prototipo\config.json
+   construir_exe.bat
    ```
 
-3. Para VirtualDJ, instalar el dispositivo de datos de las pantallas y reiniciar VirtualDJ:
+   Queda en `dist\MaschineMK3AsPush\MaschineMK3AsPush.exe`.
+
+3. Para VirtualDJ, instalar el dispositivo de datos y reiniciar VirtualDJ:
 
    ```
-   .venv\Scripts\python prototipo\vdj\generar.py --instalar
+   dist\MaschineMK3AsPush\MaschineMK3AsPush.exe --instalar-vdj
    ```
 
-4. Arrancar con **`iniciar_pantallas.bat`**. Para que arranque solo con Windows, poner un acceso directo a
-   `.venv\Scripts\pythonw.exe prototipo\supervisor.py` en la carpeta Inicio (`shell:startup`).
+4. **Prender las pantallas:** doble clic en `MaschineMK3AsPush.exe`. Corre sin ventana y se reinicia solo si algo
+   falla. Para detenerlas: `MaschineMK3AsPush.exe --salir`. Para que arranque con Windows, poner un acceso directo
+   al .exe en la carpeta Inicio (`shell:startup`). Sin armar el .exe también se puede arrancar con
+   `iniciar_pantallas.bat`.
 
 La captura de las ondas está pensada para VirtualDJ en pantalla completa (1920 × 1200, skin PRO). Con otra
 resolución o skin, ajustar las zonas en `prototipo/config.json`.
 
 ## Uso en Ableton
+
+### Reposo (standby)
+
+En reposo la Maschine está apagada del todo: pads y botones sin luz y sin respuesta, y las pantallas muestran
+*MASCHINE MK3 as Ableton Push · by Santiago Jorda* en vez de lo que haya detrás. Pasa lo mismo cuando Ableton
+está cerrado.
+
+| Control | Qué hace |
+|---|---|
+| **SHIFT + CHANNEL** | Pasa a reposo (también saca a VirtualDJ del modo DJ) |
+| **CHANNEL** | Despierta |
+| **SAMPLING** / **MIXER** / **PLUGIN** | Despiertan y van a VirtualDJ / al mixer / al dispositivo |
+
+El script arranca en reposo. Para que arranque despierto, poner `START_IN_STANDBY = False` en `Config.py`.
 
 ### Vistas
 

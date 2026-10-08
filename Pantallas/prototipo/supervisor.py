@@ -21,11 +21,13 @@ import threading
 import time
 from pathlib import Path
 
+from paths import DATA_DIR, child_command
+
 HERE = Path(__file__).resolve().parent
-VENV = HERE.parent / ".venv"
-LOG_PATH = VENV / "pantallas.log"
+LOG_PATH = DATA_DIR / "pantallas.log"
 LOG_MAX_BYTES = 5 * 1024 * 1024
-HEARTBEAT_FILE = VENV / "dj_screens.heartbeat"
+HEARTBEAT_FILE = DATA_DIR / "dj_screens.heartbeat"
+ALREADY_RUNNING = 2
 SINGLE_INSTANCE_ADDRESS = ("127.0.0.1", 9020)
 HEARTBEAT_TIMEOUT = 15.0  # sin pulso por más que esto = colgado
 STARTUP_GRACE = 30.0  # al arrancar puede tardar (Windows recién iniciado, la Maschine apagada...)
@@ -59,13 +61,6 @@ class Log:
                     pass
 
 
-def python(windowless):
-    """El python del venv (pythonw si es sin ventana)."""
-    folder = VENV / "Scripts"
-    executable = folder / ("pythonw.exe" if windowless else "python.exe")
-    return str(executable if executable.exists() else sys.executable)
-
-
 def kill_tree(pid):
     # El python del venv es un lanzador que abre el python real: hay que matar el árbol entero
     subprocess.run(["taskkill", "/T", "/F", "/PID", str(pid)], stdout=subprocess.DEVNULL,
@@ -91,7 +86,7 @@ class Screens:
     def start(self):
         environment = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
         self.process = subprocess.Popen(
-            [python(windowless=False), "-u", str(HERE / "dj_screens.py")], cwd=str(HERE),
+            child_command("screens"), cwd=str(DATA_DIR),
             stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=environment, creationflags=subprocess.CREATE_NO_WINDOW)
         self.started = time.time()
@@ -148,10 +143,15 @@ def vdj_port_running():
         probe.close()
 
 
+_port_process = None  # el puerto de datos que lanzó este supervisor
+
+
 def start_vdj_port(log):
-    subprocess.Popen([python(windowless=True), "-u", str(HERE / "vdj_puerto.py")], cwd=str(HERE),
-                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                     creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP)
+    global _port_process
+    _port_process = subprocess.Popen(
+        child_command("port", windowless=True), cwd=str(DATA_DIR),
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        creationflags=subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP)
     log.write("[supervisor] lancé vdj_puerto.py (VirtualDJ se reconecta solo)")
 
 
@@ -161,10 +161,10 @@ def main():
     try:
         lock.bind(SINGLE_INSTANCE_ADDRESS)
     except OSError:
-        message = f"Ya hay un supervisor corriendo. El registro está en {LOG_PATH}"
         if sys.stdout is not None:
-            print(message)
-        return 0
+            print(f"Ya hay un supervisor corriendo. El registro está en {LOG_PATH}")
+        return ALREADY_RUNNING
+    lock.setblocking(False)  # por ahí llega "salir" (maschine_mk3.py --salir)
 
     log = Log(LOG_PATH)
     log.write("[supervisor] arrancó")
@@ -177,6 +177,12 @@ def main():
                 if not vdj_port_running():
                     start_vdj_port(log)
                     time.sleep(1.0)  # que el puerto exista antes de que dj_screens.py lo busque
+            try:
+                if lock.recvfrom(64)[0] == b"salir":
+                    log.write("[supervisor] cerrado con --salir")
+                    break
+            except OSError:
+                pass  # nada pendiente
             screens.check()
             time.sleep(CHECK_EVERY)
     except KeyboardInterrupt:
@@ -184,6 +190,8 @@ def main():
     finally:
         if screens.process is not None:
             kill_tree(screens.process.pid)
+        if _port_process is not None and _port_process.poll() is None:
+            kill_tree(_port_process.pid)
     return 0
 
 

@@ -98,6 +98,12 @@ from . import Config
 # VirtualDJ mode: "SAMPLING" hands the Maschine over to VirtualDJ, "PLUGIN" or "MIXER" brings it back.
 # (status byte, CC number) of each button, all of them on MIDI channel 2
 VDJ_ENTER_BUTTON = (0xB1, 39)
+# Standby: SHIFT + CHANNEL puts the Maschine to rest (everything off, welcome on the screens); CHANNEL wakes it,
+# and so do the mode buttons (SAMPLING also enters VirtualDJ mode, MIXER and PLUGIN select their view)
+STANDBY_BUTTON = (0xB1, 34)
+STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
+STANDBY_LED_CCS = range(128)
+STANDBY_LED_NOTES = range(8)  # buttons 1-8 above the screens (channel 2)
 VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
 # Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP, TAP (messages and their LEDs).
 # SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP and SHIFT + TAP (metronome) work too.
@@ -272,6 +278,7 @@ class CustomMaschineMK3(ControlSurface):
     _display_mode = None
     _settings = None
     _vdj_mode = False
+    _standby = Config.START_IN_STANDBY
     _pad_lock = False
     _swallow_lock_release = False
     _pad_mode_before_lock = None
@@ -345,6 +352,9 @@ class CustomMaschineMK3(ControlSurface):
             self.refresh_state()
 
     def _do_send_midi(self, midi_event_bytes):
+        # Standby: nothing reaches the Maschine's LEDs or display (_blank_hardware writes its own zeros)
+        if self._standby:
+            return True
         # FOLLOW's LED shows Ableton Link (sent by _update_link_led only)
         if tuple(midi_event_bytes[:2]) == LINK_BUTTON:
             return True
@@ -381,6 +391,22 @@ class CustomMaschineMK3(ControlSurface):
         if self._is_vdj_only(midi_bytes):
             return False
         is_cc = len(midi_bytes) == 3
+        if self._standby:
+            # Everything is ignored, except SHIFT's state and the buttons that wake the Maschine
+            if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
+                return True
+            if is_cc and midi_bytes[2] > 0:
+                key = midi_bytes[:2]
+                if key == VDJ_ENTER_BUTTON:
+                    self._set_standby(False)
+                    self._set_vdj_mode(True)
+                elif key in STANDBY_WAKE_BUTTONS:
+                    self._set_standby(False)
+                    return key != STANDBY_BUTTON  # MIXER / PLUGIN also go on to select their view
+            return False
+        if is_cc and midi_bytes[:2] == STANDBY_BUTTON and midi_bytes[2] > 0 and self.elements.shift.is_pressed:
+            self._set_standby(True)
+            return False
         # "SAMPLING" never reaches Ableton, it's reserved for entering VirtualDJ mode
         if is_cc and midi_bytes[:2] == VDJ_ENTER_BUTTON:
             if midi_bytes[2] > 0:
@@ -506,7 +532,7 @@ class CustomMaschineMK3(ControlSurface):
 
     def build_midi_map(self, midi_map_handle):
         script_handle = self._c_instance.handle()
-        if not self._vdj_mode:
+        if not (self._vdj_mode or self._standby):
             super().build_midi_map(midi_map_handle)
             if self._pad_lock:
                 # Pads locked to VirtualDJ: forward their notes and page buttons to the script so receive_midi
@@ -525,6 +551,43 @@ class CustomMaschineMK3(ControlSurface):
             for identifier in range(128):
                 Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, channel, identifier)
                 Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, channel, identifier)
+
+    def _set_standby(self, enabled):
+        if enabled == self._standby:
+            return
+        self._c_instance.log_message(f"CustomMaschineMK3: standby = {enabled}")
+        if enabled:
+            # VirtualDJ's mapping also leaves its mode with SHIFT + CHANNEL
+            self._vdj_mode = False
+            self._pad_lock = False
+            self._sync_pad_lock_mode()
+            self._standby = True
+            self.request_rebuild_midi_map()
+            self._blank_hardware()
+        else:
+            self._standby = False
+            self.request_rebuild_midi_map()
+            self._redisplay()
+            self.schedule_message(VDJ_REFRESH_DELAY, self._refresh_after_vdj_mode)
+
+    def _blank_hardware(self):
+        # Pads, buttons, the touch strip and the display lines off (written past the standby filter)
+        for note in PAD_NOTES:
+            self._send_blank((0x90, note, 0))
+        for note in STANDBY_LED_NOTES:
+            self._send_blank((0x91, note, 0))
+        for cc in STANDBY_LED_CCS:
+            self._send_blank((0xB1, cc, 0))
+        self._send_blank((0xE0, 0x00, 0x00))
+        for line in range(4):
+            self._send_blank(make_display_sysex_message(line, (ord(" "),) * 28))
+
+    def _send_blank(self, midi_event_bytes):
+        try:
+            super()._do_send_midi(midi_event_bytes)
+            sleep(0.0005)
+        except Exception as error:
+            logger.debug(f"blank failed: {error!r}")
 
     def _set_vdj_mode(self, enabled):
         # Always written to Live's Log.txt, regardless of Config.LOGGING
@@ -557,7 +620,7 @@ class CustomMaschineMK3(ControlSurface):
                 pad_modes.selected_mode = self._pad_mode_before_lock or DEFAULT_MODE
 
     def _update_link_led(self):
-        if self._vdj_mode:
+        if self._vdj_mode or self._standby:
             return
         value = 127 if self.song.is_ableton_link_enabled else 0
         super()._do_send_midi((LINK_BUTTON[0], LINK_BUTTON[1], value))
@@ -879,6 +942,8 @@ class CustomMaschineMK3(ControlSurface):
         self._send_to_screen_bridge(json.dumps(state, separators=(",", ":")).encode("utf-8"))
 
     def _screen_bridge_state(self):
+        if self._standby:
+            return {"type": "state", "standby": True}
         knobs = []
         for index in range(KNOB_COUNT):
             parameter = self._get_knob_mapped_parameter(index)
@@ -1091,6 +1156,9 @@ class CustomMaschineMK3(ControlSurface):
             group_button_control.set_group_button_modes(self.component_map["Group_Button_Modes"])
             self.component_map["Note_Repeat"].set_group_button_control(group_button_control)
         self._start_screen_bridge()
+        if self._standby:
+            self.request_rebuild_midi_map()
+            self._blank_hardware()
 
     def disconnect(self):
         super().disconnect()
@@ -1105,6 +1173,9 @@ class CustomMaschineMK3(ControlSurface):
         
         # Clear touchstrip
         self._send_midi((0xE0, 0x00, 0x00))
+        # Pads and buttons off too: with Ableton closed the Maschine rests instead of keeping its last lights
+        self._standby = True
+        self._blank_hardware()
 
         if self._screen_bridge_timer is not None:
             self._screen_bridge_timer.stop()

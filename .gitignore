@@ -5,3 +5,7 @@ __pycache__/
 Pantallas/.venv/
 Pantallas/prototipo/config.json
 .venv/
+Pantallas/build/
+Pantallas/dist/
+Pantallas/*.spec
+Pantallas/prototipo/icono.ico

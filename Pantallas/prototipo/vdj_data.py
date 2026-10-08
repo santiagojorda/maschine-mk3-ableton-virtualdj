@@ -13,6 +13,8 @@ campo, así un prototipo recién arrancado pide todo y no espera a que algo camb
 import socket
 import threading
 from pathlib import Path
+
+from paths import DATA_DIR
 import time
 import unicodedata
 
@@ -21,7 +23,7 @@ BRIDGE_ADDRESS = ("127.0.0.1", 9018)  # vdj_puerto.py: acá se le piden todos lo
 DATA_PORT = 9019  # vdj_puerto.py manda acá cada sysex (sin F0 / F7)
 REQUEST_ALL = b"todo"
 REPLAY_MARK = 0x52  # "R": vdj_puerto.py reenvía un valor guardado (no es un dato nuevo de VirtualDJ)
-PORT_STARTED_FILE = Path(__file__).resolve().parent.parent / ".venv" / "vdj_puerto.started"
+PORT_STARTED_FILE = DATA_DIR / "vdj_puerto.started"
 
 
 def port_started():

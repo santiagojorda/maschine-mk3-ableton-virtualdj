@@ -36,6 +36,7 @@ from ableton_ui import screen_kind, wants_graphics
 from maschine_display import HEIGHT, WIDTH, MaschineDisplays
 from mode import ABLETON, DJ, ModeWatcher
 from screen_capture import RegionCapture, set_dpi_aware
+from paths import DATA_DIR, child_command, config_path
 from dj_info import render_decks
 from encoder_view import dj_encoder
 from encoder_view import render_ableton as render_ableton_encoder
@@ -95,8 +96,8 @@ def load_config(path):
     return config
 
 
-HEARTBEAT_FILE = Path(__file__).resolve().parent.parent / ".venv" / "dj_screens.heartbeat"
-MODE_FILE = Path(__file__).resolve().parent.parent / ".venv" / "ultimo_modo.txt"  # para volver al mismo modo tras un reinicio
+HEARTBEAT_FILE = DATA_DIR / "dj_screens.heartbeat"
+MODE_FILE = DATA_DIR / "ultimo_modo.txt"  # para volver al mismo modo tras un reinicio
 
 
 def saved_mode():
@@ -170,14 +171,12 @@ class Throttled:
 
 def start_vdj_port():
     """Lanza vdj_puerto.py aparte y sin ventana (pythonw), para que sobreviva a los reinicios del
-    prototipo (si ya corre, sale solo). Su registro queda en .venv/vdj_puerto.log."""
-    pythonw = Path(sys.executable).with_name("pythonw.exe")
-    executable = str(pythonw if pythonw.exists() else sys.executable)
+    prototipo (si ya corre, sale solo). Su registro queda en vdj_puerto.log."""
     flags = subprocess.CREATE_NO_WINDOW | subprocess.CREATE_NEW_PROCESS_GROUP
     for extra in (0x01000000, 0):  # CREATE_BREAKAWAY_FROM_JOB, si el job lo permite
         try:
-            subprocess.Popen([executable, "-u", str(Path(__file__).with_name("vdj_puerto.py"))],
-                             cwd=str(Path(__file__).parent), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            subprocess.Popen(child_command("port", windowless=True),
+                             cwd=str(DATA_DIR), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                              stderr=subprocess.DEVNULL, creationflags=flags | extra, close_fds=True)
             return
         except OSError:
@@ -242,7 +241,7 @@ def banner_strip(text, height=HEIGHT):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default=str(Path(__file__).with_name("config.json")))
+    parser.add_argument("--config", default=str(config_path()))
     parser.add_argument("--start", choices=[DJ, ABLETON], default=None,
                         help="modo al arrancar (por defecto, el último que se usó)")
     parser.add_argument("--midi-log", action="store_true", help="imprimir todos los mensajes MIDI que llegan")
@@ -284,9 +283,8 @@ def main():
           f"Modo inicial: {args.start.upper()}. Ctrl+C para salir.")
 
     # Sin datos de Ableton (cerrado, o el script sin cargar): un cartel; nunca el último texto, que queda viejo
-    # Programa cerrado (o sin mandar datos): la izquierda dice solo su nombre y la derecha queda vacía
-    ableton_banner = banner("ABLETON")
-    blank = Image.new("RGB", (WIDTH, HEIGHT))
+    # Reposo: Ableton cerrado, sin mandar datos o en standby (SHIFT + CHANNEL): la bienvenida del proyecto
+    ableton_banner, blank = splash()
     browser_view = BrowserView(config.get("browser"))
     mode = None
     showing_browser = False
@@ -378,7 +376,10 @@ def main():
                           continue
                       last_frame[display] = None
                       # El texto (vistas sin gráficos: clip, settings...) solo con datos frescos de Ableton
-                      content = ableton_text.screen_lines(display) if state is not None else f"banner{display}"
+                      if state is None or state.get("standby"):
+                          content = f"banner{display}"
+                      else:
+                          content = ableton_text.screen_lines(display)
                       if content == last_sent[display]:
                           continue
                       if content == "banner0":
@@ -398,7 +399,7 @@ def main():
                                 f"session {state.get('session_view')}, encoder {state.get('encoder_mode')}, "
                                 f"estados {ableton_text.state_version - last_version} en {elapsed:.0f} s, "
                                 f"cuadros {sent[0] / elapsed:.1f} / {sent[1] / elapsed:.1f} por segundo")
-                          Path(__file__).resolve().parent.parent.joinpath(".venv", "last_state.json").write_text(
+                          (DATA_DIR / "last_state.json").write_text(
                               json.dumps(state, indent=1, ensure_ascii=False), encoding="utf-8")
                       last_version = ableton_text.state_version
                       sent = [0, 0]

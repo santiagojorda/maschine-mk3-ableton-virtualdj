@@ -21,10 +21,11 @@ import threading
 import time
 from pathlib import Path
 
+from paths import DATA_DIR
 from vdj_data import BRIDGE_ADDRESS, DATA_PORT, PORT_STARTED_FILE, REPLAY_MARK, REQUEST_ALL, SYSEX_ID
 
 PORT_NAME = "MK3 Screens"
-LOG_PATH = Path(__file__).resolve().parent.parent / ".venv" / "vdj_puerto.log"
+LOG_PATH = DATA_DIR / "vdj_puerto.log"
 
 _MIDI_DATA_CALLBACK = ctypes.WINFUNCTYPE(None, ctypes.c_void_p, ctypes.POINTER(ctypes.c_ubyte), W.DWORD, ctypes.c_void_p)
 
