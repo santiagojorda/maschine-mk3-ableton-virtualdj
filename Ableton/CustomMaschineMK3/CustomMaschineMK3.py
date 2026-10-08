@@ -1041,6 +1041,8 @@ class CustomMaschineMK3(ControlSurface):
             "track_color": target_track.color if liveobj_valid(target_track) else None,
             "locked": self.component_map["Target_Track"].is_locked_to_track,
             "touched": TOUCH_STATES.active_index,
+            # Every knob being touched right now (the screens give each one its own pop-up)
+            "touched_all": [index for index, button in enumerate(self.elements.knob_touch_buttons) if button.is_pressed],
             "knobs": knobs,
         }
 

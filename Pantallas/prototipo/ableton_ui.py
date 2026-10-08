@@ -309,10 +309,11 @@ def render_session(state, display, pads_frame=True):
 
     # Pop-up chico de la perilla que se toca: tapa las 2 celdas de abajo de su columna.
     # Volumen (flecha izquierda) o un parámetro del dispositivo (flecha derecha)
-    touched = state.get("touched", -1)
     knobs = state.get("knobs") or []
     fx_page = session.get("knob_page") == "fx"
-    if 0 <= touched < len(knobs) and knobs[touched] and touched // COLUMNS == display:
+    for touched in state["popups"] if "popups" in state else touched_knobs(state):
+        if not (0 <= touched < len(knobs) and knobs[touched] and touched // COLUMNS == display):
+            continue
         x0 = (touched % COLUMNS) * COLUMN_WIDTH
         top = TRACK_STRIP_HEIGHT + (SESSION_ROWS - 2) * row_height
         box = (x0 + 2, top + 2, x0 + COLUMN_WIDTH - 3, TRACK_STRIP_HEIGHT + SESSION_ROWS * row_height - 3)
@@ -374,6 +375,30 @@ def _draw_parameter_popup(draw, knob, box, color):
     rad = math.radians(angle)
     draw.line((center + radius * 0.2 * math.cos(rad), center_y + radius * 0.2 * math.sin(rad),
                center + radius * 0.75 * math.cos(rad), center_y + radius * 0.75 * math.sin(rad)), fill=TEXT, width=3)
+
+
+class PopupTracker:
+    """Qué perillas muestran su pop-up: las que se están tocando y, un momento después de soltarlas, las últimas.
+    Cada perilla lleva su propio tiempo, así que varias pueden verse a la vez y solaparse."""
+
+    def __init__(self, linger_seconds=0.4):
+        self._linger = linger_seconds
+        self._last_touched = {}
+
+    def update(self, touched_now, now=None):
+        now = time.perf_counter() if now is None else now
+        for index in touched_now:
+            self._last_touched[index] = now
+        self._last_touched = {index: moment for index, moment in self._last_touched.items()
+                              if index in touched_now or now - moment < self._linger}
+        return sorted(self._last_touched)
+
+
+def touched_knobs(state):
+    """Las perillas que se están tocando: la lista completa si el script la manda, si no la única activa."""
+    if "touched_all" in state:
+        return list(state["touched_all"])
+    return [state["touched"]] if state.get("touched", -1) >= 0 else []
 
 
 def _draw_pads_frame(draw, display, ring_start, ring_end):

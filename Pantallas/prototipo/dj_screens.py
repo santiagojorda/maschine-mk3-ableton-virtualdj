@@ -32,7 +32,7 @@ from PIL import Image, ImageDraw, ImageFont
 from ableton_text import DEFAULT_PORT as ABLETON_TEXT_PORT
 from ableton_text import AbletonText, render_screen
 from ableton_ui import render_screen as render_ui_screen
-from ableton_ui import screen_kind, wants_graphics
+from ableton_ui import PopupTracker, screen_kind, touched_knobs, wants_graphics
 from maschine_display import HEIGHT, WIDTH, MaschineDisplays
 from mode import ABLETON, DJ, ModeWatcher
 from screen_capture import RegionCapture, set_dpi_aware
@@ -273,6 +273,7 @@ def main():
     last_sent = [None, None]
     last_frame = [None, None]  # última imagen mandada en modo gráfico, para mandar solo lo que cambia
     meters = MeterSmoother()
+    popup_tracker = PopupTracker()
     last_version = 0  # para contar cuántos estados de Ableton llegan entre estadísticas
     sent = [0, 0]
     stats_start = time.perf_counter()
@@ -371,6 +372,8 @@ def main():
                   encoder = state.get("encoder") if state else None
                   graphics = wants_graphics(state)
                   smoothed = meters.apply(state) if graphics else None
+                  if graphics:
+                      smoothed = dict(smoothed, popups=popup_tracker.update(touched_knobs(state)))
                   for display in range(2):
                       try:
                           if display == ENCODER_DISPLAY and encoder:
