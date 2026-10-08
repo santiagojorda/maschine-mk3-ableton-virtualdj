@@ -149,6 +149,7 @@ tracks. Hacia arriba o abajo, de a 1 escena.
 |---|---|
 | RESTART + tocar una perilla | Valor por defecto (en el mixer, volumen a 0 dB) |
 | ERASE + doble toque | A cero (mixer y vista session) |
+| **RESTART + STEP** | Todos los volúmenes del mixer (tracks y retornos) a su valor por defecto; el master no se toca |
 | MUTE + tocar | A cero; repetirlo vuelve al valor anterior (mixer y vista session) |
 
 ### Browser
