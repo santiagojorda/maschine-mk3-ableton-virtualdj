@@ -190,7 +190,7 @@ def start_vdj_port():
 
 WHITE = (255, 255, 255)
 YELLOW = (255, 210, 0)
-PROJECT_TITLE = (("MASCHINE", WHITE), ("as push", YELLOW))
+PROJECT_TITLE = (("Maschine mk3", WHITE), ("as Push", YELLOW))
 # Pantalla derecha del reposo: (texto, tamaño máximo, y, color)
 AUTHOR_LINES = (("by", 22, 70, (140, 140, 140)), ("@santiagojorda", 38, 100, (255, 255, 255)),
                 ("Maicol", 30, 155, (255, 150, 30)))
