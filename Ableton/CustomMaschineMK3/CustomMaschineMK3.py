@@ -305,7 +305,6 @@ class CustomMaschineMK3(ControlSurface):
     _screen_bridge_timer_ok = False
     _screen_bridge_timer_repeats = False
     _screen_bridge_stall_logged = False
-    _zeroed_parameters = None
     _restart_held = False
     _restart_used = False
     _erase_touch = (None, 0.0)  # (knob index, time) of the last ERASE + knob touch
@@ -498,7 +497,8 @@ class CustomMaschineMK3(ControlSurface):
                 else:
                     self._erase_touch = (index, now)
             elif self.elements.mute.is_pressed and volume_view:
-                self._toggle_knob_parameter_zero(index)
+                # MUTE + knob: stop the clip playing on that knob's track
+                self._stop_knob_track_clip(index)
 
         if (is_cc and not self._vdj_mode and self._session_view
                 and (midi_bytes[:2] in (SESSION_NAV_TURN, SESSION_NAV_PUSH) or midi_bytes[:2] in SESSION_NAV_TILTS)
@@ -950,23 +950,26 @@ class CustomMaschineMK3(ControlSurface):
             value = 0.0 if parameter.min < 0 < parameter.max else parameter.min
         parameter.value = min(max(value, parameter.min), parameter.max)
 
-    def _toggle_knob_parameter_zero(self, index):
+    def _stop_knob_track_clip(self, index):
+        # The track of a knob is the owner of the parameter it controls (volume, pan or send of a track). In the
+        # device page of the session view the knobs control a device, not a track: nothing to stop there
         parameter = self._get_knob_mapped_parameter(index)
-        if not liveobj_valid(parameter) or parameter.is_quantized:
+        owner = parameter_owner(parameter) if liveobj_valid(parameter) else None
+        if not isinstance(owner, Live.Track.Track):
+            self._log(f"MUTE + knob {index + 1}: that knob doesn't control a track")
+            self._c_instance.show_message("That knob doesn't control a track")
             return
-        if self._zeroed_parameters is None:
-            self._zeroed_parameters = []
-        zero = 0.0 if parameter.min < 0 < parameter.max else parameter.min
-        # Live objects aren't reliable dict keys, so the saved values are (parameter, value) pairs
-        saved = next((pair for pair in self._zeroed_parameters if pair[0] == parameter), None)
-        if saved is not None and parameter.value == zero:
-            parameter.value = min(max(saved[1], parameter.min), parameter.max)
-            self._zeroed_parameters.remove(saved)
-        else:
-            if saved is not None:
-                self._zeroed_parameters.remove(saved)
-            self._zeroed_parameters.append((parameter, parameter.value))
-            parameter.value = zero
+        try:
+            has_clips = len(owner.clip_slots) > 0
+        except Exception:
+            has_clips = False
+        if not has_clips:
+            self._c_instance.show_message(f"{owner.name} has no clips")
+            return
+        playing = owner.playing_slot_index >= 0
+        owner.stop_all_clips()
+        self._log(f"MUTE + knob {index + 1}: stopped the clips of '{owner.name}' (was playing = {playing})")
+        self._c_instance.show_message(f"Stopped {owner.name}")
 
     def _init_screen_bridge(self):
         self._screen_bridge_lines = {}
