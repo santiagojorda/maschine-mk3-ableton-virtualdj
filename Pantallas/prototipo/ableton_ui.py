@@ -396,6 +396,8 @@ class PopupTracker:
 
 def touched_knobs(state):
     """Las perillas que se están tocando: la lista del script más la activa (si la lista llega vacía, la activa vale)."""
+    if state.get("no_popup"):
+        return []
     knobs = set(state.get("touched_all") or [])
     if state.get("touched", -1) >= 0:
         knobs.add(state["touched"])

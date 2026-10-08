@@ -1262,6 +1262,8 @@ class CustomMaschineMK3(ControlSurface):
             "touched": TOUCH_STATES.active_index,
             # Every knob being touched right now (the screens give each one its own pop-up)
             "touched_all": self._touched_knobs(),
+            # MUTE / SOLO / FOLLOW + knob act on the knob's track (stop, prelisten, launch): no value pop-up for them
+            "no_popup": bool(self.elements.mute.is_pressed or self.elements.solo.is_pressed or self._follow_held),
             "knobs": knobs,
         }
 
