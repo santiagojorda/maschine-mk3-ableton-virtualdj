@@ -549,4 +549,8 @@ def render_screen(state, display):
         if column:
             x = column * COLUMN_WIDTH
             draw.line((x, HEADER_HEIGHT + 4, x, HEIGHT - 4), fill=(35, 35, 35))
+    frame = state.get("grid_frame")
+    if view == MIXER_VIEW and frame:
+        # El mixer muestra los tracks de la grilla de session: el mismo marco verde de los que están en los pads
+        _draw_pads_frame(draw, display, frame["ring_column"], frame["ring_column"] + frame["ring_tracks"])
     return image

@@ -982,6 +982,12 @@ class CustomMaschineMK3(ControlSurface):
             "tracks": columns,
         }
 
+    def _screen_bridge_grid_frame(self):
+        ring = getattr(self, "_session_ring", None)
+        if ring is None:
+            return None
+        return {"ring_column": ring.track_offset - self._session_block(ring), "ring_tracks": ring.num_tracks}
+
     def _grid_columns(self, tracks, track_start, track_count, scene_start, scene_count):
         # Clip slots of a block of tracks x scenes, for the screens
         # The clip slot selected in Live (selected track x selected scene), marked on the screens
@@ -1241,6 +1247,8 @@ class CustomMaschineMK3(ControlSurface):
             "browser": self._screen_bridge_browser() if view == BROWSER_DISPLAY_MODE else None,
             "browser_grid": self._screen_bridge_browser_grid() if view == BROWSER_DISPLAY_MODE else None,
             "session_view": self._session_view,
+            # The mixer shows the session grid's tracks: which of its 8 columns are on the pads
+            "grid_frame": self._screen_bridge_grid_frame() if view == MIXER_DISPLAY_MODE else None,
             "session": self._screen_bridge_session() if self._session_view else None,
             "type": "state",
             "view": view,
