@@ -36,6 +36,7 @@ from ableton_ui import screen_kind, wants_graphics
 from maschine_display import HEIGHT, WIDTH, MaschineDisplays
 from mode import ABLETON, DJ, ModeWatcher
 from screen_capture import RegionCapture, set_dpi_aware
+from leds import blank_leds
 from paths import DATA_DIR, child_command, config_path
 from dj_info import render_decks
 from encoder_view import dj_encoder
@@ -127,6 +128,7 @@ class Heartbeat:
             pass
 
 
+IDLE_BLANK_SECONDS = 15.0  # en reposo, cada cuánto se vuelven a apagar las luces
 VDJ_SILENT_SECONDS = 4.0  # un deck sonando manda su posición todo el tiempo
 
 
@@ -297,6 +299,7 @@ def main():
     stats_start = time.perf_counter()
     last_full_refresh = time.perf_counter()
     last_port_check = time.perf_counter()
+    last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
     report = Throttled()
     window_missing = np.asarray(banner("VIRTUAL DJ", credit=screens[0]["height"] == HEIGHT).crop((0, (HEIGHT - screens[0]["height"]) // 2, WIDTH,
                                                          (HEIGHT + screens[0]["height"]) // 2)))
@@ -350,6 +353,16 @@ def main():
               if mode != DJ:
                   frame_start = time.perf_counter()
                   state = ableton_text.state(max_age=2.0)
+                  # Reposo (Ableton cerrado o en standby): pads y botones sin luz, aunque el script no pueda
+                  if state is None or state.get("standby"):
+                      if time.perf_counter() - last_idle_blank >= IDLE_BLANK_SECONDS:
+                          last_idle_blank = time.perf_counter()
+                          try:
+                              blank_leds(config["midi_port"])
+                          except Exception as error:  # no es grave: el reposo sigue mostrando la bienvenida
+                              report(f"No se pudieron apagar las luces: {error!r}")
+                  else:
+                      last_idle_blank = 0.0
                   # VOLUME / SWING: la pantalla derecha muestra el encoder, igual que en modo DJ
                   encoder = state.get("encoder") if state else None
                   graphics = wants_graphics(state)
