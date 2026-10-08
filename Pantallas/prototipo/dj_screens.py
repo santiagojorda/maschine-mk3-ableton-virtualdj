@@ -129,6 +129,7 @@ class Heartbeat:
             pass
 
 
+FIRST_STATE_WAIT_SECONDS = 1.0  # tope de espera del primer estado de Ableton al volver de DJ
 FIRST_CAPTURE_WAIT_SECONDS = 1.0  # tope de espera de la primera captura de VirtualDJ al entrar a DJ
 IDLE_BLANK_SECONDS = 15.0  # en reposo, cada cuánto se vuelven a apagar las luces
 VDJ_SILENT_SECONDS = 4.0  # un deck sonando manda su posición todo el tiempo
@@ -278,6 +279,8 @@ def main():
     last_full_refresh = time.perf_counter()
     last_port_check = time.perf_counter()
     last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
+    ableton_wait_until = 0.0  # al volver a Ableton: hasta cuándo se espera su primer estado
+    ableton_state_mark = 0
     capture_mark = None  # al entrar a DJ: cuántas capturas había; se espera una más antes de dibujar
     capture_deadline = 0.0
 
@@ -327,6 +330,11 @@ def main():
                   next_due = [0.0, 0.0]
                   if hasattr(capture, "set_active"):
                       capture.set_active(mode == DJ)
+                  if mode != DJ:
+                      # Al volver a Ableton, lo que había se queda hasta que llega su primer estado: en DJ el script
+                      # no manda estado, y sin él esperaría 2 s y mostraría "sin conexión" un instante
+                      ableton_wait_until = time.perf_counter() + FIRST_STATE_WAIT_SECONDS
+                      ableton_state_mark = ableton_text.state_version
                   if mode == DJ:
                       # Sin pasar por negro: lo que había se queda hasta que llega la primera captura nueva (la que
                       # está guardada es de la vez anterior en DJ)
@@ -345,6 +353,10 @@ def main():
               if mode != DJ:
                   frame_start = time.perf_counter()
                   state = ableton_text.state(max_age=2.0)
+                  if (state is None and time.perf_counter() < ableton_wait_until
+                          and ableton_text.state_version == ableton_state_mark):
+                      time.sleep(0.01)
+                      continue
                   # Reposo (Ableton cerrado o en standby): pads y botones sin luz, aunque el script no pueda
                   if state is None or state.get("standby"):
                       if time.perf_counter() - last_idle_blank >= IDLE_BLANK_SECONDS:
