@@ -144,17 +144,28 @@ class WindowCapture:
         pass
 
 
+def slot_heights(regions, height):
+    """Alto de la franja de cada zona: "slot" si lo tiene (en píxeles de la pantalla); las demás se
+    reparten lo que queda en partes iguales."""
+    fixed = sum(region.get("slot", 0) for region in regions)
+    free = [region for region in regions if "slot" not in region]
+    share = (height - fixed) // len(free) if free else 0
+    return [region.get("slot", share) for region in regions]
+
+
 def stack_regions(window, regions, fit, height=HEIGHT):
-    """Recorta zonas de una captura de la ventana y las apila de arriba a abajo en 480 x height."""
+    """Recorta zonas de una captura de la ventana y las apila de arriba a abajo en 480 x height.
+    Cada zona puede tener su propio "fit" y su alto ("slot")."""
     canvas = Image.new("RGB", (WIDTH, height))
     if not regions or window is None:
         return np.asarray(canvas)
-    slot = height // len(regions)
-    for index, region in enumerate(regions):
+    y = 0
+    for region, slot in zip(regions, slot_heights(regions, height)):
         left, top = region["left"], region["top"]
         crop = window[top:top + region["height"], left:left + region["width"]]
-        if crop.size:
-            canvas.paste(fit_image(Image.fromarray(crop), fit, WIDTH, slot), (0, index * slot))
+        if crop.size and slot > 0:
+            canvas.paste(fit_image(Image.fromarray(crop), region.get("fit", fit), WIDTH, slot), (0, y))
+        y += slot
     return np.asarray(canvas)
 
 
