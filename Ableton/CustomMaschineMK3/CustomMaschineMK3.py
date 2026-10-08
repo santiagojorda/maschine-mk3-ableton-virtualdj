@@ -1259,6 +1259,9 @@ class CustomMaschineMK3(ControlSurface):
     def _on_display_mode_changed(self, component):
         mode = self.component_map["Display_Modes"].selected_mode
         self._update_session_view_led()
+        if mode == "browser" and self._display_mode != "browser":
+            # Opening the browser starts inside the User Library (the user's folders and its content)
+            self.component_map["Browser"].open_in_user_library()
         if self._display_mode == "custom":
             self._refresh_track_buttons_state(mode)
             # self._refresh_task = self._tasks.add(task.sequence(task.wait(0.1), task.run(lambda: self._refresh_upper_button_state(mode))))

@@ -57,6 +57,19 @@ class BrowserUserFoldersRootItem:
         for item in browser.user_folders:
             self.children.append(item)
 
+class BrowserStartItem:
+    """Where the browser opens: the folders added to Live (the user's DRUMS, CANCIONES...) followed by what is
+    inside the User Library (Samples, Presets, Clips...), so everything of the user's is in one place."""
+
+    def __init__(self, browser):
+        self.name = USER_LIBRARY_NAME
+        self.is_folder = True
+        self.is_device = False
+        self.is_loadable = False
+        self.uri = type(self).__name__
+        self.children = list(browser.user_folders) + list(browser.user_library.children)
+
+
 class WrapBrowserItem:
     
     def __init__(self, item, name):
@@ -123,8 +136,7 @@ class BrowserRootItem:
             WrapBrowserItem(browser.plugins, "Plug-Ins"),
             browser.packs,
             WrapBrowserItem(browser.current_project, "Current Project"),
-            WrapBrowserItem(browser.user_library, USER_LIBRARY_NAME),
-            BrowserUserFoldersRootItem(browser)]
+            BrowserStartItem(browser)]  # the user's folders (BrowserUserFoldersRootItem) are in there too
 
 
 class BrowserTreeExplorer:
@@ -356,6 +368,14 @@ class BrowserComponent(Component, Renderable):
             if item.name == USER_LIBRARY_NAME:
                 self._explorer.force_navigate_to([self._root_item, item])
                 return
+
+    def open_in_user_library(self):
+        # Called each time the browser view is opened: always starts inside the user's folders and User Library
+        self._enter_user_library()
+        item = self._explorer.selected_item
+        self.selected_item_name = item.name if item else None
+        self.parent_folder_name = self._explorer.parent_item.name
+        self._update_led_feedback()
 
     def set_display_modes(self, modes):
         self._display_modes = modes

@@ -155,7 +155,8 @@ tracks. Hacia arriba o abajo, de a 1 escena.
 ### Browser
 
 Girar la rueda recorre la lista, inclinarla a la derecha entra a una carpeta, a la izquierda vuelve atrás y
-apretarla carga. Arranca dentro de la **User Library**; volviendo atrás se ve todo lo demás.
+apretarla carga. Cada vez que abrís el browser arranca dentro de **User Library**, que junta las carpetas que
+agregaste a Live (por ejemplo DRUMS o CANCIONES) con lo que hay en la User Library; volviendo atrás se ve todo lo demás.
 
 ### Rueda: VOLUME, SWING y TEMPO
 
