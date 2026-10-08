@@ -23,7 +23,7 @@ Por **Santiago Jorda**.
   para ver dónde va a caer lo que cargues.
 - **VOLUME / SWING / TEMPO**: volumen master, auriculares o tempo en la rueda, con su vista en la pantalla.
 - **Atajos**: borrar el clip del track fijado (VARIATION), llevar una perilla a su valor por defecto
-  (RESTART + perilla) o a cero (ERASE + doble toque, MUTE + perilla).
+  (RESTART + perilla) o a cero (ERASE + doble toque), y detener el clip de un track (MUTE + perilla).
 
 **En VirtualDJ** (botón SAMPLING)
 
