@@ -12,6 +12,7 @@ from functools import partial
 from itertools import product
 from time import perf_counter, sleep
 import json
+import traceback
 import socket
 
 import Live # type: ignore
@@ -991,7 +992,8 @@ class CustomMaschineMK3(ControlSurface):
             # Never let the bridge break the controller: log once and keep the text-only display
             if not self._screen_bridge_error_logged:
                 self._screen_bridge_error_logged = True
-                self._c_instance.log_message(f"CustomMaschineMK3: screen bridge state failed ({error!r})")
+                self._c_instance.log_message(f"CustomMaschineMK3: screen bridge state failed ({error!r})\n"
+                                             f"{traceback.format_exc()}")
             return
         self._send_to_screen_bridge(json.dumps(state, separators=(",", ":")).encode("utf-8"))
 
@@ -1042,9 +1044,20 @@ class CustomMaschineMK3(ControlSurface):
             "locked": self.component_map["Target_Track"].is_locked_to_track,
             "touched": TOUCH_STATES.active_index,
             # Every knob being touched right now (the screens give each one its own pop-up)
-            "touched_all": [index for index, button in enumerate(self.elements.knob_touch_buttons) if button.is_pressed],
+            "touched_all": self._touched_knobs(),
             "knobs": knobs,
         }
+
+    def _touched_knobs(self):
+        # The touch buttons come from a matrix that can hand out None for a button that isn't there at that moment
+        touched = []
+        try:
+            for index, button in enumerate(self.elements.knob_touch_buttons):
+                if button is not None and button.is_pressed:
+                    touched.append(index)
+        except Exception:
+            pass
+        return touched
 
     @staticmethod
     def _device_color(device):
