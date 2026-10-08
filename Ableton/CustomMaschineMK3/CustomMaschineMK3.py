@@ -303,6 +303,7 @@ class CustomMaschineMK3(ControlSurface):
     _browser_bridge_items = ()
     _browser_bridge_parent = None
     _session_block_start = 0  # first track of the session grid on the screens
+    _ring_offsets_seen = None  # (track, scene) offsets of the session ring at the last tick
     _screen_bridge_error_logged = False
 
     def __init__(self, *a, **k):
@@ -715,6 +716,7 @@ class CustomMaschineMK3(ControlSurface):
                 scene_offset = scene_index - SESSION_GRID_SCENES + 1
             if track_offset != ring.track_offset or scene_offset != ring.scene_offset:
                 ring.set_offsets(track_offset, scene_offset)
+                self._ring_offsets_seen = (ring.track_offset, ring.scene_offset)
                 self._session_block(ring)
         else:
             track_index = min(max(track_index, start), min(start + SESSION_GRID_TRACKS, len(tracks)) - 1)
@@ -730,6 +732,7 @@ class CustomMaschineMK3(ControlSurface):
         track_offset = min(max(ring.track_offset + track_delta, 0), max(len(tracks) - 1, 0))
         scene_offset = min(max(ring.scene_offset + scene_delta, 0), max(len(scenes) - 1, 0))
         ring.set_offsets(track_offset, scene_offset)
+        self._ring_offsets_seen = (ring.track_offset, ring.scene_offset)
         # The selected clip slot stays visible
         self._move_session_selection(0, 0, follow = False)
 
@@ -766,6 +769,28 @@ class CustomMaschineMK3(ControlSurface):
     def _update_session_view_led(self):
         # Through _do_send_midi: in VirtualDJ mode the LEDs belong to VirtualDJ
         self._do_send_midi((SESSION_VIEW_BUTTON[0], SESSION_VIEW_BUTTON[1], 127 if self._session_view else 0))
+
+    def _carry_selection_with_ring(self):
+        # In the browser and session views the grid on the screens is the pads' grid: when something else moves the
+        # session ring (A-H in the session pad mode jump between grids), the selected clip slot goes along, to the
+        # same place of the new grid, instead of the grid snapping back to the selection
+        ring = getattr(self, "_session_ring", None)
+        if ring is None or self._standby:
+            return
+        offsets = (ring.track_offset, ring.scene_offset)
+        last, self._ring_offsets_seen = self._ring_offsets_seen, offsets
+        if last is None or offsets == last:
+            return
+        if self.component_map["Display_Modes"].selected_mode not in (BROWSER_DISPLAY_MODE, SESSION_DISPLAY_MODE):
+            return
+        _, tracks, scenes = self._session_tracks_and_scenes()
+        view = self.song.view
+        if not tracks or not scenes or view.selected_track not in tracks or view.selected_scene not in scenes:
+            return
+        track_index = min(max(tracks.index(view.selected_track) + offsets[0] - last[0], 0), len(tracks) - 1)
+        scene_index = min(max(scenes.index(view.selected_scene) + offsets[1] - last[1], 0), len(scenes) - 1)
+        view.selected_track = tracks[track_index]
+        view.selected_scene = scenes[scene_index]
 
     def _screen_bridge_session(self):
         # Clip grid for the session pad mode: SESSION_GRID_TRACKS tracks x SESSION_GRID_SCENES scenes from the
@@ -934,6 +959,7 @@ class CustomMaschineMK3(ControlSurface):
         if self._vdj_mode:
             self._send_to_screen_bridge(b'{"type":"mode","vdj":true}')
         else:
+            self._carry_selection_with_ring()
             self._send_screen_bridge_state()
             self._screen_bridge_ticks += 1
             if self._screen_bridge_ticks >= SCREEN_BRIDGE_RESEND_TICKS:
