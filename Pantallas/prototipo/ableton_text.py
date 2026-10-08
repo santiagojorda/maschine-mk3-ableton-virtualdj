@@ -14,6 +14,7 @@ el nivel de cada track. ableton_ui.py lo dibuja con faders y knobs.
 """
 
 import json
+import logging
 import socket
 import threading
 import time
@@ -21,6 +22,8 @@ import time
 from PIL import Image, ImageDraw, ImageFont
 
 from maschine_display import HEIGHT, WIDTH
+
+log = logging.getLogger("ableton")
 
 MCU_DISPLAY_HEADER = bytes((0xF0, 0x00, 0x00, 0x66, 0x17, 0x12))
 LINES = 4
@@ -65,7 +68,7 @@ class AbletonText:
                 if not self._running:
                     return
                 if getattr(error, "winerror", None) != 10054:
-                    print(f"UDP de Ableton: {error}")
+                    log.warning(f"UDP de Ableton: {error}")
                 continue
             self._apply(data)
 

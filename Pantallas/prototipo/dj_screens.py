@@ -20,6 +20,8 @@ Uso: python dj_screens.py [--config config.json] [--start dj]
 
 import argparse
 import json
+import logging
+import os
 import socket
 import subprocess
 import sys
@@ -36,6 +38,7 @@ from ableton_ui import PopupTracker, screen_kind, touched_knobs, wants_graphics
 from maschine_display import HEIGHT, WIDTH, MaschineDisplays
 from mode import ABLETON, DJ, ModeWatcher
 from screen_capture import RegionCapture, set_dpi_aware
+import registro
 from leds import blank_leds
 from paths import DATA_DIR, child_command, config_path
 from dj_info import render_decks
@@ -159,8 +162,11 @@ def vdj_port_running():
         probe.close()
 
 
+log = logging.getLogger("pantallas")
+
+
 class Throttled:
-    """Un mensaje que se repite (USB desconectado, por ejemplo) se imprime cuando cambia o cada 30 s."""
+    """Un error que se repite (USB desconectado, por ejemplo) se registra cuando cambia o cada 30 s, con su detalle."""
 
     def __init__(self, every_seconds=30.0):
         self._last = None
@@ -170,7 +176,7 @@ class Throttled:
     def __call__(self, text):
         now = time.perf_counter()
         if text != self._last or now - self._time >= self._every:
-            print(text)
+            log.error(text, exc_info=sys.exc_info()[0] is not None)
             self._last, self._time = text, now
 
 
@@ -241,10 +247,14 @@ def main():
                         help="modo al arrancar (por defecto, el último que se usó)")
     parser.add_argument("--midi-log", action="store_true", help="imprimir todos los mensajes MIDI que llegan")
     args = parser.parse_args()
+    registro.configurar()
     if args.start is None:
         args.start = saved_mode()
 
     config = load_config(args.config)
+    log.info(f"Arrancó (pid {os.getpid()}, Python {sys.version.split()[0]}, "
+             f"{'ejecutable' if getattr(sys, 'frozen', False) else 'script'}); configuración: {args.config}; "
+             f"datos en {DATA_DIR}")
     screens = [config["screens"][name] for name in SCREEN_NAMES]
 
     set_dpi_aware()
@@ -257,7 +267,7 @@ def main():
             displays.send_image(display, image)
         time.sleep(2.0)
     except Exception as error:  # la bienvenida no puede frenar el arranque
-        print(f"Bienvenida: {error!r}")
+        log.warning("No se pudo mostrar la bienvenida", exc_info=True)
     if config["capture_from"] == "window":
         capture = BackgroundWindowCapture(fps=max(screen["fps"] for screen in screens))
     else:
@@ -265,17 +275,17 @@ def main():
     watcher = ModeWatcher(
         port_hint=config["midi_port"],
         start_mode=args.start,
-        on_message=(lambda message: print(f"MIDI {message}")) if args.midi_log else None,
+        on_message=(lambda message: log.info(f"MIDI {message}")) if args.midi_log else None,
     )
     ableton_text = AbletonText(config["ableton_text_port"])
     start_vdj_port()
     try:
         vdj_data = VdjData()
-        print("Escuchando los datos de VirtualDJ (puerto 'MK3 Screens', vdj_puerto.py)")
+        log.info("Escuchando los datos de VirtualDJ (puerto 'MK3 Screens', vdj_puerto.py)")
     except Exception as error:
         vdj_data = None
-        print(f"Sin datos de VirtualDJ: {error}")
-    print(f"Escuchando '{watcher.port_name}' y el texto de Ableton en UDP {config['ableton_text_port']}. "
+        log.warning("Sin datos de VirtualDJ", exc_info=True)
+    log.info(f"Escuchando '{watcher.port_name}' y el texto de Ableton en UDP {config['ableton_text_port']}. "
           f"Modo inicial: {args.start.upper()}. Ctrl+C para salir.")
 
     # Sin datos de Ableton (cerrado, o el script sin cargar): un cartel; nunca el último texto, que queda viejo
@@ -295,6 +305,8 @@ def main():
     last_full_refresh = time.perf_counter()
     last_port_check = time.perf_counter()
     last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
+    last_ableton_status = None  # para registrar cuando Ableton se conecta, se desconecta o entra en reposo
+    last_vdj_status = None  # idem para la ventana de VirtualDJ y sus datos
     switch_at = None  # cuándo empezó el último cambio de modo, para medir cuánto tarda en verse
     state_is_fresh = False
     ableton_wait_until = 0.0  # al volver a Ableton: hasta cuándo se espera su primer estado
@@ -318,7 +330,7 @@ def main():
         while True:
           beat()
           if STOP_FILE.exists():
-              print("Cierre ordenado pedido por el supervisor")
+              log.info("Cierre ordenado pedido por el supervisor")
               break
           try:
               # Lo que se puede caer sin que el prototipo se entere: el puerto MIDI de la Maschine
@@ -327,10 +339,10 @@ def main():
               if time.perf_counter() - last_port_check >= 5.0:
                   last_port_check = time.perf_counter()
                   if not vdj_port_running():
-                      print("vdj_puerto.py no está corriendo: lo vuelvo a lanzar (VirtualDJ se reconecta solo)")
+                      log.warning("vdj_puerto.py no está corriendo: lo vuelvo a lanzar (VirtualDJ se reconecta solo)")
                       start_vdj_port()
               if watcher.sync(ableton_text.reported_mode()):
-                  print("(modo tomado del script de Ableton)")
+                  log.info("(modo tomado del script de Ableton)")
               new_mode = watcher.mode
               if time.perf_counter() - last_full_refresh >= FULL_REFRESH_SECONDS:
                   last_full_refresh = time.perf_counter()
@@ -338,7 +350,7 @@ def main():
                   last_frame = [None, None]
               if new_mode != mode:
                   mode = new_mode
-                  print(f"--> modo {mode.upper()}")
+                  log.info(f"--> modo {mode.upper()}")
                   try:
                       MODE_FILE.write_text(mode, encoding="ascii")
                   except OSError:
@@ -364,7 +376,7 @@ def main():
               browser = mode == DJ and watcher.browser
               if browser != showing_browser:
                   showing_browser = browser
-                  print("--> browser" if browser else "--> ondas")
+                  log.info("--> browser" if browser else "--> ondas")
                   last_sent = [None, None]
                   last_frame = [None, None]
                   next_due = [0.0, 0.0]
@@ -372,6 +384,11 @@ def main():
               if mode != DJ:
                   frame_start = time.perf_counter()
                   state = ableton_text.state(max_age=2.0)
+                  ableton_status = ("sin conexión" if state is None
+                                    else ("en reposo" if state.get("standby") else "activo"))
+                  if ableton_status != last_ableton_status:
+                      log.info(f"Ableton: {ableton_status}")
+                      last_ableton_status = ableton_status
                   state_is_fresh = ableton_text.state_version != ableton_state_mark
                   if state is None and time.perf_counter() < ableton_wait_until and not state_is_fresh:
                       # Recién de vuelta de DJ: Ableton todavía no mandó estado. Se muestra enseguida el último que
@@ -380,6 +397,8 @@ def main():
                   # Reposo (Ableton cerrado o en standby): pads y botones sin luz, aunque el script no pueda
                   if state is None or state.get("standby"):
                       if time.perf_counter() - last_idle_blank >= IDLE_BLANK_SECONDS:
+                          if last_idle_blank == 0.0:
+                              log.info("Reposo: se apagan las luces de la Maschine")
                           last_idle_blank = time.perf_counter()
                           try:
                               blank_leds(config["midi_port"])
@@ -410,7 +429,7 @@ def main():
                               last_sent[display] = None
                               continue
                       except Exception as error:  # un cuadro perdido no frena la pantalla
-                          print(f"Error dibujando Ableton: {error!r}")
+                          log.exception("Error dibujando Ableton")
                           last_frame[display] = None
                           continue
                       last_frame[display] = None
@@ -423,15 +442,15 @@ def main():
                                           else render_screen(*content))
                       last_sent[display] = content
                   if switch_at is not None:
-                      print(f"Cambio a ABLETON: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms "
+                      log.info(f"Cambio a ABLETON: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms "
                             f"({'estado nuevo' if state_is_fresh else 'último estado guardado'})")
                       switch_at = None
                   elapsed = time.perf_counter() - stats_start
                   if elapsed >= STATS_EVERY_S:
                       if state is None:
-                          print("Ableton: sin estado JSON (¿cerrado o script sin recargar?); se muestra el cartel")
+                          log.warning("Ableton: sin estado JSON (¿cerrado o script sin recargar?); se muestra el cartel")
                       else:
-                          print(f"Ableton: dibuja {screen_kind(state) or 'texto'}, vista {state.get('view')}, "
+                          log.info(f"Ableton: dibuja {screen_kind(state) or 'texto'}, vista {state.get('view')}, "
                                 f"session {state.get('session_view')}, encoder {state.get('encoder_mode')}, "
                                 f"estados {ableton_text.state_version - last_version} en {elapsed:.0f} s, "
                                 f"cuadros {sent[0] / elapsed:.1f} / {sent[1] / elapsed:.1f} por segundo")
@@ -452,6 +471,12 @@ def main():
 
               now = time.perf_counter()
               vdj_open = capture.process_started() is not None if hasattr(capture, "process_started") else True
+              vdj_status = ("cerrado" if not vdj_open
+                            else ("no visible (minimizado)" if getattr(capture, "latest", None) and capture.latest() is None
+                                  else vdj_link_warning(vdj_data, capture) or "conectado"))
+              if vdj_status != last_vdj_status:
+                  log.info(f"VirtualDJ: {vdj_status}")
+                  last_vdj_status = vdj_status
               for display, screen in enumerate(screens):
                   if now < next_due[display]:
                       continue
@@ -478,12 +503,12 @@ def main():
                           focus = browser_view.focus
                           rgb = browser_view.render_focused(window)
                           if browser_view.focus != focus:
-                              print(f"--> browser: {browser_view.focus}")
+                              log.info(f"--> browser: {browser_view.focus}")
                           if displays.send_changes(display, rgb, last_frame[display]):
                               sent[display] += 1
                           last_frame[display] = rgb
                       except Exception as error:
-                          print(f"Error en el browser: {error!r}")
+                          log.exception("Error en el browser")
                           last_frame[display] = None
                       continue
                   if display == DECKS_DISPLAY:
@@ -494,7 +519,7 @@ def main():
                               sent[display] += 1
                           last_frame[display] = rgb
                       except Exception as error:
-                          print(f"Error en los decks: {error!r}")
+                          log.exception("Error en los decks")
                           last_frame[display] = None
                       continue
                   next_due[display] = now + 1.0 / screen["fps"]
@@ -514,11 +539,11 @@ def main():
                           raise
 
               if switch_at is not None:
-                  print(f"Cambio a DJ: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms")
+                  log.info(f"Cambio a DJ: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms")
                   switch_at = None
               elapsed = time.perf_counter() - stats_start
               if elapsed >= STATS_EVERY_S:
-                  print(f"fps enviados: izquierda {sent[0] / elapsed:.1f}, derecha {sent[1] / elapsed:.1f}; "
+                  log.info(f"fps enviados: izquierda {sent[0] / elapsed:.1f}, derecha {sent[1] / elapsed:.1f}; "
                         f"datos de VirtualDJ: {vdj_data.messages if vdj_data else 'sin puerto'}")
                   sent = [0, 0]
                   stats_start = time.perf_counter()
@@ -545,9 +570,10 @@ def main():
             for display, image in enumerate(splash()):
                 displays.send_image(display, image)
         except Exception:
-            pass
+            log.warning("No se pudo dejar la bienvenida al cerrar", exc_info=True)
         finally:
             displays.close()
+            log.info("Cerrado")
 
 
 if __name__ == "__main__":

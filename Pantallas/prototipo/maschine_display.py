@@ -11,6 +11,8 @@ import struct
 import time
 
 import libusb_package
+import logging
+
 import numpy as np
 import usb.core
 import usb.util
@@ -77,6 +79,9 @@ def changed_rects(previous, current, strips=4):
     return rects
 
 
+log = logging.getLogger("usb")
+
+
 class MaschineDisplays:
     def __init__(self, timeout_ms=1000):
         self.timeout_ms = timeout_ms
@@ -92,6 +97,7 @@ class MaschineDisplays:
                 "interfaz 5 tiene WinUSB (Zadig)?"
             )
         usb.util.claim_interface(self.device, DISPLAY_INTERFACE)
+        log.info("Pantallas de la Maschine abiertas (interfaz %d)", DISPLAY_INTERFACE)
 
     def _reopen(self):
         try:
@@ -112,7 +118,7 @@ class MaschineDisplays:
                 return cls()
             except (RuntimeError, usb.core.USBError) as error:
                 if not warned:
-                    print(f"Esperando la Maschine: {error}")
+                    log.warning(f"Esperando la Maschine: {error}")
                     warned = True
                 time.sleep(retry_seconds)
 
@@ -129,7 +135,7 @@ class MaschineDisplays:
         try:
             self.device.write(DISPLAY_ENDPOINT, frame, self.timeout_ms)
         except usb.core.USBError as error:
-            print(f"USB de las pantallas: {error}; reconectando")
+            log.warning(f"USB de las pantallas: {error}; reconectando")
             self._reopen()
             self.device.write(DISPLAY_ENDPOINT, frame, self.timeout_ms)
 

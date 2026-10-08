@@ -9,6 +9,7 @@ izquierda de VirtualDJ), así no dependen de dónde esté la ventana.
 """
 
 import ctypes
+import logging
 import ctypes.wintypes as W
 import threading
 import time
@@ -23,6 +24,7 @@ PW_RENDERFULLCONTENT = 0x2
 DIB_RGB_COLORS = 0
 BI_RGB = 0
 
+log = logging.getLogger("captura")
 user32 = ctypes.windll.user32
 gdi32 = ctypes.windll.gdi32
 # En 64 bits los handles no entran en un int de C: hay que declarar los tipos
@@ -202,7 +204,7 @@ class BackgroundWindowCapture:
             try:
                 image = self._capture.grab_window()
             except Exception as error:  # una captura fallida no corta el hilo
-                print(f"Error capturando la ventana: {error}")
+                log.error("Error capturando la ventana", exc_info=True)
                 image = None
             with self._lock:
                 self._latest = image

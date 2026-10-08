@@ -14,6 +14,7 @@ Uso: python supervisor.py      (en una consola: además muestra el registro)
 """
 
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -29,6 +30,7 @@ LOG_MAX_BYTES = 5 * 1024 * 1024
 HEARTBEAT_FILE = DATA_DIR / "dj_screens.heartbeat"
 STOP_FILE = DATA_DIR / "detener"  # dj_screens.py lo mira y se cierra solo, terminando el cuadro que manda
 ALREADY_RUNNING = 2
+DATED_LINE = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d ")
 SINGLE_INSTANCE_ADDRESS = ("127.0.0.1", 9020)
 HEARTBEAT_TIMEOUT = 15.0  # sin pulso por más que esto = colgado
 STARTUP_GRACE = 30.0  # al arrancar puede tardar (Windows recién iniciado, la Maschine apagada...)
@@ -41,8 +43,8 @@ class Log:
         self._lock = threading.Lock()
         self._console = sys.stdout if sys.stdout is not None and sys.stdout.isatty() else None
 
-    def write(self, text):
-        line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {text.rstrip()}\n"
+    def write(self, text, stamp=True):
+        line = f"{time.strftime('%Y-%m-%d %H:%M:%S')} {text.rstrip()}\n" if stamp else f"{text.rstrip()}\n"
         with self._lock:
             try:
                 if self._path.exists() and self._path.stat().st_size > LOG_MAX_BYTES:
@@ -96,7 +98,9 @@ class Screens:
 
     def _copy_output(self, process):
         for raw in process.stdout:
-            self._log.write(raw.decode("utf-8", "replace"))
+            line = raw.decode("utf-8", "replace")
+            # Las líneas del registro de las pantallas ya traen fecha; las demás (un error de Python, por ejemplo) no
+            self._log.write(line, stamp=not DATED_LINE.match(line))
 
     def stop_gracefully(self, timeout=8.0):
         """Pide el cierre ordenado y espera; matarlo a la fuerza en medio de una transferencia USB puede dejar

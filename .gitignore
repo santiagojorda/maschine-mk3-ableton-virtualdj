@@ -9,3 +9,4 @@ Pantallas/build/
 Pantallas/dist/
 Pantallas/*.spec
 Pantallas/prototipo/icono.ico
+*.log

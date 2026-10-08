@@ -101,6 +101,16 @@ from . import Config
 VDJ_ENTER_BUTTON = (0xB1, 39)
 # Standby: SHIFT + CHANNEL puts the Maschine to rest (everything off, welcome on the screens); CHANNEL wakes it,
 # and so do the mode buttons (SAMPLING also enters VirtualDJ mode, MIXER and PLUGIN select their view)
+BUTTON_NAMES = {
+    8: "EncoderPush", 30: "EncoderUp", 31: "EncoderRight", 32: "EncoderDown", 33: "EncoderLeft", 34: "Channel",
+    35: "Plugin", 36: "Arranger", 37: "Mixer", 38: "Browser", 39: "Sampling", 40: "File", 41: "Setting", 42: "Auto",
+    43: "Macro", 44: "Volume", 45: "Swing", 46: "NoteRep", 47: "Tempo", 48: "Lock", 49: "Pitch", 50: "Mod",
+    51: "Perform", 52: "Notes", 53: "Restart", 54: "Erase", 55: "Tap", 56: "Follow", 57: "Play", 58: "Rec",
+    59: "Stop", 80: "FixedVel", 81: "PadMode", 82: "Keyboard", 83: "Chords", 84: "Step", 85: "Scene",
+    86: "Pattern", 87: "Events", 88: "Variation", 89: "Duplicate", 90: "Select", 91: "Solo", 92: "Mute",
+    100: "GroupA", 101: "GroupB", 102: "GroupC", 103: "GroupD", 104: "GroupE", 105: "GroupF", 106: "GroupG",
+    107: "GroupH", 110: "Left", 111: "Right",
+}
 STANDBY_BUTTON = (0xB1, 34)
 SHIFT_BUTTON = (0xB1, 119)
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
@@ -303,6 +313,8 @@ class CustomMaschineMK3(ControlSurface):
     _browser_bridge_items = ()
     _browser_bridge_parent = None
     _session_block_start = 0  # first track of the session grid on the screens
+    _logged_state = None  # last value logged of each thing _log_state_changes follows
+    _logged_errors = {}  # key -> (text, time) of the last error logged
     _ring_offsets_seen = None  # (track, scene) offsets of the session ring at the last tick
     _screen_bridge_error_logged = False
 
@@ -402,10 +414,9 @@ class CustomMaschineMK3(ControlSurface):
             self._shift_down = midi_bytes[-2] > 0
         elif is_cc and midi_bytes[:2] == SHIFT_BUTTON:
             self._shift_down = midi_bytes[2] > 0
-        if is_cc and midi_bytes[:2] == STANDBY_BUTTON and midi_bytes[2] > 0:
-            self._c_instance.log_message(
-                f"CustomMaschineMK3: CHANNEL pressed (shift = {self._shift_down or self.elements.shift.is_pressed}, "
-                f"standby = {self._standby})")
+        if is_cc and midi_bytes[0] == 0xB1 and midi_bytes[2] > 0 and midi_bytes[1] in BUTTON_NAMES:
+            self._log(f"button {BUTTON_NAMES[midi_bytes[1]]} pressed (shift = {self._shift_down}, "
+                      f"standby = {self._standby}, vdj = {self._vdj_mode})")
         if self._standby:
             # Everything is ignored, except SHIFT's state and the buttons that wake the Maschine
             if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
@@ -571,6 +582,52 @@ class CustomMaschineMK3(ControlSurface):
             for identifier in range(128):
                 Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, channel, identifier)
                 Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, channel, identifier)
+
+    def _log(self, message):
+        # Always written to Live's Log.txt, regardless of Config.LOGGING
+        self._c_instance.log_message(f"CustomMaschineMK3: {message}")
+
+    def _log_state_changes(self):
+        # One line for every change of what the Maschine is doing: views, modes, standby, the session ring, the
+        # selected track, the locked track and device. Called from the screen bridge tick (~30 times a second)
+        try:
+            ring = getattr(self, "_session_ring", None)
+            view = self.song.view
+            target = self.component_map["Target_Track"]
+            device = getattr(self.component_map["Device"], "device", None)
+            if callable(device):
+                device = device()
+            values = {
+                "display view": self.component_map["Display_Modes"].selected_mode,
+                "encoder mode": self.component_map["Encoder_Modes"].selected_mode,
+                "pad mode": self.component_map["Pad_Modes"].selected_mode,
+                "standby": self._standby,
+                "vdj mode": self._vdj_mode,
+                "pad lock": self._pad_lock,
+                "session ring (track, scene)": (ring.track_offset, ring.scene_offset) if ring is not None else None,
+                "selected track": liveobj_name(view.selected_track) if liveobj_valid(view.selected_track) else None,
+                "selected scene": liveobj_name(view.selected_scene) if liveobj_valid(view.selected_scene) else None,
+                "target track": liveobj_name(target.target_track) if liveobj_valid(target.target_track) else None,
+                "track locked": target.is_locked_to_track,
+                "device": liveobj_name(device) if liveobj_valid(device) else None,
+            }
+        except Exception:
+            self._log_error_once("state log", traceback.format_exc())
+            return
+        if self._logged_state is None:
+            self._logged_state = {}
+        for key, value in values.items():
+            if key in self._logged_state and self._logged_state[key] != value:
+                self._log(f"{key}: {self._logged_state[key]} -> {value}")
+            self._logged_state[key] = value
+
+    def _log_error_once(self, key, text):
+        # The same error is logged again only after a minute (it can repeat at every tick)
+        now = perf_counter()
+        last_text, last_time = self._logged_errors.get(key, (None, 0.0))
+        if text != last_text or now - last_time > 60.0:
+            self._logged_errors[key] = (text, now)
+            self._log(f"ERROR in {key}:\n{text}")
 
     def _set_standby(self, enabled):
         if enabled == self._standby:
@@ -780,6 +837,8 @@ class CustomMaschineMK3(ControlSurface):
         last, self._ring_offsets_seen = self._ring_offsets_seen, offsets
         if last is None or offsets == last:
             return
+        self._log(f"session ring moved: tracks {last[0]} -> {offsets[0]}, scenes {last[1]} -> {offsets[1]}")
+        self._mixer_follow_ring(ring)
         if self.component_map["Display_Modes"].selected_mode not in (BROWSER_DISPLAY_MODE, SESSION_DISPLAY_MODE):
             return
         _, tracks, scenes = self._session_tracks_and_scenes()
@@ -790,6 +849,18 @@ class CustomMaschineMK3(ControlSurface):
         scene_index = min(max(scenes.index(view.selected_scene) + offsets[1] - last[1], 0), len(scenes) - 1)
         view.selected_track = tracks[track_index]
         view.selected_scene = scenes[scene_index]
+
+    def _mixer_follow_ring(self, ring):
+        # The 8-track mixer scrolls on its own (left / right); when something else moves the pads' grid (A-H in the
+        # session pad mode) the mixer goes to the same 8 tracks that the session grid on the screens shows
+        mixer = self.component_map.get("Mixer")
+        if mixer is None or not hasattr(mixer, "track_position"):
+            return
+        start = self._session_block(ring)
+        if mixer.track_position != start:
+            with self.component_guard():
+                mixer.track_position = start
+            self._log(f"mixer follows the pads' grid: tracks {start + 1}-{start + 8}")
 
     def _screen_bridge_session(self):
         # Clip grid for the session pad mode: SESSION_GRID_TRACKS tracks x SESSION_GRID_SCENES scenes from the
@@ -952,6 +1023,7 @@ class CustomMaschineMK3(ControlSurface):
     def _screen_bridge_tick(self):
         if self._screen_bridge is None:
             return
+        self._log_state_changes()
         self._screen_bridge_last_tick = perf_counter()
         # In VirtualDJ mode the display belongs to VirtualDJ: the bridge only learns the mode, so it can
         # pick it up when it starts while VirtualDJ mode is on
@@ -990,10 +1062,7 @@ class CustomMaschineMK3(ControlSurface):
             state = self._screen_bridge_state()
         except Exception as error:
             # Never let the bridge break the controller: log once and keep the text-only display
-            if not self._screen_bridge_error_logged:
-                self._screen_bridge_error_logged = True
-                self._c_instance.log_message(f"CustomMaschineMK3: screen bridge state failed ({error!r})\n"
-                                             f"{traceback.format_exc()}")
+            self._log_error_once("screen bridge state", traceback.format_exc())
             return
         self._send_to_screen_bridge(json.dumps(state, separators=(",", ":")).encode("utf-8"))
 
@@ -1228,8 +1297,11 @@ class CustomMaschineMK3(ControlSurface):
         if self._standby:
             self.request_rebuild_midi_map()
             self._blank_hardware()
+        self._log(f"script loaded (standby = {self._standby}, mixer mode = {self._settings.get_value('mixer_mode')}, "
+                  f"screen bridge = {SCREEN_BRIDGE_ADDRESS})")
 
     def disconnect(self):
+        self._log("script disconnected")
         super().disconnect()
 
         # Save settings

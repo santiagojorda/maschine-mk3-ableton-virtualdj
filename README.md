@@ -209,7 +209,12 @@ Botones 1-4 sobre la pantalla: **DRUMLESS** (sin kick ni hats) y **BATERÍA** (s
   reinstalar los dos XML y reiniciar VirtualDJ.
 - **Ableton:** después de cambiar el script, recargarlo eligiendo None y otra vez CustomMaschineMK3 en
   Preferences. Log: `%AppData%\Ableton\Live 12.x\Preferences\Log.txt`.
-- **Pantallas:** el registro está en `Pantallas/.venv/pantallas.log`. Más detalles en
+- **Registros:** todo queda registrado con fecha, hora y nivel, incluidos los errores con su detalle. Con `python tools/registros.py [minutos] [texto]` se ven todos juntos, en orden:
+  - script de Ableton: `Preferences\Log.txt` de Live (líneas `CustomMaschineMK3:`) y `CustomMaschineMK3.log`
+    (detalle del marco, se apaga con `LOGGING = False` en `Config.py`);
+  - pantallas y supervisor: `%LOCALAPPDATA%\MaschineMK3AsPush\pantallas.log`;
+  - puerto de datos de VirtualDJ: `%LOCALAPPDATA%\MaschineMK3AsPushdj_puerto.log`.
+- **Pantallas:** más detalles en
   [`Pantallas/README.md`](Pantallas/README.md) y [`CONTEXTO-TECNICO.md`](CONTEXTO-TECNICO.md).
 
 ## Créditos y licencia

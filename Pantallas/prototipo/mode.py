@@ -11,7 +11,11 @@ programas lo usen a la vez.
 import threading
 import time
 
+import logging
+
 import mido
+
+log = logging.getLogger("midi")
 
 DJ = "dj"
 ABLETON = "ableton"
@@ -20,6 +24,7 @@ MODE_CHANNEL = 1  # mido numera desde 0: 1 = canal MIDI 2
 SAMPLING_CC = 39
 MIXER_CC = 37
 PLUGIN_CC = 35
+BUTTON_NAMES = {SAMPLING_CC: "SAMPLING", MIXER_CC: "MIXER", PLUGIN_CC: "PLUGIN"}
 BROWSER_CC = 38
 # En modo DJ, tocar algo de la mezcla cierra el browser y vuelve a la vista normal (canal 2):
 KNOB_TOUCH_CCS = range(10, 18)  # tocar una perilla (jogs, tempo, volumen, filtro)
@@ -89,7 +94,7 @@ class ModeWatcher:
         if self._port is not None and self.port_name in names:
             return True
         if self._port is not None:
-            print(f"Se perdió el puerto MIDI '{self.port_name}'; espero que vuelva la Maschine")
+            log.warning(f"Se perdió el puerto MIDI '{self.port_name}'; espero que vuelva la Maschine")
             try:
                 self._port.close()
             except Exception:
@@ -102,10 +107,10 @@ class ModeWatcher:
         try:
             self._port = mido.open_input(candidates[0], callback=self._handle)
             self.port_name = candidates[0]
-            print(f"Puerto MIDI abierto: '{self.port_name}'")
+            log.info(f"Puerto MIDI abierto: '{self.port_name}'")
             return True
         except Exception as error:
-            print(f"No se pudo abrir '{candidates[0]}': {error}")
+            log.error(f"No se pudo abrir '{candidates[0]}': {error}", exc_info=True)
             return False
 
     @property
@@ -119,14 +124,18 @@ class ModeWatcher:
         if is_browser_press(message):
             with self._lock:
                 self.browser = not self.browser
+                browser = self.browser
+            log.info(f"Botón BROWSER: browser {'abierto' if browser else 'cerrado'}")
             return
         if self.browser and closes_browser(message):
             with self._lock:
                 self.browser = False
+            log.info(f"Se cierra el browser: {message}")
             return
         new_mode = mode_for_message(message)
         if new_mode is None:
             return
+        log.info(f"Botón de modo: {BUTTON_NAMES.get(message.control, message.control)} -> {new_mode}")
         with self._lock:
             changed = new_mode != self._mode
             self._mode = new_mode

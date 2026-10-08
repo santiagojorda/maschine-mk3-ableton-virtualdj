@@ -12,6 +12,8 @@ Uso: python vdj_puerto.py   (si ya hay uno corriendo, este sale solo)
 """
 
 import atexit
+import logging
+import os
 import ctypes
 import ctypes.wintypes as W
 import faulthandler
@@ -21,9 +23,11 @@ import threading
 import time
 from pathlib import Path
 
+import registro
 from paths import DATA_DIR
 from vdj_data import BRIDGE_ADDRESS, DATA_PORT, PORT_STARTED_FILE, REPLAY_MARK, REQUEST_ALL, SYSEX_ID
 
+log = logging.getLogger("puerto")
 PORT_NAME = "MK3 Screens"
 LOG_PATH = DATA_DIR / "vdj_puerto.log"
 
@@ -50,7 +54,7 @@ class PortBridge:
         try:
             self._collect(data, length)
         except Exception as error:
-            print(f"Error leyendo el puerto: {error!r}", flush=True)
+            log.error("Error leyendo el puerto", exc_info=True)
 
     def _collect(self, data, length):
         if not data or not length:
@@ -87,23 +91,25 @@ class PortBridge:
 
 
 def main():
-    # Corre sin ventana (pythonw, ver dj_screens.start_vdj_port): todo lo que imprime va al registro
-    log = open(LOG_PATH, "a", encoding="utf-8", buffering=1)
-    sys.stdout = sys.stderr = log
-    faulthandler.enable(log)  # si se cae por algo de bajo nivel, queda el motivo en el registro
-    atexit.register(lambda: print(time.strftime("%H:%M:%S"), "vdj_puerto.py terminó", flush=True))
+    # Corre sin ventana (pythonw, ver dj_screens.start_vdj_port): todo va a vdj_puerto.log, con fecha y hora
+    registro.configurar(archivo=LOG_PATH)
+    stream = open(LOG_PATH, "a", encoding="utf-8", buffering=1)
+    sys.stdout = sys.stderr = stream
+    faulthandler.enable(stream)  # si se cae por algo de bajo nivel, queda el motivo en el registro
+    atexit.register(lambda: log.info("vdj_puerto.py terminó"))
+    log.info(f"Arrancó (pid {os.getpid()})")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         sock.bind(BRIDGE_ADDRESS)
     except OSError:
-        print("Ya hay un vdj_puerto.py corriendo")
+        log.info("Ya hay un vdj_puerto.py corriendo: este sale")
         return 0
     try:
         bridge = PortBridge(sock)
-    except Exception as error:
-        print(error)
+    except Exception:
+        log.critical("No se pudo crear el puerto virtual", exc_info=True)
         return 1
-    print(time.strftime("%H:%M:%S"), f"Puerto '{PORT_NAME}' creado; datos por UDP a {DATA_PORT}", flush=True)
+    log.info(f"Puerto '{PORT_NAME}' creado; datos por UDP a {DATA_PORT}")
     # Un VirtualDJ abierto antes de esta hora no está conectado a este puerto (dj_screens.py avisa)
     PORT_STARTED_FILE.write_text(f"{time.time():.0f}", encoding="ascii")
     sock.settimeout(5.0)
@@ -115,11 +121,11 @@ def main():
                 bridge.send_all()
         except (socket.timeout, ConnectionResetError):
             pass
-        except OSError as error:
-            print(f"UDP: {error!r}", flush=True)
+        except OSError:
+            log.error("UDP", exc_info=True)
             time.sleep(1.0)
         if time.perf_counter() - last_report > 60:
-            print(f"{bridge.messages} mensajes de VirtualDJ", flush=True)
+            log.info(f"{bridge.messages} mensajes de VirtualDJ recibidos en total")
             last_report = time.perf_counter()
 
 
