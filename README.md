@@ -22,7 +22,7 @@ Por **Santiago Jorda**.
 - **Browser** en las pantallas: la lista a la derecha (arranca en la User Library) y, a la izquierda, la grilla
   para ver dónde va a caer lo que cargues.
 - **VOLUME / SWING / TEMPO**: volumen master, auriculares o tempo en la rueda, con su vista en la pantalla.
-- **Atajos**: borrar el clip del track fijado (VARIATION), llevar una perilla a su valor por defecto
+- **Atajos**: borrar un clip (VARIATION: el del cursor en la vista session, y en las otras vistas el último que grabaste), llevar una perilla a su valor por defecto
   (RESTART + perilla) o a cero (ERASE + doble toque), y detener el clip de un track (MUTE + perilla).
 
 **En VirtualDJ** (botón SAMPLING)
@@ -139,7 +139,7 @@ El script arranca en reposo. Para que arranque despierto, poner `START_IN_STANDB
 | SHIFT + girar / inclinar | Mover los pads y la grilla a mano: de a 4 tracks al costado, de a 1 escena |
 | A–H | Saltar de a 4 tracks: A son los tracks 1-4, B los 5-8, y así hasta H. Se prende solo la zona donde están los pads |
 | ◀ / ▶ | Perillas en el volumen de los 8 tracks / en el dispositivo seleccionado |
-| VARIATION | Borrar el clip del track fijado (Ctrl+Z lo recupera) |
+| VARIATION | Borrar el clip que está bajo el cursor (Ctrl+Z lo recupera). Fuera de la vista session borra el último clip grabado |
 
 **Todo se mueve de a 4 tracks hacia los costados y de a 1 escena hacia arriba y abajo**: la grilla, los pads, el mixer,
 A–H y la inclinación de la rueda. Cuando el cursor sale de los pads, los pads se corren 4 tracks; cuando salen de la

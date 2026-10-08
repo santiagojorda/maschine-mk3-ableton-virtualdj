@@ -163,8 +163,8 @@ MIXER_DISPLAY_MODE = "default"
 # it stays on until another view button (VIEW_BUTTONS) is pressed. Its LED shows it.
 SESSION_VIEW_BUTTON = (0xB1, 36)
 SESSION_DISPLAY_MODE = "session"
-# VARIATION (NAVIGATE) deletes the clip of the locked (target) track: the one playing or recording, or else the one
-# in the selected scene. For a bad take; Live's undo brings it back
+# VARIATION (NAVIGATE) deletes a clip, for a bad take (Live's undo brings it back): in the session view the one under
+# the cursor, in the other views the last clip recorded
 DELETE_CLIP_BUTTON = (0xB1, 88)
 # Session view, encoder in its default mode (like Push): turning or tilting up / down moves the selected clip slot
 # one scene, tilting left / right one track, always inside the grid on the screens (it doesn't move);
@@ -175,6 +175,7 @@ SESSION_NAV_TILTS = {(0xB1, 30): (0, -1), (0xB1, 31): (1, 0), (0xB1, 32): (0, 1)
 ENCODER_DEFAULT_MODE = "default"
 SESSION_GRID_TRACKS = 8
 SESSION_GRID_SCENES = 4
+RECORDED_CHECK_SECONDS = 0.1  # how often the tracks are looked at for a recording that started or ended
 SESSION_GRID_STEP = 4  # the grid on the screens moves sideways in steps of 4 tracks
 BROWSER_DISPLAY_MODE = "browser"
 BROWSER_BRIDGE_ITEMS = 12  # items sent on each side of the selected one
@@ -316,6 +317,9 @@ class CustomMaschineMK3(ControlSurface):
     _browser_bridge_items = ()
     _browser_bridge_parent = None
     _session_block_start = 0  # first track of the session grid on the screens
+    _recorded_checked = 0.0
+    _recording_slots = ()  # clip slots recording right now
+    _last_recorded = None  # clip slot of the last recording that ended
     _logged_state = None  # last value logged of each thing _log_state_changes follows
     _logged_errors = {}  # key -> (text, time) of the last error logged
     _ring_offsets_seen = None  # (track, scene) offsets of the session ring at the last tick
@@ -521,7 +525,7 @@ class CustomMaschineMK3(ControlSurface):
 
         if is_cc and midi_bytes[:2] == DELETE_CLIP_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
-                self._delete_target_clip()
+                self._delete_clip()
             return False
 
         if is_cc and (midi_bytes[:2] in VIEW_BUTTONS or midi_bytes[:2] in PAD_PAGE_BUTTONS) and midi_bytes[2] > 0:
@@ -805,26 +809,50 @@ class CustomMaschineMK3(ControlSurface):
         # The selected clip slot stays visible
         self._move_session_selection(0, 0, follow = False)
 
-    def _delete_target_clip(self):
-        target = self.component_map["Target_Track"]
-        track = target.target_track
-        if not liveobj_valid(track) or not hasattr(track, "clip_slots"):
+    def _track_recorded_clips(self):
+        # Live doesn't keep "the last clip recorded", so it is noted here: a track whose playing slot is recording is
+        # remembered, and when the recording ends that slot becomes the last recorded clip. Called from the screen
+        # bridge tick, about every RECORDED_CHECK_SECONDS
+        now = perf_counter()
+        if now - self._recorded_checked < RECORDED_CHECK_SECONDS:
             return
-        slot = None
-        # playing_slot_index also covers the slot that is recording
-        if track.playing_slot_index >= 0:
-            slot = track.clip_slots[track.playing_slot_index]
+        self._recorded_checked = now
+        recording = []
+        try:
+            for track in self.song.tracks:
+                index = track.playing_slot_index  # also covers the slot that is recording
+                if 0 <= index < len(track.clip_slots):
+                    slot = track.clip_slots[index]
+                    if slot.has_clip and slot.clip.is_recording:
+                        recording.append(slot)
+        except Exception:
+            self._log_error_once("recorded clips", traceback.format_exc())
+            return
+        for slot in self._recording_slots:
+            if slot not in recording and liveobj_valid(slot) and slot.has_clip:
+                self._last_recorded = slot
+                self._log(f"clip recorded: '{slot.clip.name}' on '{slot.canonical_parent.name}'")
+        self._recording_slots = recording
+
+    def _delete_clip(self):
+        # VARIATION: in the session view, the clip under the cursor; in the other views, the last clip recorded (the
+        # one being recorded now, if there is one)
+        if self._session_view:
+            slot = self.song.view.highlighted_clip_slot
+            missing = "No clip under the cursor"
         else:
-            clip = target.target_clip
-            if liveobj_valid(clip):
-                slot = clip.canonical_parent
-        if slot is None or not slot.has_clip:
-            self._c_instance.show_message(f"No clip to delete on {track.name}")
+            slot = self._recording_slots[-1] if self._recording_slots else self._last_recorded
+            missing = "No recorded clip to delete"
+        if not liveobj_valid(slot) or not slot.has_clip:
+            self._log(f"VARIATION: {missing}")
+            self._c_instance.show_message(missing)
             return
-        name = slot.clip.name
+        name, track_name = slot.clip.name, slot.canonical_parent.name
         slot.delete_clip()
-        self._c_instance.show_message(f"Clip deleted: {name} ({track.name}) - Ctrl+Z to undo")
-        self._c_instance.log_message(f"CustomMaschineMK3: deleted clip '{name}' on '{track.name}'")
+        if slot == self._last_recorded:
+            self._last_recorded = None
+        self._c_instance.show_message(f"Clip deleted: {name} ({track_name}) - Ctrl+Z to undo")
+        self._log(f"deleted clip '{name}' on '{track_name}' ({'under the cursor' if self._session_view else 'last recorded'})")
 
     @property
     def _session_view(self):
@@ -1056,6 +1084,7 @@ class CustomMaschineMK3(ControlSurface):
         if self._screen_bridge is None:
             return
         self._log_state_changes()
+        self._track_recorded_clips()
         self._screen_bridge_last_tick = perf_counter()
         # In VirtualDJ mode the display belongs to VirtualDJ: the bridge only learns the mode, so it can
         # pick it up when it starts while VirtualDJ mode is on
