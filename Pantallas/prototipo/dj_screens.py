@@ -197,49 +197,24 @@ def _truetype(name, size):
         return ImageFont.load_default()
 
 
-def banner(text, credit=True):
-    """Texto grande centrado; abajo, chico, el nombre del proyecto y el autor."""
-    image = Image.new("RGB", (WIDTH, HEIGHT))
-    draw = ImageDraw.Draw(image)
-    font = _truetype("arialbd.ttf", 56)
-    left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
-    position = ((WIDTH - (right - left)) // 2 - left, (HEIGHT - (bottom - top)) // 2 - top)
-    draw.text(position, text, fill=(255, 255, 255), font=font)
-    if credit:
-        small = _truetype("arial.ttf", 15)
-        line = f"{PROJECT_NAME}  ·  {AUTHOR}"
-        draw.text(((WIDTH - draw.textlength(line, font=small)) / 2, HEIGHT - 30), line, fill=(120, 120, 120),
-                  font=small)
-    return image
-
-
-def splash():
-    """Pantallas de bienvenida: el nombre del proyecto a la izquierda y el autor a la derecha."""
+def splash(status=None):
+    """Las pantallas de reposo, iguales para Ableton y para VirtualDJ: el nombre del proyecto a la izquierda y el
+    autor a la derecha; status (por ejemplo "ABLETON · sin conexión") va abajo del autor, en gris."""
     left = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(left)
-    for text, size, y, color in (("MASCHINE MK3", 44, 70, (255, 255, 255)),
+    for line, size, y, color in (("MASCHINE MK3", 44, 70, (255, 255, 255)),
                                  ("as Ableton Push", 30, 130, (255, 150, 30))):
         font = _truetype("arialbd.ttf", size)
-        draw.text(((WIDTH - draw.textlength(text, font=font)) / 2, y), text, fill=color, font=font)
+        draw.text(((WIDTH - draw.textlength(line, font=font)) / 2, y), line, fill=color, font=font)
     right = Image.new("RGB", (WIDTH, HEIGHT))
     draw = ImageDraw.Draw(right)
-    for text, size, y, color in (("by", 22, 85, (140, 140, 140)), (AUTHOR, 40, 115, (255, 255, 255))):
+    lines = [("by", 22, 85, (140, 140, 140)), (AUTHOR, 40, 115, (255, 255, 255))]
+    if status:
+        lines.append((status, 20, 190, (120, 120, 120)))
+    for line, size, y, color in lines:
         font = _truetype("arialbd.ttf", size)
-        draw.text(((WIDTH - draw.textlength(text, font=font)) / 2, y), text, fill=color, font=font)
+        draw.text(((WIDTH - draw.textlength(line, font=font)) / 2, y), line, fill=color, font=font)
     return left, right
-
-
-def banner_strip(text, height=HEIGHT):
-    """Aviso en gris, centrado, como array listo para mandar."""
-    image = Image.new("RGB", (WIDTH, height))
-    draw = ImageDraw.Draw(image)
-    try:
-        font = ImageFont.truetype("arialbd.ttf", 20)
-    except OSError:
-        font = ImageFont.load_default()
-    width = draw.textlength(text, font=font)
-    draw.text(((WIDTH - width) / 2, height / 2 - 12), text, fill=(150, 150, 150), font=font)
-    return np.asarray(image)
 
 
 def main():
@@ -288,7 +263,7 @@ def main():
 
     # Sin datos de Ableton (cerrado, o el script sin cargar): un cartel; nunca el último texto, que queda viejo
     # Reposo: Ableton cerrado, sin mandar datos o en standby (SHIFT + CHANNEL): la bienvenida del proyecto
-    ableton_banner, blank = splash()
+    idle_images = {"standby": splash(), "ableton": splash("ABLETON · sin conexión")}  # Ableton en reposo / sin datos
     browser_view = BrowserView(config.get("browser"))
     mode = None
     showing_browser = False
@@ -303,9 +278,10 @@ def main():
     last_port_check = time.perf_counter()
     last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
     report = Throttled()
-    window_missing = np.asarray(banner("VIRTUAL DJ", credit=screens[0]["height"] == HEIGHT).crop((0, (HEIGHT - screens[0]["height"]) // 2, WIDTH,
-                                                         (HEIGHT + screens[0]["height"]) // 2)))
-    blank_rgb = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+    vdj_idle = splash("VIRTUAL DJ · sin conexión")
+    vdj_idle_left = np.asarray(vdj_idle[0].crop((0, (HEIGHT - screens[0]["height"]) // 2, WIDTH,
+                                                 (HEIGHT + screens[0]["height"]) // 2)))
+    vdj_idle_right = np.asarray(vdj_idle[1])
 
     try:
         while True:
@@ -394,19 +370,12 @@ def main():
                           continue
                       last_frame[display] = None
                       # El texto (vistas sin gráficos: clip, settings...) solo con datos frescos de Ableton
-                      if state is None or state.get("standby"):
-                          content = f"banner{display}"
-                      else:
-                          content = ableton_text.screen_lines(display)
+                      idle_kind = "ableton" if state is None else ("standby" if state.get("standby") else None)
+                      content = (idle_kind, display) if idle_kind else ableton_text.screen_lines(display)
                       if content == last_sent[display]:
                           continue
-                      if content == "banner0":
-                          image = ableton_banner
-                      elif content == "banner1":
-                          image = blank
-                      else:
-                          image = render_screen(*content)
-                      displays.send_image(display, image)
+                      displays.send_image(display, idle_images[idle_kind][display] if idle_kind
+                                          else render_screen(*content))
                       last_sent[display] = content
                   elapsed = time.perf_counter() - stats_start
                   if elapsed >= STATS_EVERY_S:
@@ -431,11 +400,11 @@ def main():
                   if now < next_due[display]:
                       continue
                   if display == DECKS_DISPLAY and not vdj_open:
-                      # VirtualDJ cerrado: la derecha vacía, también en browser o VOLUME / SWING
+                      # VirtualDJ cerrado: la misma pantalla de reposo, también en browser o VOLUME / SWING
                       next_due[display] = now + 1.0 / DECKS_FPS
-                      if displays.send_changes(display, blank_rgb, last_frame[display]):
+                      if displays.send_changes(display, vdj_idle_right, last_frame[display]):
                           sent[display] += 1
-                      last_frame[display] = blank_rgb
+                      last_frame[display] = vdj_idle_right
                       continue
                   encoder_image = dj_encoder(vdj_data) if display == ENCODER_DISPLAY else None
                   if encoder_image is not None:
@@ -475,7 +444,7 @@ def main():
                   next_due[display] = now + 1.0 / screen["fps"]
                   try:
                       if display == 0 and hasattr(capture, "latest") and capture.latest() is None:
-                          rgb = window_missing  # VirtualDJ cerrado o minimizado: se avisa en vez de negro
+                          rgb = vdj_idle_left  # VirtualDJ cerrado o minimizado: la pantalla de reposo
                       else:
                           rgb = capture.grab_stack(screen["regions"], screen["fit"], screen["height"])
                       frame = rgb.tobytes()
