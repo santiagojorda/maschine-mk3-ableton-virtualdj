@@ -117,7 +117,7 @@ VDJ_REFRESH_DELAY = 1
 # Pressing "LOCK" in Ableton releases them. VirtualDJ's mapping mirrors the same logic.
 PAD_LOCK_BUTTON = (0xB1, 48)
 PAD_NOTES = range(60, 76)
-# Screen bridge: maschine-mk3-driver drives the Maschine's screens (NI's software can't), so every display line
+# Screen bridge: the Pantallas program drives the Maschine's screens (NI's software can't), so every display line
 # the script sends also goes to it over UDP on localhost. The last lines are resent every second,
 # so the bridge gets the text even when it starts after Live.
 # About 30 times per second (a Live.Base.Timer: schedule_message ticks are ~100ms, too slow for smooth knobs)

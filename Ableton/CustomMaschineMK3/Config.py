@@ -11,5 +11,5 @@
 LOGGING = False
 LOG_LEVEL = "INFO"
 LCD_ENABLED = True
-# UDP port where a copy of the display text goes (maschine-mk3-driver draws it on the screens). None turns it off.
+# UDP port where a copy of the display text goes (the Pantallas program draws it on the screens). None turns it off.
 SCREEN_BRIDGE_PORT = 9017
