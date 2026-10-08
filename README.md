@@ -124,7 +124,7 @@ El script arranca en reposo. Para que arranque despierto, poner `START_IN_STANDB
 | Botón | Vista |
 |---|---|
 | **ARRANGER** | Vista session: grilla de clips en las dos pantallas |
-| **MIXER** | Mixer: faders, paneo y envíos de 8 tracks |
+| **MIXER** | Mixer: faders, paneo y envíos de 8 tracks, los mismos de la vista session. ◀ ▶ y A–H lo mueven por grillas de 4 tracks |
 | **PLUGIN** | Perillas del dispositivo seleccionado |
 | **BROWSER** | Browser: lista a la derecha, grilla a la izquierda |
 | **SAMPLING** | Pasa a VirtualDJ |

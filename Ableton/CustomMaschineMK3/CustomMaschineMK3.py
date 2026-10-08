@@ -111,6 +111,8 @@ BUTTON_NAMES = {
     100: "GroupA", 101: "GroupB", 102: "GroupC", 103: "GroupD", 104: "GroupE", 105: "GroupF", 106: "GroupG",
     107: "GroupH", 110: "Left", 111: "Right",
 }
+LEFT_BUTTON = (0xB1, 110)
+RIGHT_BUTTON = (0xB1, 111)
 STANDBY_BUTTON = (0xB1, 34)
 SHIFT_BUTTON = (0xB1, 119)
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
@@ -506,6 +508,15 @@ class CustomMaschineMK3(ControlSurface):
             self._handle_session_navigation(midi_bytes)
             return False
 
+        if (is_cc and midi_bytes[:2] in (LEFT_BUTTON, RIGHT_BUTTON) and not self._vdj_mode
+                and self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE
+                and not self.elements.macro.is_pressed and not self.elements.plugin.is_pressed):
+            # In the mixer, left / right scroll by grids of SESSION_GRID_STEP tracks, like the session view (with
+            # MACRO held they still change the mixer page: volume, pan, sends)
+            if midi_bytes[2] > 0:
+                self._scroll_grid(1 if midi_bytes[:2] == RIGHT_BUTTON else -1)
+            return False
+
         if is_cc and midi_bytes[:2] == DELETE_CLIP_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
                 self._delete_target_clip()
@@ -833,6 +844,11 @@ class CustomMaschineMK3(ControlSurface):
         ring = getattr(self, "_session_ring", None)
         if ring is None or self._standby:
             return
+        if self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE:
+            # The mixer shows the same 8 tracks as the session grid, and a selected track outside the pads' grid
+            # moves the grid (4 tracks at a time), as in the session view
+            self._move_session_selection(0, 0)
+            self._mixer_follow_ring(ring)
         offsets = (ring.track_offset, ring.scene_offset)
         last, self._ring_offsets_seen = self._ring_offsets_seen, offsets
         if last is None or offsets == last:
@@ -850,9 +866,19 @@ class CustomMaschineMK3(ControlSurface):
         view.selected_track = tracks[track_index]
         view.selected_scene = scenes[scene_index]
 
+    def _scroll_grid(self, direction):
+        # Moves the pads' grid SESSION_GRID_STEP tracks to the left (-1) or right (1). The next screen bridge tick sees
+        # the ring move and takes the selected slot and the mixer along (_carry_selection_with_ring)
+        ring, tracks, _ = self._session_tracks_and_scenes()
+        new_offset = min(max(ring.track_offset + direction * SESSION_GRID_STEP, 0), max(len(tracks) - 1, 0))
+        if new_offset == ring.track_offset:
+            self._c_instance.show_message("No more tracks that way")
+            return
+        ring.set_offsets(new_offset, ring.scene_offset)
+
     def _mixer_follow_ring(self, ring):
-        # The 8-track mixer scrolls on its own (left / right); when something else moves the pads' grid (A-H in the
-        # session pad mode) the mixer goes to the same 8 tracks that the session grid on the screens shows
+        # The 8-track mixer shows the same 8 tracks as the session grid on the screens (its own scrolling by one track
+        # is not used): moving the pads' grid (A-H in the session pad mode, left / right) moves the mixer too
         mixer = self.component_map.get("Mixer")
         if mixer is None or not hasattr(mixer, "track_position"):
             return
