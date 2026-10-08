@@ -295,6 +295,8 @@ def main():
     last_full_refresh = time.perf_counter()
     last_port_check = time.perf_counter()
     last_idle_blank = 0.0  # 0 = las luces se apagan apenas empieza el reposo
+    switch_at = None  # cuándo empezó el último cambio de modo, para medir cuánto tarda en verse
+    state_is_fresh = False
     ableton_wait_until = 0.0  # al volver a Ableton: hasta cuándo se espera su primer estado
     ableton_state_mark = 0
     capture_mark = None  # al entrar a DJ: cuántas capturas había; se espera una más antes de dibujar
@@ -344,6 +346,7 @@ def main():
                   last_sent = [None, None]
                   last_frame = [None, None]
                   next_due = [0.0, 0.0]
+                  switch_at = time.perf_counter()
                   if hasattr(capture, "set_active"):
                       capture.set_active(mode == DJ)
                   if mode != DJ:
@@ -369,10 +372,11 @@ def main():
               if mode != DJ:
                   frame_start = time.perf_counter()
                   state = ableton_text.state(max_age=2.0)
-                  if (state is None and time.perf_counter() < ableton_wait_until
-                          and ableton_text.state_version == ableton_state_mark):
-                      time.sleep(0.01)
-                      continue
+                  state_is_fresh = ableton_text.state_version != ableton_state_mark
+                  if state is None and time.perf_counter() < ableton_wait_until and not state_is_fresh:
+                      # Recién de vuelta de DJ: Ableton todavía no mandó estado. Se muestra enseguida el último que
+                      # mandó (casi siempre sigue siendo el mismo) y se reemplaza cuando llegue el nuevo
+                      state = ableton_text.last_state()
                   # Reposo (Ableton cerrado o en standby): pads y botones sin luz, aunque el script no pueda
                   if state is None or state.get("standby"):
                       if time.perf_counter() - last_idle_blank >= IDLE_BLANK_SECONDS:
@@ -418,6 +422,10 @@ def main():
                       displays.send_image(display, idle_images[idle_kind][display] if idle_kind
                                           else render_screen(*content))
                       last_sent[display] = content
+                  if switch_at is not None:
+                      print(f"Cambio a ABLETON: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms "
+                            f"({'estado nuevo' if state_is_fresh else 'último estado guardado'})")
+                      switch_at = None
                   elapsed = time.perf_counter() - stats_start
                   if elapsed >= STATS_EVERY_S:
                       if state is None:
@@ -505,6 +513,9 @@ def main():
                       if isinstance(error, RuntimeError):  # la Maschine no está: no tiene sentido seguir este ciclo
                           raise
 
+              if switch_at is not None:
+                  print(f"Cambio a DJ: primer cuadro a los {(time.perf_counter() - switch_at) * 1000:.0f} ms")
+                  switch_at = None
               elapsed = time.perf_counter() - stats_start
               if elapsed >= STATS_EVERY_S:
                   print(f"fps enviados: izquierda {sent[0] / elapsed:.1f}, derecha {sent[1] / elapsed:.1f}; "

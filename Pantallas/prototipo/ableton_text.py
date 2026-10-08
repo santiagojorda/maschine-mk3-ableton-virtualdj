@@ -116,6 +116,11 @@ class AbletonText:
                 return None
             return self._state
 
+    def last_state(self):
+        """El último estado JSON que llegó, por viejo que sea (o None si nunca llegó)."""
+        with self._lock:
+            return self._state
+
     def lines(self):
         with self._lock:
             text = "".join(self._chars)
