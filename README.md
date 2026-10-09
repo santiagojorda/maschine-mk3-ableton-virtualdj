@@ -1,231 +1,201 @@
-# Maschine MK3 as Ableton Push
+# 🎹 Maschine MK3 as Ableton Push
 
-Convertí tu **Maschine MK3** en un controlador al estilo **Ableton Push** para Live 12: la grilla de clips de la
-vista session en las pantallas, lanzar clips con el encoder, mixer con faders y medidores, dispositivos con sus
-perillas, browser… Y con un botón, la misma Maschine pasa a controlar **VirtualDJ**, con las ondas de los decks en
-pantalla. Los dos programas quedan abiertos a la vez.
+[![Ableton Live 12](https://img.shields.io/badge/Ableton%20Live-12%20Suite-00D2B4.svg)](https://www.ableton.com)
+[![Native Instruments](https://img.shields.io/badge/Hardware-Maschine%20MK3-black.svg)](https://www.native-instruments.com)
+[![Windows 11](https://img.shields.io/badge/OS-Windows%2011%20MIDI%20Services-0078D4.svg)](https://microsoft.com)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
-Por **Santiago Jorda**.
+Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
+- 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
+- 🎛️ **Navegación tipo Push**: lanzá clips y escenas con el encoder 4D.
+- 🎚️ **Mixer gráfico**: faders verticales, medidores de nivel (vúmetros) dinámicos y paneo estéreo.
+- 🔌 **Control de dispositivos y plugins**: perillas con valores y nombres sincronizados.
+- 📁 **Browser visual**: lista de carpetas a la derecha y grilla de destino a la izquierda.
+- 🎧 **Integración DJ híbrida**: con un solo botón (**SAMPLING**), cambiá al vuelo a **VirtualDJ** con ondas y stems, manteniendo ambos programas abiertos al mismo tiempo.
 
-## Qué hace
+---
 
-**En Ableton Live**
+## 📸 Vistas en las Pantallas de Ableton
 
-- **Vista session en las pantallas** (ARRANGER): grilla de 8 tracks × 4 escenas con los colores y nombres de los
-  clips. Un marco verde muestra los 4 tracks que están en los pads y un cursor blanco, el clip seleccionado.
-- **Navegar como en un Push**: la rueda mueve el cursor, apretarla lanza el clip, y los pads y la grilla siguen
-  al cursor.
-- **Perillas de la vista session**: con ◀ manejan el volumen de los 8 tracks; con ▶, el dispositivo seleccionado.
-  Al tocar una aparece su valor en un pop-up.
-- **Mixer** con faders, medidores de nivel, paneo y envíos. **Dispositivos** con sus perillas, en el color de la
-  cadena del rack o del track.
-- **Browser** en las pantallas: la lista a la derecha (arranca en la User Library) y, a la izquierda, la grilla
-  para ver dónde va a caer lo que cargues.
-- **VOLUME / SWING / TEMPO**: volumen master, auriculares o tempo en la rueda, con su vista en la pantalla.
-- **Atajos**: borrar un clip (VARIATION: el del cursor en la vista session, y en las otras vistas el último que grabaste), llevar una perilla a su valor por defecto
-  (RESTART + perilla) o a cero (ERASE + doble toque), y detener el clip de un track (MUTE + perilla).
+Las dos pantallas de la Maschine MK3 muestran la interfaz gráfica nativa de Ableton en vivo:
 
-**En VirtualDJ** (botón SAMPLING)
+### 1. Vista Session (`ARRANGER`)
+Grilla completa de **8 pistas × 4 escenas** con los nombres y colores reales de tus clips. Un marco verde destaca las 4 pistas asignadas a los pads (zonas A–H) y un cursor blanco marca el clip seleccionado en Live. Los clips en reproducción se identifican con un borde verde.
 
-- **Ondas de los dos decks** en la pantalla izquierda, en vivo.
-- **Estado de los decks** en la derecha: tema, artista, BPM, BPM original, pitch, SYNC / MASTER, pitch lock, loop,
-  volumen y filtro, con avisos al cambiar el loop, el sync o el pitch lock.
-- **Browser** con la tapa de cada tema y una marca en los que ya pasaste.
-- **Pads** para hot cues, transporte y loops, y **stems** (voz, instrumental, kick, hats, sin batería, solo batería).
-- **Efectos** (reverb, flanger, echo), preescucha, crossfader en la tira táctil.
+![Vista Session en las pantallas](docs/images/ableton-session-view.png)
 
-## Cómo está armado
+---
 
-| Parte | Carpeta | Qué hace |
-|---|---|---|
-| Script de Ableton | [`Ableton/CustomMaschineMK3`](Ableton/CustomMaschineMK3) | Toda la lógica en Live: vistas, perillas, botones, modo DJ |
-| Mapeo de VirtualDJ | [`VirtualDJ`](VirtualDJ) | Definición del controlador y qué hace cada control en VirtualDJ |
-| Plantilla del Controller Editor | [`Controller Editor`](Controller%20Editor) | Pone la Maschine en modo MIDI con la plantilla **CUSTOM MASCHINE** |
-| Pantallas | [`Pantallas`](Pantallas) | Programa que dibuja en las pantallas de la Maschine (Ableton y VirtualDJ) |
+### 2. Vista Mixer (`MIXER`)
+Faders verticales por canal, vúmetros con graduación verde/amarillo/rojo, paneo estéreo y niveles exactos en dB. Las pistas llevan su color correspondiente y el marco verde indica las pistas vinculadas a los pads.
 
-Las pantallas son un programa aparte: si se cierra, pads, perillas y botones siguen funcionando igual.
+![Vista Mixer en las pantallas](docs/images/ableton-mixer-view.png)
 
-## Requisitos
+---
 
-- Windows 11 con **Windows MIDI Services** (permite que Ableton y VirtualDJ usen la Maschine a la vez).
-- Maschine MK3 y **Native Instruments Controller Editor** (modo MIDI).
+### 3. Vista Dispositivo / Plugins (`PLUGIN`)
+Las 8 perillas toman los parámetros del instrumento o efecto de audio seleccionado. Muestra el nombre del dispositivo, el color asignado a la cadena o pista y los valores exactos en tiempo real (frecuencia, resonancia, drive, dry/wet, etc.).
+
+![Vista Dispositivo en las pantallas](docs/images/ableton-device-view.png)
+
+---
+
+### 4. Vista Browser (`BROWSER`)
+Navegador de sonidos integrado: la pantalla izquierda mantiene la grilla de sesión para ver dónde caerá el elemento seleccionado, mientras la pantalla derecha permite explorar tu **User Library**, carpetas y presets cómodamente con el encoder.
+
+![Vista Browser en las pantallas](docs/images/ableton-browser-view.png)
+
+---
+
+## 🎮 Guía Rápida de Controles en Ableton
+
+### 🛑 Reposo (Standby)
+Para cuidar las pantallas y evitar toques accidentales cuando no estés tocando:
+
+| Control | Acción |
+|---|---|
+| **SHIFT + CHANNEL** | Pasa a reposo: apaga pads y botones, y muestra el salvapantallas con logo. |
+| **CHANNEL** | Despierta la controladora. |
+| **MIXER** / **PLUGIN** / **ARRANGER** | Despiertan la controladora y van directamente a esa vista. |
+
+---
+
+### 🔲 Vistas Principales
+
+| Botón | Vista |
+|---|---|
+| **ARRANGER** | **Vista Session:** grilla de clips en las dos pantallas. |
+| **MIXER** | **Vista Mixer:** faders, medidores de nivel, paneo y envíos de 8 pistas. |
+| **PLUGIN** | **Vista Dispositivo:** perillas del plugin o efecto seleccionado. |
+| **BROWSER** | **Vista Browser:** lista en pantalla derecha, grilla en pantalla izquierda. |
+| **SAMPLING** | **Modo DJ:** conmuta inmediatamente a VirtualDJ. |
+
+---
+
+### 🕹️ Navegación de Clips y Escenas (Estilo Push)
+
+| Control | Acción |
+|---|---|
+| **Girar rueda (Encoder)** | Mover el cursor de pista en pista. |
+| **Inclinar rueda (Arriba / Abajo)** | Mover el cursor de escena en escena. |
+| **Apretar rueda** | Lanzar el clip (o disparar la celda) bajo el cursor. |
+| **SHIFT + girar / inclinar** | Desplazar manualmente la grilla y pads (4 pistas al costado, 1 escena arriba/abajo). |
+| **Botones A–H** | Saltar rápido de a 4 pistas: A (1-4), B (5-8), C (9-12), etc. |
+| **Botones ◀ / ▶** | En vista Session, alternan las 8 perillas entre volumen de pistas y parámetros del dispositivo. |
+| **VARIATION** | **Borrar clip:** elimina el clip bajo el cursor en vista Session (o el último grabado en otras vistas; recuperable con `Ctrl+Z`). |
+| **EVENTS** | **Crear escena:** inserta una nueva escena debajo de la actual, detiene el clip de esa pista y ubica el cursor allí. |
+
+---
+
+### 🎛️ Atajos y Modificadores en Perillas
+
+| Combinación | Acción |
+|---|---|
+| **RESTART + tocar perilla** | Restablece el parámetro a su valor por defecto (en mixer: 0 dB). |
+| **ERASE + doble toque** | Lleva el parámetro a cero (paneo al centro, etc.). |
+| **SHIFT + RESTART** | Restablece todos los volúmenes del mixer a su valor por defecto (el Master no se modifica). |
+| **MUTE + tocar perilla** | Detiene el clip que está sonando en la pista de esa perilla. |
+| **SOLO + tocar perilla** | Activa o desactiva la preescucha (Solo) de esa pista. |
+| **RESTART + SOLO** | Desactiva todas las preescuchas activas. |
+| **FOLLOW + tocar perilla** | Dispara el clip de esa pista en la escena donde está posicionado el cursor. |
+
+---
+
+### 🔊 Volumen Master, Auriculares y Tempo
+
+Al presionar cualquiera de estos botones, el encoder principal toma el control y la pantalla derecha muestra el valor numérico y gráfico:
+- **VOLUME:** Volumen Master.
+- **SWING:** Volumen de auriculares / preescucha (Cue).
+- **TEMPO:** Tempo general en BPM.
+- Presionar cualquier botón de vista o pad apaga este modo.
+
+---
+
+## 🎧 Uso en VirtualDJ (Modo Híbrido)
+
+Apretando **SAMPLING** la Maschine pasa a controlar VirtualDJ. Con **MIXER** o **PLUGIN** volvés a Ableton al instante. Ambos programas se mantienen sincronizados y sonando a la vez.
+
+- **Pantallas en VirtualDJ:**
+  - **Izquierda:** Formas de onda dinámicas de los dos decks en tiempo real.
+  - **Derecha:** Estado completo de los decks (tema, artista, BPM, pitch lock, loop, sync, volumen y filtro) o Browser con portadas.
+- **Pads:**
+  - **KEYBOARD:** Hot Cues 1–8 (`ERASE + pad` para borrar cue).
+  - **PAD MODE:** Transporte (Play, Pausa, Sync, Loops, Pitch Lock).
+  - **CHORDS:** Stems en tiempo real (Voz, Instrumental, Kick, Hi-Hats, Drumless, Batería sola).
+- **Perillas y Tira Táctil:** Jogs, tempo, volumen, filtros por canal y crossfader en la tira táctil.
+
+---
+
+## 📦 Estructura del Repositorio
+
+| Carpeta | Descripción |
+|---|---|
+| [`Ableton/CustomMaschineMK3`](Ableton/CustomMaschineMK3) | Script de superficie de control para Ableton Live 12. |
+| [`VirtualDJ`](VirtualDJ) | Mapeo MIDI y definición de dispositivo para VirtualDJ. |
+| [`Controller Editor`](Controller%20Editor) | Plantilla MIDI personalizada (`Configuration.ncc`) para Controller Editor. |
+| [`Pantallas`](Pantallas) | Aplicación que dibuja en las pantallas de la Maschine (USB WinUSB). |
+| [`docs/images`](docs/images) | Capturas y diagramas de las pantallas en Ableton Live. |
+| [`tools`](tools) | Utilidades de diagnóstico, registros y generador de capturas. |
+
+---
+
+## 🚀 Instalación y Puesta en Marcha
+
+### Requisitos Previos
+- **Windows 11** con soporte de **Windows MIDI Services** (imprescindible para uso simultáneo de MIDI entre Ableton y VirtualDJ).
 - **Ableton Live 12 Suite**.
-- **VirtualDJ** con stems (opcional).
-- Para las pantallas: **Python 3.12**, **[Zadig](https://zadig.akeo.ie/)** y **[loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)**
-  (trae el driver de puertos MIDI virtuales que usan los datos de VirtualDJ).
+- **Maschine MK3** con **NI Controller Editor**.
+- **VirtualDJ** (opcional, para el modo DJ).
+- **Python 3.12**, **[Zadig](https://zadig.akeo.ie/)** y **[loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)** (para la app de pantallas).
 
-## Instalación
+---
 
-### 1. Controller Editor
+### Paso 1: Controller Editor
+1. Cerrar Controller Editor.
+2. Copiar `Controller Editor/Configuration.ncc` en `Documentos\Native Instruments\Controller Editor\`.
+3. Abrir Controller Editor y seleccionar en la Maschine la plantilla **CUSTOM MASCHINE**.
 
-Cerrarlo, copiar `Controller Editor/Configuration.ncc` a `Documentos\Native Instruments\Controller Editor\` y
-volver a abrirlo. En la Maschine, elegir la plantilla **CUSTOM MASCHINE**.
+### Paso 2: Script de Ableton
+1. Copiar la carpeta `Ableton/CustomMaschineMK3` dentro de:  
+   `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts\`
+2. En Ableton Live (*Opciones → Preferencias → Link, Tempo & MIDI*):
+   - **Control Surface:** `CustomMaschineMK3`
+   - **Input:** `Maschine MK3 Ctrl MIDI`
+   - **Output:** `Maschine MK3 Ctrl MIDI`
 
-### 2. Ableton
+### Paso 3: Mapeo de VirtualDJ (Opcional)
+1. Copiar `VirtualDJ/Devices/MaschineMK3-VDJ.xml` a `%LocalAppData%\VirtualDJ\Devices\`.
+2. Copiar `VirtualDJ/Mappers/MASCHINEMK3VDJ - Mapeo Personalizado.xml` a `%LocalAppData%\VirtualDJ\Mappers\`.
+3. Reiniciar VirtualDJ.
 
-1. Copiar la carpeta `Ableton/CustomMaschineMK3` a
-   `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts\`.
-2. En *Preferences → Link, Tempo & MIDI*: Control Surface = **CustomMaschineMK3**, Input y Output =
-   **Maschine MK3 Ctrl MIDI**.
-
-### 3. VirtualDJ (opcional)
-
-Copiar `VirtualDJ/Devices/MaschineMK3-VDJ.xml` a `%LocalAppData%\VirtualDJ\Devices\` y
-`VirtualDJ/Mappers/MASCHINEMK3VDJ - Mapeo Personalizado.xml` a `%LocalAppData%\VirtualDJ\Mappers\`.
-Reiniciar VirtualDJ.
-
-### 4. Pantallas
-
-1. **Zadig** (Options → List All Devices): poner **WinUSB** solo en **"Maschine MK3 BD (Interface 5)"**.
-   No tocar las otras interfaces de la Maschine (0, 4 y 6): las usa el programa de Native Instruments y la 6 es
-   la del firmware. Después, desenchufar y volver a enchufar la Maschine.
-2. Armar el ejecutable, desde la carpeta `Pantallas` (hace falta Python 3.12 solo para este paso):
-
-   ```
+### Paso 4: Driver y Programa de Pantallas
+1. Abrir **Zadig** (*Options → List All Devices*):
+   - Asignar el driver **WinUSB** **únicamente** a **`Maschine MK3 BD (Interface 5)`**.
+   - ⚠️ *No modificar las otras interfaces (0, 4 ni 6).*
+   - Desconectar y volver a conectar el cable USB de la Maschine.
+2. Compilar el ejecutable desde la carpeta `Pantallas`:
+   ```bash
+   cd Pantallas
    python -m venv .venv
    .venv\Scripts\pip install -r requirements.txt
    construir_exe.bat
    ```
+3. Ejecutar `MaschineMK3AsPush.exe` (corre en segundo plano y se reinicia automáticamente ante cualquier reconexión).
 
-   Queda en `dist\MaschineMK3AsPush\MaschineMK3AsPush.exe`.
+---
 
-3. Para VirtualDJ, instalar el dispositivo de datos y reiniciar VirtualDJ:
+## 📝 Diagnóstico y Registros
 
-   ```
-   dist\MaschineMK3AsPush\MaschineMK3AsPush.exe --instalar-vdj
-   ```
+Para ver los registros unificados en tiempo real (Ableton, pantallas y VirtualDJ):
+```bash
+python tools/registros.py [minutos] [filtro]
+```
 
-4. **Prender las pantallas:** doble clic en `MaschineMK3AsPush.exe`. Corre sin ventana y se reinicia solo si algo
-   falla. Para detenerlas: `MaschineMK3AsPush.exe --salir`. Para que arranque con Windows, poner un acceso directo
-   al .exe en la carpeta Inicio (`shell:startup`). Sin armar el .exe también se puede arrancar con
-   `iniciar_pantallas.bat`.
+---
 
-La captura de las ondas está pensada para VirtualDJ en pantalla completa (1920 × 1200, skin PRO). Con otra
-resolución o skin, ajustar las zonas en `prototipo/config.json`.
+## 📄 Créditos y Licencia
 
-## Uso en Ableton
+Desarrollado y optimizado por **Santiago Jorda**.  
+Basado originalmente en el script de control de *CustomMaschineMK3* (© 2024–2025 chiaki).
 
-### Reposo (standby)
-
-En reposo la Maschine está apagada del todo: pads y botones sin luz y sin respuesta, y las pantallas muestran
-*Maschine mk3 as Push* a la izquierda y *by @santiagojorda / Maicol* a la derecha, en vez de lo que haya detrás. Pasa lo mismo cuando Ableton
-está cerrado.
-
-| Control | Qué hace |
-|---|---|
-| **SHIFT + CHANNEL** | Pasa a reposo (también saca a VirtualDJ del modo DJ) |
-| **CHANNEL** | Despierta |
-| **SAMPLING** / **MIXER** / **PLUGIN** | Despiertan y van a VirtualDJ / al mixer / al dispositivo |
-
-El script arranca en reposo. Para que arranque despierto, poner `START_IN_STANDBY = False` en `Config.py`.
-
-### Vistas
-
-| Botón | Vista |
-|---|---|
-| **ARRANGER** | Vista session: grilla de clips en las dos pantallas |
-| **MIXER** | Mixer: faders, paneo y envíos de 8 tracks, los mismos de la vista session. ◀ ▶ y A–H lo mueven por grillas de 4 tracks |
-| **PLUGIN** | Perillas del dispositivo seleccionado |
-| **BROWSER** | Browser: lista a la derecha, grilla a la izquierda |
-| **SAMPLING** | Pasa a VirtualDJ |
-
-### Vista session
-
-| Control | Qué hace |
-|---|---|
-| Girar la rueda | Mover el cursor de track en track |
-| Inclinar la rueda arriba / abajo | Mover el cursor de escena en escena |
-| Apretar la rueda | Lanzar el clip (o el slot) donde está el cursor |
-| SHIFT + girar / inclinar | Mover los pads y la grilla a mano: de a 4 tracks al costado, de a 1 escena |
-| A–H | Saltar de a 4 tracks: A son los tracks 1-4, B los 5-8, y así hasta H. Se prende solo la zona donde están los pads |
-| ◀ / ▶ | Perillas en el volumen de los 8 tracks / en el dispositivo seleccionado |
-| VARIATION | Borrar el clip que está bajo el cursor (Ctrl+Z lo recupera). Fuera de la vista session borra el último clip grabado |
-
-**Todo se mueve de a 4 tracks hacia los costados y de a 1 escena hacia arriba y abajo**: la grilla, los pads, el mixer,
-A–H y la inclinación de la rueda. Cuando el cursor sale de los pads, los pads se corren 4 tracks; cuando salen de la
-grilla, la grilla se corre 4 tracks.
-
-### Perillas
-
-| Combinación | Qué hace |
-|---|---|
-| RESTART + tocar una perilla | Valor por defecto (en el mixer, volumen a 0 dB) |
-| ERASE + doble toque | A cero (mixer y vista session) |
-| **SHIFT + RESTART** | Todos los volúmenes del mixer (tracks y retornos) a su valor por defecto; el master no se toca |
-| MUTE + tocar | Detiene el clip que suena en el track de esa perilla (mixer y vista session) |
-| SOLO + tocar | Pone el track de esa perilla en la preescucha (o la saca) |
-| EVENTS | Crea una escena nueva debajo de la del cursor, detiene el clip del track del cursor (el resto sigue sonando) y mueve el cursor a la escena nueva |
-| RESTART + SOLO | Saca a todos los tracks de la preescucha |
-| FOLLOW + tocar | Lanza el clip del track de esa perilla en la escena donde está el cursor (FOLLOW solo sigue activando Ableton Link, al soltarlo) |
-
-### Browser
-
-Girar la rueda recorre la lista, inclinarla a la derecha entra a una carpeta, a la izquierda vuelve atrás y
-apretarla carga. Cada vez que abrís el browser arranca dentro de **User Library**, que junta las carpetas que
-agregaste a Live (por ejemplo DRUMS o CANCIONES) con lo que hay en la User Library; volviendo atrás se ve todo lo demás.
-
-### Rueda: VOLUME, SWING y TEMPO
-
-Con **VOLUME**, **SWING** o **TEMPO** la rueda maneja el volumen master, el de auriculares o el tempo, y la
-pantalla derecha lo muestra. Cualquier botón de vista o de página de pads los apaga.
-
-## Uso en VirtualDJ
-
-**SAMPLING** pasa la Maschine a VirtualDJ; **MIXER** o **PLUGIN** la devuelven a Ableton. PLAY, STOP y TAP siguen
-siendo de Ableton.
-
-### Pantallas
-
-- **Izquierda:** las ondas de los dos decks.
-- **Derecha:** el estado de los decks, o el browser (botón **BROWSER**), o el volumen con VOLUME / SWING.
-- El browser se cierra solo al tocar una perilla, cambiar de página de pads, usar el crossfader o un efecto.
-
-### Pads
-
-Columnas 1-2 = deck 1, columnas 3-4 = deck 2.
-
-| Página | Pads |
-|---|---|
-| **KEYBOARD** | Hot cues 1-8 (ERASE + pad los borra) |
-| **PAD MODE** | PLAY, PAUSA, SYNC, LOOP (prende y apaga), PITCH LOCK, LOOP ½, LOOP ×2 |
-| **CHORDS** | Stems: RESET, INSTRUMENTAL, VOZ, KICK, HATS |
-| **STEP** | Apagados |
-
-Botones 1-4 sobre la pantalla: **DRUMLESS** (sin kick ni hats) y **BATERÍA** (solo kick y hats) del deck 1 / 2.
-
-### Perillas y botones
-
-| Control | Qué hace |
-|---|---|
-| Perillas 1 / 2 | Jog del deck 1 / 2 (SHIFT: saltar ±16 tiempos) |
-| Perillas 3 / 4 | Tempo del deck 1 / 2 |
-| Perillas 5 / 6 | Volumen del deck 1 / 2 |
-| Perillas 7 / 8 | Filtro del deck 1 / 2 |
-| RESTART + tocar una perilla | Jog: inicio del tema. Las demás: valor por defecto |
-| SHIFT + RESTART | Apaga todos los efectos de los dos decks y pone los dos filtros en el centro |
-| A / C / E / G | Deck 1: Reverb / Flanger / Echo / preescucha |
-| B / D / F / H | Deck 2: lo mismo |
-| ◀ / ▶ | Elegir el deck 1 / 2 |
-| Rueda | Browser: girar recorre, apretar pasa entre carpetas y temas, inclinar a un costado carga en el deck 1 / 2 |
-| Tira táctil | Crossfader |
-
-## Modificar
-
-- **VirtualDJ:** las páginas de pads y sus luces se generan con `VirtualDJ/generate_pads.py`; después hay que
-  reinstalar los dos XML y reiniciar VirtualDJ.
-- **Ableton:** después de cambiar el script, recargarlo eligiendo None y otra vez CustomMaschineMK3 en
-  Preferences. Log: `%AppData%\Ableton\Live 12.x\Preferences\Log.txt`.
-- **Registros:** todo queda registrado con fecha, hora y nivel, incluidos los errores con su detalle. Con `python tools/registros.py [minutos] [texto]` se ven todos juntos, en orden:
-  - script de Ableton: `Preferences\Log.txt` de Live (líneas `CustomMaschineMK3:`) y `CustomMaschineMK3.log`
-    (detalle del marco, se apaga con `LOGGING = False` en `Config.py`);
-  - pantallas y supervisor: `%LOCALAPPDATA%\MaschineMK3AsPush\pantallas.log`;
-  - puerto de datos de VirtualDJ: `%LOCALAPPDATA%\MaschineMK3AsPush\vdj_puerto.log`.
-- **Pantallas:** más detalles en
-  [`Pantallas/README.md`](Pantallas/README.md) y [`CONTEXTO-TECNICO.md`](CONTEXTO-TECNICO.md).
-
-## Créditos y licencia
-
-Creado por **Santiago Jorda**.
-
-El script de Ableton parte de CustomMaschineMK3 (© 2024-2025 chiaki), software libre bajo GPL-3.0; este proyecto
-se distribuye bajo la misma licencia. Ver [`LICENSE`](LICENSE).
+Distribuido bajo licencia libre **GNU General Public License v3.0**. Consulta el archivo [`LICENSE`](LICENSE) para más información.
