@@ -9,7 +9,7 @@
 [![YouTube Playlist](https://img.shields.io/badge/YouTube-Maicol%20Session-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
 [![Instagram](https://img.shields.io/badge/Instagram-@santiagojorda-E4405F?logo=instagram&logoColor=white)](http://instagram.com/santiagojorda)
 
-![Maschine MK3 as Ableton Push by @santiagojorda](docs/images/maschine-mk3-as-push-standby.png)
+![Maschine MK3 as Ableton Push](docs/images/maschine-mk3-as-push-hero.jpg)
 
 Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
