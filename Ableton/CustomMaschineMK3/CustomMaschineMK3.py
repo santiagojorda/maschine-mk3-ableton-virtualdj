@@ -148,9 +148,9 @@ PAD_NOTES = range(60, 76)
 # so it can draw faders and knobs instead of text.
 MCU_DISPLAY_HEADER = (0xF0, 0x00, 0x00, 0x66, 0x17, 0x12)
 SCREEN_BRIDGE_ADDRESS = ("127.0.0.1", Config.SCREEN_BRIDGE_PORT)
-SCREEN_BRIDGE_INTERVAL_MS = 33
-SCREEN_BRIDGE_STALL_SECONDS = 0.3
-SCREEN_BRIDGE_RESEND_TICKS = 30  # display lines are resent about once per second
+SCREEN_BRIDGE_INTERVAL_MS = 50
+SCREEN_BRIDGE_STALL_SECONDS = 0.5
+SCREEN_BRIDGE_RESEND_TICKS = 20  # display lines are resent about once per second (at 20 FPS)
 KNOB_COUNT = 8
 # Knob touch (CC 10-17, MIDI channel 2). MUTE + touching a knob in the mixer sends its parameter to zero
 # (pan to center); doing it again restores the previous value
@@ -311,6 +311,8 @@ class CustomMaschineMK3(ControlSurface):
     _screen_bridge_ticks = 0
     _screen_bridge_timer = None
     _screen_bridge_last_tick = 0.0
+    _last_screen_bridge_payload = None
+    _last_screen_bridge_time = 0.0
     _screen_bridge_timer_ok = False
     _screen_bridge_timer_repeats = False
     _screen_bridge_stall_logged = False
@@ -1112,6 +1114,8 @@ class CustomMaschineMK3(ControlSurface):
 
     def _init_screen_bridge(self):
         self._screen_bridge_lines = {}
+        self._last_screen_bridge_payload = None
+        self._last_screen_bridge_time = 0.0
         if Config.SCREEN_BRIDGE_PORT is None:
             return
         try:
@@ -1207,7 +1211,13 @@ class CustomMaschineMK3(ControlSurface):
             # Never let the bridge break the controller: log once and keep the text-only display
             self._log_error_once("screen bridge state", traceback.format_exc())
             return
-        self._send_to_screen_bridge(json.dumps(state, separators=(",", ":")).encode("utf-8"))
+        payload = json.dumps(state, separators=(",", ":")).encode("utf-8")
+        now = perf_counter()
+        if payload == self._last_screen_bridge_payload and now - self._last_screen_bridge_time < 0.5:
+            return
+        self._last_screen_bridge_payload = payload
+        self._last_screen_bridge_time = now
+        self._send_to_screen_bridge(payload)
 
     def _screen_bridge_state(self):
         if self._standby:
