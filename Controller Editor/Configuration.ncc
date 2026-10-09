@@ -13234,7 +13234,7 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="18" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
           </display>
           <pitchbend />
           <channel>0</channel>
@@ -14760,7 +14760,7 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="18" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
           </display>
           <pitchbend />
           <channel>0</channel>
@@ -16236,7 +16236,7 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
@@ -31510,7 +31510,7 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
@@ -36349,7 +36349,7 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="2" color-off-index="1" />
+            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
