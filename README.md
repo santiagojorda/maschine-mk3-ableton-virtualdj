@@ -23,8 +23,6 @@ Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push
 ### 🎵 El Origen: Maicol Sessions
 Todo esto nació de mis sesiones combinando **Maschine MK3** y **Ableton Live**: una combinación tremenda donde el sampler de Maschine es insuperable por su comodidad y versatilidad con sus perillas dedicadas, pero faltaba ese control fluido estilo Push para manejar todo el set sin tocar el mouse.
 
-Como **ingeniero informático** y como **músico**, para mí era natural ponerme a programar soluciones a medida para mi propio workflow: unir el software con el hardware para transformar la Maschine en la herramienta definitiva a la hora de producir y tocar en vivo.
-
 [![Maicol Session: Ableton Push + Maschine MK3](https://img.youtube.com/vi/ImqHw-zkiZQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
 
 - 📺 **YouTube Playlist:** [Maicol Session: Ableton Push + Maschine MK3](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
