@@ -1,34 +1,34 @@
-# Pantallas
+# Pantallas (Maschine MK3 as Ableton Push)
 
-Programa que dibuja en las dos pantallas de la Maschine MK3 (parte de [Maschine MK3 as Ableton Push](../README.md)). Solo toma la interfaz USB de las pantallas; pads, botones y luces siguen pasando por el programa de Native Instruments.
+Servidor y renderizador de pantallas en tiempo real para la Maschine MK3. Se encarga de dibujar la interfaz gráfica de Ableton Live 12 en las dos pantallas LCD a color (480 × 272 c/u).
+
+Solo toma la interfaz USB de las pantallas (WinUSB en la interfaz 5); pads, botones y perillas siguen comunicándose por MIDI a través del Remote Script de Ableton.
 
 ## Ejecutable
 
-`construir_exe.bat` arma `dist\MaschineMK3AsPush\MaschineMK3AsPush.exe` (una carpeta con el programa y todo lo que
-necesita; no hace falta tener Python para usarlo, solo para armarlo).
+`construir_exe.bat` compila la aplicación autocontenida en `dist\MaschineMK3AsPush\MaschineMK3AsPush.exe` (no requiere tener Python instalado para usarla).
 
 | Comando | Qué hace |
 |---|---|
-| `MaschineMK3AsPush.exe` | Arranca las pantallas y el puerto de datos de VirtualDJ, sin ventana, y las reinicia si se caen o se cuelgan. Si ya está corriendo, avisa |
-| `MaschineMK3AsPush.exe --salir` | Lo detiene todo |
-| `MaschineMK3AsPush.exe --instalar-vdj` | Instala en VirtualDJ el dispositivo de datos (reiniciar VirtualDJ después) |
+| `MaschineMK3AsPush.exe` | Arranca el servicio de pantallas en segundo plano, sin ventana, y lo reinicia automáticamente si se desconecta la controladora. |
+| `MaschineMK3AsPush.exe --salir` | Detiene y cierra todos los procesos del driver. |
 
-El registro (`pantallas.log`), la configuración (`config.json`) y el estado quedan en
-`%LOCALAPPDATA%\MaschineMK3AsPush\`. Para que arranque con Windows, poner un acceso directo al .exe en
-`shell:startup`.
+El registro (`pantallas.log`), la configuración (`config.json`) y el estado quedan en `%LOCALAPPDATA%\MaschineMK3AsPush\`.  
+Para que arranque automáticamente con Windows, colocá un acceso directo al .exe en `shell:startup`.
 
 ## Cómo funciona
 
-- **Modo Ableton:** el script de Ableton manda su estado por UDP (puerto 9017) y acá se dibujan la vista session, el mixer, los dispositivos, el browser y VOLUME / SWING / TEMPO (`ableton_ui.py`, `encoder_view.py`).
-- **Modo DJ:** las ondas salen de capturar la ventana de VirtualDJ (`window_capture.py`); el estado de los decks llega por el puerto MIDI virtual "MK3 Screens" (`vdj_puerto.py`, `vdj_data.py`, `dj_info.py`) y el browser se recorta de la ventana (`vdj_browser.py`).
-- `supervisor.py` vigila todo; `iniciar_pantallas.bat` lo arranca en una consola (sin armar el .exe).
+- **Telemetría de Ableton:** El script MIDI de Ableton (`CustomMaschineMK3`) transmite su estado gráfico por UDP (puerto 9017).
+- **Vistas en pantalla:** Se dibujan en tiempo real la vista Session (clips y escenas), el Mixer (vúmetros dinámicos y faders), Dispositivos/Plugins, Browser visual y modos de encoder (VOLUME / SWING / TEMPO) (`ableton_ui.py`, `encoder_view.py`).
+- **Modo Reposo inteligente:** Al presionar <kbd>SHIFT</kbd> + <kbd>CHANNEL</kbd>, apaga botones y activa el salvapantallas con logo.
+- `supervisor.py` vigila los procesos; `iniciar_pantallas.bat` lo arranca en consola para desarrollo rápido.
 
-## Datos útiles
+## Rendimiento y USB
 
-- La Maschine recibe unos 5 MB/s por USB: una pantalla completa tarda ~50 ms, así que se mandan solo las partes que cambian y cada 2 s se redibuja todo.
-- Pantallas de 480 × 272, RGB565.
-- Si una transferencia USB falla, se reconecta sola; si se apaga la Maschine, espera a que vuelva.
+- La Maschine recibe unos 5 MB/s por USB: una pantalla completa tarda ~50 ms (~20 fps). Se envían actualizaciones diferenciales (dirty rects) para máxima fluidez.
+- Formato nativo: 2 pantallas de 480 × 272 en RGB565.
+- Reconexión automática tolerante a desconexiones de cable USB o reinicios de Live.
 
 ## Más adelante
 
-[`PLAN.md`](PLAN.md): un driver completo en Go que reemplace al programa de NI, y la idea de llevarlo a un Push 3 standalone.
+- [`PLAN.md`](PLAN.md): Arquitectura de driver nativo y soporte para entornos standalone.
