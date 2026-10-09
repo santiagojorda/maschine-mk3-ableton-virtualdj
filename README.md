@@ -124,18 +124,6 @@ Al presionar cualquiera de estos botones, el encoder principal toma el control y
 
 ---
 
-## 📦 Estructura del Repositorio
-
-| Carpeta | Descripción |
-|---|---|
-| [`Ableton/CustomMaschineMK3`](Ableton/CustomMaschineMK3) | Script de superficie de control para Ableton Live 12. |
-| [`Controller Editor`](Controller%20Editor) | Plantilla MIDI personalizada (`Configuration.ncc`) para Controller Editor. |
-| [`Pantallas`](Pantallas) | Aplicación que dibuja en las pantallas de la Maschine (USB WinUSB). |
-| [`docs`](docs) | Documentación técnica, capturas y el [Manual Web de Operaciones](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/). |
-| [`tools`](tools) | Utilidades de diagnóstico, registros y generador de capturas. |
-
----
-
 ## 🚀 Instalación Rápida (3 Pasos)
 
 > 💡 **Requisitos:** Windows 10/11, Ableton Live 12 Suite y Maschine MK3 conectada por USB.
@@ -161,6 +149,26 @@ Al presionar cualquiera de estos botones, el encoder principal toma el control y
 2. **Encender las pantallas:**
    - Ejecutá `Pantallas\iniciar_pantallas.bat` (o `MaschineMK3AsPush.exe` si armaste el ejecutable).
    - ¡Listo! Las pantallas se encenderán mostrando la sesión de Live.
+
+---
+
+## 🔄 Cómo Volver al Uso Normal de la Maschine
+
+Si querés usar la Maschine MK3 como siempre con el software oficial de **Native Instruments** (Maschine 2 / Komplete):
+
+### 1. En el día a día (sin desinstalar nada)
+1. **Cerrá las pantallas:** Cerrá la ventana de `iniciar_pantallas.bat` (o cerrá `MaschineMK3AsPush.exe`).
+2. **Volver al software Maschine:**
+   - Abrí el software **Maschine 2**.
+   - En el controlador, presioná **`SHIFT + CHANNEL`** (MIDI) para alternar entre el modo MIDI y el modo nativo del software Maschine.
+   - ¡Listo! Todo vuelve a funcionar exactamente como viene de fábrica.
+
+### 2. Restaurar el driver original de NI (si alguna vez querés quitar WinUSB)
+Si en algún momento querés dejar la Maschine de fábrica al 100% y retirar el driver WinUSB de la interfaz 5:
+1. Abrí el **Administrador de Dispositivos** de Windows (`devmgmt.msc`).
+2. Buscá en *Dispositivos de bus serie universal* (o *Universal Serial Bus devices*) la entrada **`Maschine MK3 BD (Interface 5)`**.
+3. Hacé clic derecho → **Desinstalar el dispositivo** (marcando la casilla de eliminar el controlador).
+4. Desconectá y volvé a conectar el cable USB de la Maschine. Windows reinstalará automáticamente el driver original oficial de Native Instruments.
 
 ---
 
