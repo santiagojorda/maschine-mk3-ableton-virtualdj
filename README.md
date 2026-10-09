@@ -3,6 +3,7 @@
 [![Ableton Live 12](https://img.shields.io/badge/Ableton%20Live-12%20Suite-00D2B4.svg)](https://www.ableton.com)
 [![Native Instruments](https://img.shields.io/badge/Hardware-Maschine%20MK3-black.svg)](https://www.native-instruments.com)
 [![Windows 11](https://img.shields.io/badge/OS-Windows%2011%20MIDI%20Services-0078D4.svg)](https://microsoft.com)
+[![Manual Web](https://img.shields.io/badge/Manual-All%20Operations%20(Web)-brightgreen.svg)](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)
 
 Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
@@ -11,6 +12,8 @@ Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push
 - 🔌 **Control de dispositivos y plugins**: perillas con valores y nombres sincronizados.
 - 📁 **Browser visual**: lista de carpetas a la derecha y grilla de destino a la izquierda.
 - 🛑 **Modo Reposo inteligente**: protege las pantallas y evita toques accidentales.
+
+> 📖 **[Ver Manual Web de Todas las Operaciones](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)**: guía visual interactiva completa con diagramas de botones y perillas.
 
 ---
 
@@ -116,7 +119,7 @@ Al presionar cualquiera de estos botones, el encoder principal toma el control y
 | [`Ableton/CustomMaschineMK3`](Ableton/CustomMaschineMK3) | Script de superficie de control para Ableton Live 12. |
 | [`Controller Editor`](Controller%20Editor) | Plantilla MIDI personalizada (`Configuration.ncc`) para Controller Editor. |
 | [`Pantallas`](Pantallas) | Aplicación que dibuja en las pantallas de la Maschine (USB WinUSB). |
-| [`docs/images`](docs/images) | Capturas y diagramas de las pantallas en Ableton Live. |
+| [`docs`](docs) | Documentación técnica, capturas y el [Manual Web de Operaciones](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/). |
 | [`tools`](tools) | Utilidades de diagnóstico, registros y generador de capturas. |
 
 ---
