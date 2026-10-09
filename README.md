@@ -8,13 +8,12 @@
 
 ![Maschine MK3 as Ableton Push by @santiagojorda](docs/images/maschine-mk3-as-push-standby.png)
 
-Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
+Convertí tu **Maschine MK3** en un controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
 - 🎛️ **Navegación tipo Push**: lanzá clips y escenas con el encoder 4D.
 - 🎚️ **Mixer gráfico**: faders verticales, medidores de nivel (vúmetros) dinámicos y paneo estéreo.
 - 🔌 **Control de dispositivos y plugins**: perillas con valores y nombres sincronizados.
 - 📁 **Browser visual**: lista de carpetas a la derecha y grilla de destino a la izquierda.
-- 🛑 **Modo Reposo inteligente**: protege las pantallas y evita toques accidentales.
 
 > 📖 **[Ver Manual Web de Todas las Operaciones](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)**: guía visual interactiva completa con diagramas de botones y perillas.
 
