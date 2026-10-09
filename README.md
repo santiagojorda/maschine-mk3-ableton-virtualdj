@@ -28,6 +28,8 @@ Todo esto nació de mis sesiones combinando **Maschine MK3** y **Ableton Live**:
 
 Como **ingeniero informático** y como **músico**, para mí era natural ponerme a programar soluciones a medida para mi propio workflow: unir el software con el hardware para transformar la Maschine en la herramienta definitiva a la hora de producir y tocar en vivo.
 
+[![Maicol Session: Ableton Push + Maschine MK3](https://img.youtube.com/vi/ImqHw-zkiZQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
+
 - 📺 **YouTube Playlist:** [Maicol Session: Ableton Push + Maschine MK3](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
 - 📸 **Instagram:** [@santiagojorda](http://instagram.com/santiagojorda)
 
