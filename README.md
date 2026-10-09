@@ -11,7 +11,7 @@ Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push
 - 🎚️ **Mixer gráfico**: faders verticales, medidores de nivel (vúmetros) dinámicos y paneo estéreo.
 - 🔌 **Control de dispositivos y plugins**: perillas con valores y nombres sincronizados.
 - 📁 **Browser visual**: lista de carpetas a la derecha y grilla de destino a la izquierda.
-- 🎧 **Integración DJ híbrida**: con un solo botón (**SAMPLING**), cambiá al vuelo a **VirtualDJ** con ondas y stems, manteniendo ambos programas abiertos al mismo tiempo.
+- 🛑 **Modo Reposo inteligente**: protege las pantallas y evita toques accidentales.
 
 ---
 
@@ -41,13 +41,13 @@ Las 8 perillas toman los parámetros del instrumento o efecto de audio seleccion
 ---
 
 ### 4. Vista Browser (`BROWSER`)
-Navegador de sonidos integrado: la pantalla izquierda mantiene la grilla de sesión para ver dónde caerá el elemento seleccionado, mientras la pantalla derecha permite explorar tu **User Library**, carpetas y presets cómodamente con el encoder.
+Navegador de sonidos integrado: la pantalla izquierda mantiene la grilla de sesión para ver exactamente dónde caerá el elemento seleccionado, mientras la pantalla derecha permite explorar tu **User Library**, carpetas y presets cómodamente con el encoder.
 
 ![Vista Browser en las pantallas](docs/images/ableton-browser-view.png)
 
 ---
 
-## 🎮 Guía Rápida de Controles en Ableton
+## 🎮 Guía Rápida de Controles
 
 ### 🛑 Reposo (Standby)
 Para cuidar las pantallas y evitar toques accidentales cuando no estés tocando:
@@ -68,7 +68,6 @@ Para cuidar las pantallas y evitar toques accidentales cuando no estés tocando:
 | **MIXER** | **Vista Mixer:** faders, medidores de nivel, paneo y envíos de 8 pistas. |
 | **PLUGIN** | **Vista Dispositivo:** perillas del plugin o efecto seleccionado. |
 | **BROWSER** | **Vista Browser:** lista en pantalla derecha, grilla en pantalla izquierda. |
-| **SAMPLING** | **Modo DJ:** conmuta inmediatamente a VirtualDJ. |
 
 ---
 
@@ -111,27 +110,11 @@ Al presionar cualquiera de estos botones, el encoder principal toma el control y
 
 ---
 
-## 🎧 Uso en VirtualDJ (Modo Híbrido)
-
-Apretando **SAMPLING** la Maschine pasa a controlar VirtualDJ. Con **MIXER** o **PLUGIN** volvés a Ableton al instante. Ambos programas se mantienen sincronizados y sonando a la vez.
-
-- **Pantallas en VirtualDJ:**
-  - **Izquierda:** Formas de onda dinámicas de los dos decks en tiempo real.
-  - **Derecha:** Estado completo de los decks (tema, artista, BPM, pitch lock, loop, sync, volumen y filtro) o Browser con portadas.
-- **Pads:**
-  - **KEYBOARD:** Hot Cues 1–8 (`ERASE + pad` para borrar cue).
-  - **PAD MODE:** Transporte (Play, Pausa, Sync, Loops, Pitch Lock).
-  - **CHORDS:** Stems en tiempo real (Voz, Instrumental, Kick, Hi-Hats, Drumless, Batería sola).
-- **Perillas y Tira Táctil:** Jogs, tempo, volumen, filtros por canal y crossfader en la tira táctil.
-
----
-
 ## 📦 Estructura del Repositorio
 
 | Carpeta | Descripción |
 |---|---|
 | [`Ableton/CustomMaschineMK3`](Ableton/CustomMaschineMK3) | Script de superficie de control para Ableton Live 12. |
-| [`VirtualDJ`](VirtualDJ) | Mapeo MIDI y definición de dispositivo para VirtualDJ. |
 | [`Controller Editor`](Controller%20Editor) | Plantilla MIDI personalizada (`Configuration.ncc`) para Controller Editor. |
 | [`Pantallas`](Pantallas) | Aplicación que dibuja en las pantallas de la Maschine (USB WinUSB). |
 | [`docs/images`](docs/images) | Capturas y diagramas de las pantallas en Ableton Live. |
@@ -142,11 +125,10 @@ Apretando **SAMPLING** la Maschine pasa a controlar VirtualDJ. Con **MIXER** o *
 ## 🚀 Instalación y Puesta en Marcha
 
 ### Requisitos Previos
-- **Windows 11** con soporte de **Windows MIDI Services** (imprescindible para uso simultáneo de MIDI entre Ableton y VirtualDJ).
+- **Windows 11** (o Windows 10 con soporte MIDI).
 - **Ableton Live 12 Suite**.
 - **Maschine MK3** con **NI Controller Editor**.
-- **VirtualDJ** (opcional, para el modo DJ).
-- **Python 3.12**, **[Zadig](https://zadig.akeo.ie/)** y **[loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html)** (para la app de pantallas).
+- **Python 3.12** y **[Zadig](https://zadig.akeo.ie/)** (para la aplicación de pantallas).
 
 ---
 
@@ -163,12 +145,7 @@ Apretando **SAMPLING** la Maschine pasa a controlar VirtualDJ. Con **MIXER** o *
    - **Input:** `Maschine MK3 Ctrl MIDI`
    - **Output:** `Maschine MK3 Ctrl MIDI`
 
-### Paso 3: Mapeo de VirtualDJ (Opcional)
-1. Copiar `VirtualDJ/Devices/MaschineMK3-VDJ.xml` a `%LocalAppData%\VirtualDJ\Devices\`.
-2. Copiar `VirtualDJ/Mappers/MASCHINEMK3VDJ - Mapeo Personalizado.xml` a `%LocalAppData%\VirtualDJ\Mappers\`.
-3. Reiniciar VirtualDJ.
-
-### Paso 4: Driver y Programa de Pantallas
+### Paso 3: Driver y Programa de Pantallas
 1. Abrir **Zadig** (*Options → List All Devices*):
    - Asignar el driver **WinUSB** **únicamente** a **`Maschine MK3 BD (Interface 5)`**.
    - ⚠️ *No modificar las otras interfaces (0, 4 ni 6).*
@@ -186,7 +163,7 @@ Apretando **SAMPLING** la Maschine pasa a controlar VirtualDJ. Con **MIXER** o *
 
 ## 📝 Diagnóstico y Registros
 
-Para ver los registros unificados en tiempo real (Ableton, pantallas y VirtualDJ):
+Para ver los registros de Ableton y de las pantallas en tiempo real:
 ```bash
 python tools/registros.py [minutos] [filtro]
 ```
