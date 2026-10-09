@@ -13,7 +13,7 @@ from ableton.v3.control_surface.controls import (
     ButtonControl,
     control_matrix
 )
-from ableton.v3.base import depends
+from ableton.v3.base import depends, liveobj_valid
 
 from .Logger import logger
 
@@ -28,6 +28,30 @@ class ClipNotesSelectMixin():
     def __init__(self, sequencer_clip = None, *a, **k):
         super().__init__(*a, **k)
         self._sequencer_clip = sequencer_clip
+
+    def get_active_midi_clip(self):
+        song = getattr(self, "song", None)
+        if song is not None:
+            view = getattr(song, "view", None)
+            if view is not None:
+                detail = getattr(view, "detail_clip", None)
+                if liveobj_valid(detail) and getattr(detail, "is_midi_clip", False):
+                    return detail
+                slot = getattr(view, "highlighted_clip_slot", None)
+                if liveobj_valid(slot) and getattr(slot, "has_clip", False) and liveobj_valid(getattr(slot, "clip", None)):
+                    if getattr(slot.clip, "is_midi_clip", False):
+                        return slot.clip
+        target_track = getattr(self, "_target_track", None)
+        if target_track is not None:
+            clip = getattr(target_track, "target_clip", None)
+            if liveobj_valid(clip) and getattr(clip, "is_midi_clip", False):
+                return clip
+        seq_clip = getattr(self, "_sequencer_clip", None)
+        if seq_clip is not None:
+            clip = getattr(seq_clip, "clip", None)
+            if liveobj_valid(clip) and getattr(clip, "is_midi_clip", False):
+                return clip
+        return None
 
     def select_notes(self, pitch):
         clip = self._sequencer_clip.clip

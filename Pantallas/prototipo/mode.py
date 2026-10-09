@@ -24,7 +24,8 @@ MODE_CHANNEL = 1  # mido numera desde 0: 1 = canal MIDI 2
 SAMPLING_CC = 39
 MIXER_CC = 37
 PLUGIN_CC = 35
-BUTTON_NAMES = {SAMPLING_CC: "SAMPLING", MIXER_CC: "MIXER", PLUGIN_CC: "PLUGIN"}
+ARRANGER_CC = 36  # Entra a vista Session y vuelve a Ableton
+BUTTON_NAMES = {SAMPLING_CC: "SAMPLING", MIXER_CC: "MIXER", PLUGIN_CC: "PLUGIN", ARRANGER_CC: "ARRANGER"}
 BROWSER_CC = 38
 # En modo DJ, tocar algo de la mezcla cierra el browser y vuelve a la vista normal (canal 2):
 KNOB_TOUCH_CCS = range(10, 18)  # tocar una perilla (jogs, tempo, volumen, filtro)
@@ -48,7 +49,7 @@ def mode_for_message(message):
         return None
     if message.control == SAMPLING_CC:
         return DJ
-    if message.control in (MIXER_CC, PLUGIN_CC):
+    if message.control in (MIXER_CC, PLUGIN_CC, ARRANGER_CC):
         return ABLETON
     return None
 

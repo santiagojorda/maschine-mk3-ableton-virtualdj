@@ -116,18 +116,61 @@ def _meter_color(level):
     return METER_GREEN
 
 
+def _draw_mute_solo_badges(draw, x0, knob):
+    """Insignias visuales de MUTE y SOLO para cada canal en la vista mixer:
+    - MUTE: píldora naranja/roja brillante si está silenciado; píldora oscura 'M' si no está silenciado.
+    - SOLO: píldora azul eléctrica brillante si está en solo/preescucha; píldora oscura 'S' si no está en solo.
+    """
+    badge_top = 224
+    badge_bottom = 242
+    font = _font(11, True)
+
+    # MUTE: x0 + 12 hasta x0 + 56 (ancho 44 px)
+    bx0, bx1 = x0 + 12, x0 + 56
+    is_mute = bool(knob.get("mute"))
+    if is_mute:
+        draw.rounded_rectangle((bx0, badge_top, bx1, badge_bottom), radius=3, fill=(235, 75, 25))
+        _centered(draw, "MUTE", (bx0 + bx1) // 2, badge_top + 2, font, (255, 255, 255), width=42)
+    else:
+        draw.rounded_rectangle((bx0, badge_top, bx1, badge_bottom), radius=3, fill=(26, 26, 26), outline=(55, 55, 55))
+        _centered(draw, "M", (bx0 + bx1) // 2, badge_top + 2, font, (115, 115, 115), width=42)
+
+    # SOLO: x0 + 64 hasta x0 + 108 (ancho 44 px)
+    sx0, sx1 = x0 + 64, x0 + 108
+    is_solo = bool(knob.get("solo"))
+    if is_solo:
+        draw.rounded_rectangle((sx0, badge_top, sx1, badge_bottom), radius=3, fill=(0, 135, 235))
+        _centered(draw, "SOLO", (sx0 + sx1) // 2, badge_top + 2, font, (255, 255, 255), width=42)
+    else:
+        draw.rounded_rectangle((sx0, badge_top, sx1, badge_bottom), radius=3, fill=(26, 26, 26), outline=(55, 55, 55))
+        _centered(draw, "S", (sx0 + sx1) // 2, badge_top + 2, font, (115, 115, 115), width=42)
+
+
 def _draw_fader(draw, column, knob, touched):
     x0 = column * COLUMN_WIDTH
     center = x0 + COLUMN_WIDTH // 2
     color = _track_rgb(knob.get("color"))
+    has_badges = "mute" in knob or "solo" in knob
+    is_mute = bool(knob.get("mute"))
 
     # Valor arriba; abajo, cerca de la perilla, el nombre del track sobre una franja de su color
     _centered(draw, knob.get("text"), center, HEADER_HEIGHT + 6, _font(17, True), TOUCHED if touched else TEXT)
-    name_top = HEIGHT - 30
-    draw.rectangle((x0 + 4, name_top, x0 + COLUMN_WIDTH - 5, name_top + 24), fill=color)
-    _centered(draw, knob.get("track") or knob.get("name"), center, name_top + 4, _font(15, True), _text_color_on(color))
 
-    area_top, area_bottom = HEADER_HEIGHT + 34, name_top - 8
+    if has_badges:
+        name_top = 246
+        badge_top = 224
+        area_bottom = badge_top - 6
+        _draw_mute_solo_badges(draw, x0, knob)
+    else:
+        name_top = HEIGHT - 30
+        area_bottom = name_top - 8
+
+    track_strip_color = _dim(color, 0.45) if is_mute else color
+    draw.rectangle((x0 + 4, name_top, x0 + COLUMN_WIDTH - 5, name_top + 23), fill=track_strip_color)
+    text_color = _text_color_on(track_strip_color) if not is_mute else (180, 180, 180)
+    _centered(draw, knob.get("track") or knob.get("name"), center, name_top + 3, _font(15, True), text_color)
+
+    area_top = HEADER_HEIGHT + 34
     value = max(0.0, min(1.0, knob.get("value", 0.0)))
 
     if knob.get("bipolar"):
@@ -137,15 +180,18 @@ def _draw_fader(draw, column, knob, touched):
         draw.rectangle((left, y - 3, right, y + 3), fill=GROOVE)
         position = left + value * (right - left)
         middle = (left + right) / 2
-        draw.rectangle((min(middle, position), y - 6, max(middle, position), y + 6), fill=ACCENT)
-        draw.rectangle((position - 3, y - 12, position + 3, y + 12), fill=TOUCHED if touched else TEXT)
+        fill_color = _dim(ACCENT, 0.5) if is_mute else ACCENT
+        draw.rectangle((min(middle, position), y - 6, max(middle, position), y + 6), fill=fill_color)
+        draw.rectangle((position - 3, y - 12, position + 3, y + 12), fill=TOUCHED if touched else ((120, 120, 120) if is_mute else TEXT))
     else:
         # Fader: canal con el relleno del valor y la perilla del fader
         groove_x = center - 14
         draw.rectangle((groove_x - 3, area_top, groove_x + 3, area_bottom), fill=GROOVE)
         y = area_bottom - value * (area_bottom - area_top)
-        draw.rectangle((groove_x - 3, y, groove_x + 3, area_bottom), fill=color)
-        draw.rectangle((groove_x - 14, y - 5, groove_x + 14, y + 5), fill=TOUCHED if touched else (200, 200, 200))
+        fader_fill = _dim(color, 0.45) if is_mute else color
+        draw.rectangle((groove_x - 3, y, groove_x + 3, area_bottom), fill=fader_fill)
+        cap_fill = TOUCHED if touched else ((110, 110, 110) if is_mute else (200, 200, 200))
+        draw.rectangle((groove_x - 14, y - 5, groove_x + 14, y + 5), fill=cap_fill)
 
     # Medidor de nivel del track
     if "meter" in knob:
@@ -154,7 +200,8 @@ def _draw_fader(draw, column, knob, touched):
         draw.rectangle((meter_x, area_top, meter_x + 10, area_bottom), fill=(25, 25, 25))
         if level > 0:
             y = area_bottom - level * (area_bottom - area_top)
-            draw.rectangle((meter_x, y, meter_x + 10, area_bottom), fill=_meter_color(level))
+            meter_col = _dim(_meter_color(level), 0.5) if is_mute else _meter_color(level)
+            draw.rectangle((meter_x, y, meter_x + 10, area_bottom), fill=meter_col)
 
     if touched:
         draw.rectangle((x0 + 2, HEADER_HEIGHT + 1, x0 + COLUMN_WIDTH - 3, HEIGHT - 2), outline=TOUCHED, width=2)
@@ -168,26 +215,41 @@ def _draw_knob(draw, column, knob, touched, color, label, meter=None):
     """
     x0 = column * COLUMN_WIDTH
     center_x = x0 + COLUMN_WIDTH // 2
+    has_badges = "mute" in knob or "solo" in knob
+    is_mute = bool(knob.get("mute"))
+
     _centered(draw, knob.get("text"), center_x, HEADER_HEIGHT + 6, _font(17, True), TOUCHED if touched else TEXT)
-    name_top = HEIGHT - 30
-    draw.rectangle((x0 + 4, name_top, x0 + COLUMN_WIDTH - 5, name_top + 24), fill=color)
-    _centered(draw, label, center_x, name_top + 4, _font(15, True), _text_color_on(color))
+
+    if has_badges:
+        name_top = 246
+        badge_top = 224
+        area_bottom = badge_top - 6
+        _draw_mute_solo_badges(draw, x0, knob)
+    else:
+        name_top = HEIGHT - 30
+        area_bottom = name_top - 8
+
+    track_strip_color = _dim(color, 0.45) if is_mute else color
+    draw.rectangle((x0 + 4, name_top, x0 + COLUMN_WIDTH - 5, name_top + 23), fill=track_strip_color)
+    text_color = _text_color_on(track_strip_color) if not is_mute else (180, 180, 180)
+    _centered(draw, label, center_x, name_top + 3, _font(15, True), text_color)
 
     if meter is not None:
-        meter_x, top, bottom = x0 + COLUMN_WIDTH - 16, HEADER_HEIGHT + 34, name_top - 8
+        meter_x, top, bottom = x0 + COLUMN_WIDTH - 16, HEADER_HEIGHT + 34, area_bottom
         level = max(0.0, min(1.0, meter))
         draw.rectangle((meter_x, top, meter_x + 8, bottom), fill=(25, 25, 25))
         if level > 0:
-            draw.rectangle((meter_x, bottom - level * (bottom - top), meter_x + 8, bottom), fill=_meter_color(level))
+            meter_col = _dim(_meter_color(level), 0.5) if is_mute else _meter_color(level)
+            draw.rectangle((meter_x, bottom - level * (bottom - top), meter_x + 8, bottom), fill=meter_col)
         center_x -= 8
 
-    center_y, radius = 144, 40
+    center_y, radius = (136 if has_badges else 144), (38 if has_badges else 40)
     box = (center_x - radius, center_y - radius, center_x + radius, center_y + radius)
     start, end = 135, 405  # 270 grados, con el hueco abajo (PIL mide en sentido horario desde las 3)
     value = max(0.0, min(1.0, knob.get("value", 0.0)))
     angle = start + value * (end - start)
-    width = 9
-    arc_color = _visible(color)
+    width = 8 if has_badges else 9
+    arc_color = _dim(_visible(color), 0.5) if is_mute else _visible(color)
     draw.arc(box, start, end, fill=GROOVE, width=width)
     if knob.get("bipolar"):
         middle = (start + end) / 2
@@ -201,7 +263,7 @@ def _draw_knob(draw, column, knob, touched, color, label, meter=None):
     inner, outer = radius * 0.25, radius * 0.75
     draw.line((center_x + inner * math.cos(rad), center_y + inner * math.sin(rad),
                center_x + outer * math.cos(rad), center_y + outer * math.sin(rad)),
-              fill=TOUCHED if touched else TEXT, width=4)
+              fill=TOUCHED if touched else ((120, 120, 120) if is_mute else TEXT), width=4)
 
     if touched:
         draw.rectangle((x0 + 2, HEADER_HEIGHT + 1, x0 + COLUMN_WIDTH - 3, HEIGHT - 2), outline=TOUCHED, width=2)
@@ -298,14 +360,23 @@ def render_session(state, display, pads_frame=True):
             slot = slots[row] if row < len(slots) else None
             _draw_clip(draw, box, slot, dim, text_color)
             if slot and slot.get("selected"):
-                # El clip seleccionado en Live, como un cursor: borde blanco grueso y el nombre invertido
-                # (franja blanca, letras negras); se distingue sobre cualquier color
+                # El clip seleccionado en Live, como un cursor: borde grueso (verde si suena, rojo si graba,
+                # blanco si inactivo) y el nombre invertido (franja blanca, letras negras)
                 bx0, by0, bx1, by1 = box
-                draw.rectangle((bx0 - 2, by0 - 2, bx1 + 2, by1 + 2), outline=TEXT, width=4)
+                outline_color = PLAYING_BORDER if slot.get("playing") else (RECORDING if slot.get("recording") else TEXT)
+                draw.rectangle((bx0 - 2, by0 - 2, bx1 + 2, by1 + 2), outline=outline_color, width=4)
                 draw.rectangle((bx0, by0, bx1, by0 + 22), fill=TEXT)
                 name = "vacío" if slot.get("empty") else (slot.get("name") or "")
                 font = _font(15, True)
-                draw.text((bx0 + 6, by0 + 3), _fit_text(draw, name, font, bx1 - bx0 - 12), font=font, fill=(0, 0, 0))
+                if slot.get("playing"):
+                    draw.polygon(((bx0 + 7, by0 + 5), (bx0 + 7, by0 + 17), (bx0 + 17, by0 + 11)), fill=(0, 0, 0))
+                    left = bx0 + 22
+                elif slot.get("recording"):
+                    draw.ellipse((bx0 + 6, by0 + 5, bx0 + 17, by0 + 16), fill=RECORDING, outline=(0, 0, 0))
+                    left = bx0 + 22
+                else:
+                    left = bx0 + 6
+                draw.text((left, by0 + 3), _fit_text(draw, name, font, bx1 - left - 6), font=font, fill=(0, 0, 0))
 
     # Pop-up chico de la perilla que se toca: tapa las 2 celdas de abajo de su columna.
     # Volumen (flecha izquierda) o un parámetro del dispositivo (flecha derecha)

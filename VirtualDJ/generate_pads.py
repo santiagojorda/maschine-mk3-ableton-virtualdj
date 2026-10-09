@@ -165,7 +165,7 @@ HELP_BUTTONS = {
     "GROUP_C": ("FLANGER", False), "GROUP_D": ("FLANGER", False),
     "GROUP_E": ("ECHO", False), "GROUP_F": ("ECHO", False),
     "GROUP_G": ("PREESCUCHA", False), "GROUP_H": ("PREESCUCHA", False),
-    "RESTART": ("+PERILLA / SHIFT=RESET", True), "LEFT": ("ELEGIR DECK 1", False),
+    "RESTART": ("+PERILLA / +ERASE=RESET", True), "LEFT": ("ELEGIR DECK 1", False),
     "RIGHT": ("ELEGIR DECK 2", False), "FOLLOW": ("ABLETON LINK", False),
     "ENCODER_PUSH": ("CARPETAS / TEMAS", False), "ENCODER_UP": ("SUBIR EN LA LISTA", False),
     "ENCODER_DOWN": ("BAJAR EN LA LISTA", False), "ENCODER_LEFT": ("CARGAR / ABRIR CARPETA", False),
@@ -173,7 +173,7 @@ HELP_BUTTONS = {
     "VOLUME": ("VOLUMEN MASTER (ENCODER)", False), "SWING": ("VOLUMEN AURIS (ENCODER)", False), "LOCK": ("FIJAR PADS EN VDJ", False),
     "KEYBOARD": ("PAGINA HOT CUES", False), "PADMODE": ("PAGINA TRANSPORTE", False),
     "CHORDS": ("PAGINA STEMS", False), "STEP": ("PAGINA PADS APAGADOS", False),
-    "ERASE": ("BORRAR (CON PAD/PERILLA)", True), "NOTES": ("PREESCUCHA (MANTENER)", True),
+    "ERASE": ("BORRAR (+RESTART=RESET)", True), "NOTES": ("PREESCUCHA (MANTENER)", True),
 }
 # Botones 1-4 sobre la pantalla (MAICOL, SESSION, EN, TU): 1 y 3 = DRUMLESS (saca kick y hihat) del deck 1 / 2,
 # 2 y 4 = BATERIA (deja solo kick y hihat). Volver a tocarlo deshace (DRUMLESS devuelve kick y hihat, BATERIA prende todo).

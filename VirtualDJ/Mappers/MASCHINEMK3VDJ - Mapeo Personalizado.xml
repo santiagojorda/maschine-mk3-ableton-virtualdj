@@ -6,17 +6,17 @@
   $vdj = modo VirtualDJ: SAMPLING lo prende, MIXER o PLUGIN lo apagan (vuelve a Ableton).
 -->
 <mapper device="MASCHINEMK3VDJ" author="Santiago Jorda" version="850" date="2026-10-05">
-	<map value="ONINIT" action="set '$shift' 0 &amp; set '$vdj' 0 &amp; (crossfader &amp; (param_smaller 6.25% ? set '$xf' 1 : param_smaller 12.5% ? set '$xf' 2 : param_smaller 18.75% ? set '$xf' 3 : param_smaller 25% ? set '$xf' 4 : param_smaller 31.25% ? set '$xf' 5 : param_smaller 37.5% ? set '$xf' 6 : param_smaller 43.75% ? set '$xf' 7 : param_smaller 50% ? set '$xf' 8 : param_smaller 56.25% ? set '$xf' 9 : param_smaller 62.5% ? set '$xf' 10 : param_smaller 68.75% ? set '$xf' 11 : param_smaller 75% ? set '$xf' 12 : param_smaller 81.25% ? set '$xf' 13 : param_smaller 87.5% ? set '$xf' 14 : param_smaller 93.75% ? set '$xf' 15 : set '$xf' 16)) &amp; set '$knob' 0 &amp; set '$erase' 0 &amp; set '$restart' 0 &amp; set '$padpage' 0 &amp; set '$browse' 0 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock) &amp; set '$pads' 0 &amp; set '$padlock' 0 &amp; set '$encmode' 0 &amp; set '$select' 0 &amp; set '$help' 0 &amp; set '$stem1' 0 &amp; set '$stem2' 0 &amp; set '$abstrip' 1 &amp; set '$ps' 0" />
+	<map value="ONINIT" action="set '$shift' 0 &amp; set '$vdj' 0 &amp; set '$knob' 0 &amp; set '$erase' 0 &amp; set '$restart' 0 &amp; set '$padpage' 0 &amp; set '$browse' 0 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock) &amp; set '$pads' 0 &amp; set '$padlock' 0 &amp; set '$encmode' 0 &amp; set '$select' 0 &amp; set '$help' 0 &amp; set '$stem1' 0 &amp; set '$stem2' 0 &amp; set '$abstrip' 1 &amp; set '$ps' 0" />
 
 	<!-- SAMPLING pasa el control a VirtualDJ; MIXER o PLUGIN lo devuelven a Ableton.
 	     Con el modo apagado, el resto de los controles no hace nada en VirtualDJ -->
-	<map value="SAMPLING" action="(var '$vdj' ? nothing : (var '$padlock' ? nothing : set '$padpage' 1)) &amp; set '$vdj' 1 &amp; (crossfader &amp; (param_smaller 6.25% ? set '$xf' 1 : param_smaller 12.5% ? set '$xf' 2 : param_smaller 18.75% ? set '$xf' 3 : param_smaller 25% ? set '$xf' 4 : param_smaller 31.25% ? set '$xf' 5 : param_smaller 37.5% ? set '$xf' 6 : param_smaller 43.75% ? set '$xf' 7 : param_smaller 50% ? set '$xf' 8 : param_smaller 56.25% ? set '$xf' 9 : param_smaller 62.5% ? set '$xf' 10 : param_smaller 68.75% ? set '$xf' 11 : param_smaller 75% ? set '$xf' 12 : param_smaller 81.25% ? set '$xf' 13 : param_smaller 87.5% ? set '$xf' 14 : param_smaller 93.75% ? set '$xf' 15 : set '$xf' 16)) &amp; set '$encmode' 0 &amp; set '$pads' 1 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock) &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0" />
+	<map value="SAMPLING" action="(var '$vdj' ? nothing : (var '$padlock' ? nothing : set '$padpage' 1)) &amp; set '$vdj' 1 &amp; set '$encmode' 0 &amp; set '$pads' 1 &amp; (deck 1 key_lock ? nothing : deck 1 key_lock) &amp; (deck 2 key_lock ? nothing : deck 2 key_lock) &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0" />
 	<!-- SHIFT + CHANNEL = reposo (standby): sale del modo DJ y suelta los pads; el script de Ableton apaga las luces y las pantallas.
 	     Cualquier boton de vista (CHANNEL, PLUGIN, ARRANGER, MIXER, BROWSER, SAMPLING, FILE, SETTINGS) apaga VOLUME / SWING, en los dos modos, igual que en Ableton -->
 	<map value="CHANNEL" action="var '$shift' ? (set '$vdj' 0 &amp; set '$select' 0 &amp; set '$encmode' 0 &amp; set '$pads' 0 &amp; set '$padlock' 0) : set '$encmode' 0" />
 	<map value="BROWSER" action="set '$encmode' 0" />
 	<map value="SETTING" action="set '$encmode' 0" />
-	<map value="ARRANGER" action="set '$encmode' 0" />
+	<map value="ARRANGER" action="set '$vdj' 0 &amp; set '$select' 0 &amp; set '$encmode' 0 &amp; (var '$padlock' ? set '$pads' 1 : set '$pads' 0)" />
 	<map value="FILE" action="set '$encmode' 0" />
 	<map value="MIXER" action="set '$vdj' 0 &amp; set '$select' 0 &amp; set '$encmode' 0 &amp; (var '$padlock' ? set '$pads' 1 : set '$pads' 0)" />
 	<map value="PLUGIN" action="set '$vdj' 0 &amp; set '$select' 0 &amp; set '$encmode' 0 &amp; (var '$padlock' ? set '$pads' 1 : set '$pads' 0)" />
@@ -114,8 +114,9 @@
 
 	<!-- Transporte (deck seleccionado con LEFT / RIGHT). PLAY y STOP (y SHIFT + STOP) son de Ableton tambien en modo DJ -->
 	<!-- RESTART + tocar la perilla 1 / 2 = inicio del tema del deck 1 / 2 ($restart 1 = apretado, 2 = ya se uso con una perilla).
+	     RESTART + ERASE (en cualquier orden) = apagar los 3 efectos y centrar el filtro en los dos decks.
 	     RESTART solo = inicio del tema del deck elegido, al soltarlo y solo si no se toco una perilla -->
-	<map value="RESTART" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 29 : nothing) : (param_bigger 0.5 ? (var '$shift' ? (var '$vdj' ? (deck 1 effect_active 1 off &amp; deck 1 effect_active 2 off &amp; deck 1 effect_active 3 off &amp; deck 2 effect_active 1 off &amp; deck 2 effect_active 2 off &amp; deck 2 effect_active 3 off &amp; deck 1 filter 50% &amp; deck 2 filter 50% &amp; set '$restart' 2) : nothing) : set '$restart' 1) : set '$restart' 0)" />
+	<map value="RESTART" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 29 : nothing) : (param_bigger 0.5 ? (var '$erase' ? (var '$vdj' ? (deck 1 effect_active 1 off &amp; deck 1 effect_active 2 off &amp; deck 1 effect_active 3 off &amp; deck 2 effect_active 1 off &amp; deck 2 effect_active 2 off &amp; deck 2 effect_active 3 off &amp; deck 1 filter 50% &amp; deck 2 filter 50% &amp; set '$restart' 2) : nothing) : set '$restart' 1) : set '$restart' 0)" />
 	<map value="LEFT" action="var '$select' 1 ? (set '$help' 30) : (var '$vdj' ? (deck 1 select) : nothing)" />
 	<map value="RIGHT" action="var '$select' 1 ? (set '$help' 31) : (var '$vdj' ? (deck 2 select) : nothing)" />
 	<!-- STOP pausa el tema donde esta (no vuelve al cue) -->
@@ -129,7 +130,7 @@
 	<map value="PITCH" action="var '$vdj' ? nothing : set '$abstrip' 1" />
 	<map value="MOD" action="var '$vdj' ? nothing : set '$abstrip' 2" />
 	<map value="PERFORM" action="var '$vdj' ? nothing : set '$abstrip' 3" />
-	<map value="TOUCHSTRIP" action="(var '$vdj' ? (crossfader &amp; (param_smaller 6.25% ? set '$xf' 1 : param_smaller 12.5% ? set '$xf' 2 : param_smaller 18.75% ? set '$xf' 3 : param_smaller 25% ? set '$xf' 4 : param_smaller 31.25% ? set '$xf' 5 : param_smaller 37.5% ? set '$xf' 6 : param_smaller 43.75% ? set '$xf' 7 : param_smaller 50% ? set '$xf' 8 : param_smaller 56.25% ? set '$xf' 9 : param_smaller 62.5% ? set '$xf' 10 : param_smaller 68.75% ? set '$xf' 11 : param_smaller 75% ? set '$xf' 12 : param_smaller 81.25% ? set '$xf' 13 : param_smaller 87.5% ? set '$xf' 14 : param_smaller 93.75% ? set '$xf' 15 : set '$xf' 16) &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0) : nothing) &amp; (param_smaller 6.25% ? set '$ps' 1 : param_smaller 12.5% ? set '$ps' 2 : param_smaller 18.75% ? set '$ps' 3 : param_smaller 25% ? set '$ps' 4 : param_smaller 31.25% ? set '$ps' 5 : param_smaller 37.5% ? set '$ps' 6 : param_smaller 43.75% ? set '$ps' 7 : param_smaller 50% ? set '$ps' 8 : param_smaller 56.25% ? set '$ps' 9 : param_smaller 62.5% ? set '$ps' 10 : param_smaller 68.75% ? set '$ps' 11 : param_smaller 75% ? set '$ps' 12 : param_smaller 81.25% ? set '$ps' 13 : param_smaller 87.5% ? set '$ps' 14 : param_smaller 93.75% ? set '$ps' 15 : set '$ps' 16)" />
+	<map value="TOUCHSTRIP" action="(var '$vdj' ? (crossfader &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0) : nothing) &amp; (param_smaller 6.25% ? set '$ps' 1 : param_smaller 12.5% ? set '$ps' 2 : param_smaller 18.75% ? set '$ps' 3 : param_smaller 25% ? set '$ps' 4 : param_smaller 31.25% ? set '$ps' 5 : param_smaller 37.5% ? set '$ps' 6 : param_smaller 43.75% ? set '$ps' 7 : param_smaller 50% ? set '$ps' 8 : param_smaller 56.25% ? set '$ps' 9 : param_smaller 62.5% ? set '$ps' 10 : param_smaller 68.75% ? set '$ps' 11 : param_smaller 75% ? set '$ps' 12 : param_smaller 81.25% ? set '$ps' 13 : param_smaller 87.5% ? set '$ps' 14 : param_smaller 93.75% ? set '$ps' 15 : set '$ps' 16)" />
 
 	<!-- LEDs -->
 
@@ -226,9 +227,10 @@
 	<!-- LEDs: X_ON se envia cuando la condicion pasa a verdadera, X_OFF cuando pasa a falsa.
 	     Fuera del modo VirtualDJ no se manda nada (Ableton redibuja sus luces) -->
 	<map value="LEDON_SAMPLING" action="var '$vdj'" />
-	<!-- En modo DJ se apagan las luces de MIXER y PLUGIN (Ableton deja de mandar luces y quedaban prendidas) -->
+	<!-- En modo DJ se apagan las luces de MIXER, PLUGIN y ARRANGER (Ableton deja de mandar luces y quedaban prendidas) -->
 	<map value="LEDOFF_MIXER" action="var '$vdj'" />
 	<map value="LEDOFF_PLUGIN" action="var '$vdj'" />
+	<map value="LEDOFF_ARRANGER" action="var '$vdj'" />
 
 	<!-- Grupos A-H (CC 100-107): A C E G = deck 1 (azul), B D F H = deck 2 (naranja).
 	     A/B reverb, C/D flanger, E/F echo, G/H preescucha (pfl). Apagados; con color solo cuando estan activos -->
@@ -257,24 +259,24 @@
 	<map value="LEDON_GROUP_H" action="var '$vdj' ? (deck 2 pfl) : false" />
 	<map value="LEDOFF_GROUP_H" action="var '$vdj' ? (deck 2 pfl ? false : true) : false" />
 
-	<!-- Luces del touch strip: $xf guarda el tramo (1-16) donde quedo el strip; se enciende ese tramo -->
-	<map value="STRIP_LED_CENTER" action="var '$vdj' ? false : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : var '$ps' 0))" />
-	<map value="XF_LED_1" action="var '$vdj' ? (var_greater '$xf' 0.5 ? (var_smaller '$xf' 1.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 0.5 ? (var_smaller '$ps' 1.5 ? true : false) : false)))" />
-	<map value="XF_LED_2" action="var '$vdj' ? (var_greater '$xf' 1.5 ? (var_smaller '$xf' 2.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 1.5 ? (var_smaller '$ps' 2.5 ? true : false) : false)))" />
-	<map value="XF_LED_3" action="var '$vdj' ? (var_greater '$xf' 2.5 ? (var_smaller '$xf' 3.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 2.5 ? (var_smaller '$ps' 3.5 ? true : false) : false)))" />
-	<map value="XF_LED_4" action="var '$vdj' ? (var_greater '$xf' 3.5 ? (var_smaller '$xf' 4.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 3.5 ? (var_smaller '$ps' 4.5 ? true : false) : false)))" />
-	<map value="XF_LED_5" action="var '$vdj' ? (var_greater '$xf' 4.5 ? (var_smaller '$xf' 5.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 4.5 ? (var_smaller '$ps' 5.5 ? true : false) : false)))" />
-	<map value="XF_LED_6" action="var '$vdj' ? (var_greater '$xf' 5.5 ? (var_smaller '$xf' 6.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 5.5 ? (var_smaller '$ps' 6.5 ? true : false) : false)))" />
-	<map value="XF_LED_7" action="var '$vdj' ? (var_greater '$xf' 6.5 ? (var_smaller '$xf' 7.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 6.5 ? (var_smaller '$ps' 7.5 ? true : false) : false)))" />
-	<map value="XF_LED_8" action="var '$vdj' ? (var_greater '$xf' 7.5 ? (var_smaller '$xf' 8.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 7.5 ? (var_smaller '$ps' 8.5 ? true : false) : false)))" />
-	<map value="XF_LED_9" action="var '$vdj' ? (var_greater '$xf' 8.5 ? (var_smaller '$xf' 9.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 8.5 ? (var_smaller '$ps' 9.5 ? true : false) : false)))" />
-	<map value="XF_LED_10" action="var '$vdj' ? (var_greater '$xf' 9.5 ? (var_smaller '$xf' 10.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 9.5 ? (var_smaller '$ps' 10.5 ? true : false) : false)))" />
-	<map value="XF_LED_11" action="var '$vdj' ? (var_greater '$xf' 10.5 ? (var_smaller '$xf' 11.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 10.5 ? (var_smaller '$ps' 11.5 ? true : false) : false)))" />
-	<map value="XF_LED_12" action="var '$vdj' ? (var_greater '$xf' 11.5 ? (var_smaller '$xf' 12.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 11.5 ? (var_smaller '$ps' 12.5 ? true : false) : false)))" />
-	<map value="XF_LED_13" action="var '$vdj' ? (var_greater '$xf' 12.5 ? (var_smaller '$xf' 13.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 12.5 ? (var_smaller '$ps' 13.5 ? true : false) : false)))" />
-	<map value="XF_LED_14" action="var '$vdj' ? (var_greater '$xf' 13.5 ? (var_smaller '$xf' 14.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 13.5 ? (var_smaller '$ps' 14.5 ? true : false) : false)))" />
-	<map value="XF_LED_15" action="var '$vdj' ? (var_greater '$xf' 14.5 ? (var_smaller '$xf' 15.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 14.5 ? (var_smaller '$ps' 15.5 ? true : false) : false)))" />
-	<map value="XF_LED_16" action="var '$vdj' ? (var_greater '$xf' 15.5 ? (var_smaller '$xf' 16.5 ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 15.5 ? (var_smaller '$ps' 16.5 ? true : false) : false)))" />
+	<!-- Luces del touch strip: en modo DJ consulta directo la posicion real del crossfader (se restaura al instante al entrar); en Ableton sigue $ps -->
+	<map value="STRIP_LED_CENTER" action="var '$vdj' ? false : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_smaller '$ps' 0.5 ? true : false)))" />
+	<map value="XF_LED_1" action="var '$vdj' ? (param_smaller 6.25% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 0.5 ? (var_smaller '$ps' 1.5 ? true : false) : false)))" />
+	<map value="XF_LED_2" action="var '$vdj' ? (param_bigger 6.25% crossfader ? (param_smaller 12.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 1.5 ? (var_smaller '$ps' 2.5 ? true : false) : false)))" />
+	<map value="XF_LED_3" action="var '$vdj' ? (param_bigger 12.5% crossfader ? (param_smaller 18.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 2.5 ? (var_smaller '$ps' 3.5 ? true : false) : false)))" />
+	<map value="XF_LED_4" action="var '$vdj' ? (param_bigger 18.75% crossfader ? (param_smaller 25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 3.5 ? (var_smaller '$ps' 4.5 ? true : false) : false)))" />
+	<map value="XF_LED_5" action="var '$vdj' ? (param_bigger 25% crossfader ? (param_smaller 31.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 4.5 ? (var_smaller '$ps' 5.5 ? true : false) : false)))" />
+	<map value="XF_LED_6" action="var '$vdj' ? (param_bigger 31.25% crossfader ? (param_smaller 37.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 5.5 ? (var_smaller '$ps' 6.5 ? true : false) : false)))" />
+	<map value="XF_LED_7" action="var '$vdj' ? (param_bigger 37.5% crossfader ? (param_smaller 43.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 6.5 ? (var_smaller '$ps' 7.5 ? true : false) : false)))" />
+	<map value="XF_LED_8" action="var '$vdj' ? (param_bigger 43.75% crossfader ? (param_smaller 50.01% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 7.5 ? (var_smaller '$ps' 8.5 ? true : false) : false)))" />
+	<map value="XF_LED_9" action="var '$vdj' ? (param_bigger 50% crossfader ? (param_smaller 56.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 8.5 ? (var_smaller '$ps' 9.5 ? true : false) : false)))" />
+	<map value="XF_LED_10" action="var '$vdj' ? (param_bigger 56.25% crossfader ? (param_smaller 62.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 9.5 ? (var_smaller '$ps' 10.5 ? true : false) : false)))" />
+	<map value="XF_LED_11" action="var '$vdj' ? (param_bigger 62.5% crossfader ? (param_smaller 68.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 10.5 ? (var_smaller '$ps' 11.5 ? true : false) : false)))" />
+	<map value="XF_LED_12" action="var '$vdj' ? (param_bigger 68.75% crossfader ? (param_smaller 75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 11.5 ? (var_smaller '$ps' 12.5 ? true : false) : false)))" />
+	<map value="XF_LED_13" action="var '$vdj' ? (param_bigger 75% crossfader ? (param_smaller 81.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 12.5 ? (var_smaller '$ps' 13.5 ? true : false) : false)))" />
+	<map value="XF_LED_14" action="var '$vdj' ? (param_bigger 81.25% crossfader ? (param_smaller 87.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 13.5 ? (var_smaller '$ps' 14.5 ? true : false) : false)))" />
+	<map value="XF_LED_15" action="var '$vdj' ? (param_bigger 87.5% crossfader ? (param_smaller 93.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 14.5 ? (var_smaller '$ps' 15.5 ? true : false) : false)))" />
+	<map value="XF_LED_16" action="var '$vdj' ? (param_bigger 93.75% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 15.5 ? (var_smaller '$ps' 16.5 ? true : false) : false)))" />
 
 
 
@@ -282,8 +284,8 @@
 
 	<!-- Tocar una perilla de mezcla muestra su nombre y valor: perillas 1-4 en la pantalla izquierda, 5-8 en la derecha.
 	     ERASE + tocar: vuelve al centro (volumen al 100%; en los jogs y en las perillas de BPM, ERASE + tocar vuelve al tempo original de a poco) -->
-	<map value="ERASE" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 44 : nothing) : (param_bigger 0.5 ? set '$erase' 1 : set '$erase' 0)" />
-	<!-- RESTART solo no hace nada. SHIFT + RESTART: apaga los efectos de los dos decks y pone los filtros al centro (volumenes y tempo no).
+	<map value="ERASE" action="var '$select' 1 ? (param_bigger 0.5 ? set '$help' 44 : nothing) : (param_bigger 0.5 ? (var '$restart' ? (var '$vdj' ? (deck 1 effect_active 1 off &amp; deck 1 effect_active 2 off &amp; deck 1 effect_active 3 off &amp; deck 2 effect_active 1 off &amp; deck 2 effect_active 2 off &amp; deck 2 effect_active 3 off &amp; deck 1 filter 50% &amp; deck 2 filter 50% &amp; set '$restart' 2 &amp; set '$erase' 1) : set '$erase' 1) : set '$erase' 1) : set '$erase' 0)" />
+	<!-- RESTART solo no hace nada. RESTART + ERASE (en cualquier orden): apaga los efectos de los dos decks y pone los filtros al centro (volumenes y tempo no).
 	     RESTART + tocar una perilla: inicio del tema (jogs 1-2) o valor por defecto (tempo, volumen 100%, filtro al centro), como en Ableton.
 	     ERASE + tocar sigue reseteando igual. -->
 	<map value="KNOB1_TOUCH" action="param_bigger 0.5 ? ((var '$vdj' ? (var '$erase' ? deck 1 pitch_reset : (var '$restart' 0 ? nothing : (deck 1 goto_start &amp; set '$restart' 2))) : nothing) &amp; set '$knob' 1) : set '$knob' 0" />

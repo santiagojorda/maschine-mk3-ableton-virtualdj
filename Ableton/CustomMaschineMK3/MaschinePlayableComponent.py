@@ -8,6 +8,7 @@
 #
 # ==================================================
 
+import sys
 from itertools import product
 from ableton.v3.control_surface.components import (
     PlayableComponent,
@@ -97,6 +98,7 @@ class PlayableEncoderControl(SendValueEncoderControl):
 
 class MaschinePlayableComponent(PlayableComponent, PageComponent, ClipNotesSelectMixin, Pageable, PitchProvider, Renderable):
     octave_select_buttons = control_matrix(ButtonControl)
+    delete_button = ButtonControl(color = None)
     pitchbend_encoder = PlayableEncoderControl()
     pitchbend_reset = PlayableEncoderControl()
     pedal_tip_encoder = PlayableEncoderControl()
@@ -153,11 +155,12 @@ class MaschinePlayableComponent(PlayableComponent, PageComponent, ClipNotesSelec
         else:
             return self._all_chromatic_scale_notes
 
-    @depends(target_track = None)
-    def __init__(self, name = "Maschine_Playable", translation_channel = DEFAULT_NOTE_TRANSLATION_CHANNEL, matrix_always_listenable = True, target_track = None, *a, **k):
+    @depends(target_track = None, show_message = None)
+    def __init__(self, name = "Maschine_Playable", translation_channel = DEFAULT_NOTE_TRANSLATION_CHANNEL, matrix_always_listenable = True, target_track = None, show_message = None, *a, **k):
         super().__init__(name = name, matrix_always_listenable = matrix_always_listenable, scroll_skin_name = "Keyboard.Scroll", *a, **k)
         self._translation_channel = translation_channel
         self._target_track = target_track
+        self._show_message = show_message
         self.pitchbend_encoder.value = 8192
         self.register_slot(self.song, self._scale_root_note_changed, "root_note")
         self.register_slot(self.song, self._scale_intervals_changed, "scale_intervals")
@@ -201,6 +204,28 @@ class MaschinePlayableComponent(PlayableComponent, PageComponent, ClipNotesSelec
         self._update_led_feedback()
 
     def _on_matrix_pressed(self, target_button):
+        if self.delete_button.is_pressed:
+            pitch, _ = self._note_translation_for_button(target_button)
+            clip = self.get_active_midi_clip()
+            if clip is not None and pitch is not None:
+                notes = clip.get_notes_extended(from_time = 0.0, from_pitch = pitch, time_span = sys.maxsize, pitch_span = 1)
+                if notes:
+                    clip.remove_notes_extended(from_time = 0.0, from_pitch = pitch, time_span = sys.maxsize, pitch_span = 1)
+                    msg = f"Borradas {len(notes)} notas (pitch {pitch}) en clip '{clip.name or 'MIDI'}'"
+                    if self._show_message:
+                        self._show_message(msg)
+                    logger.info(msg)
+                else:
+                    msg = f"No hay notas (pitch {pitch}) en clip '{clip.name or 'MIDI'}'"
+                    if self._show_message:
+                        self._show_message(msg)
+                    logger.info(msg)
+            elif clip is None:
+                msg = "No hay clip MIDI activo"
+                if self._show_message:
+                    self._show_message(msg)
+                logger.info(msg)
+            return
         self.process_pad_pressed(target_button)
         if self._takeover_pads:
             pitch, _ = self._note_translation_for_button(target_button)

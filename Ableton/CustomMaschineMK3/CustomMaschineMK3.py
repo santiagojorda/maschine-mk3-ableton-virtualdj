@@ -347,6 +347,9 @@ class CustomMaschineMK3(ControlSurface):
         self.register_slot(self.elements.keyboard, self._on_playable_mode_selected, "is_pressed")
         self.register_slot(self.component_map["Pad_Modes"], self._on_pad_mode_changed, "selected_mode")
         self.register_slot(self.component_map["Display_Modes"], self._on_display_mode_changed, "selected_mode")
+        if "TouchStrip_Modes" in self.component_map:
+            self.register_slot(self.component_map["TouchStrip_Modes"], self._on_touchstrip_mode_changed, "selected_mode")
+        self.schedule_message(1, self._init_touchstrip)
     
     def _init_specification(self):
         Specification.component_map["Device"] = partial(
@@ -721,6 +724,8 @@ class CustomMaschineMK3(ControlSurface):
     def _set_vdj_mode(self, enabled):
         # Always written to Live's Log.txt, regardless of Config.LOGGING
         self._c_instance.log_message(f"CustomMaschineMK3: VirtualDJ mode = {enabled}")
+        if enabled:
+            super()._do_send_midi((SESSION_VIEW_BUTTON[0], SESSION_VIEW_BUTTON[1], 0))
         self._vdj_mode = enabled
         self._sync_pad_lock_mode()
         self.request_rebuild_midi_map()
@@ -897,6 +902,7 @@ class CustomMaschineMK3(ControlSurface):
         with self.component_guard():
             self.component_map["Display_Modes"].selected_mode = SESSION_DISPLAY_MODE
         self.application.view.show_view("Session")
+        self._update_session_view_led()
 
     def _update_session_view_led(self):
         # Through _do_send_midi: in VirtualDJ mode the LEDs belong to VirtualDJ
@@ -1020,7 +1026,9 @@ class CustomMaschineMK3(ControlSurface):
                     info["selected"] = True
                 slots.append(info)
             columns.append({"name": track.name, "color": track.color, "slots": slots,
-                            "target": liveobj_valid(target) and track == target})
+                            "target": liveobj_valid(target) and track == target,
+                            "mute": bool(getattr(track, "mute", False)),
+                            "solo": bool(getattr(track, "solo", False))})
         return columns
 
     def _screen_bridge_browser_grid(self):
@@ -1243,18 +1251,35 @@ class CustomMaschineMK3(ControlSurface):
                 "bipolar": parameter.min < 0 < parameter.max,
             }
             owner = parameter_owner(parameter)
+            if not isinstance(owner, Live.Track.Track) and hasattr(owner, "canonical_parent") and isinstance(getattr(owner, "canonical_parent", None), Live.Track.Track):
+                owner = owner.canonical_parent
             if isinstance(owner, Live.Track.Track):
                 knob["track"] = owner.name
                 knob["color"] = owner.color
+                knob["mute"] = bool(getattr(owner, "mute", False))
+                knob["solo"] = bool(getattr(owner, "solo", False))
                 if owner.has_audio_output:
                     knob["meter"] = max(owner.output_meter_left, owner.output_meter_right)
             knobs.append(knob)
+
+        view = self.component_map["Display_Modes"].selected_mode
+        if view == MIXER_DISPLAY_MODE:
+            mixer = self.component_map.get("Mixer")
+            all_tracks = getattr(mixer, "_all_tracks", None)
+            track_pos = getattr(mixer, "track_position", 0)
+            if all_tracks is not None:
+                for idx in range(min(len(knobs), KNOB_COUNT)):
+                    if knobs[idx] is not None and "mute" not in knobs[idx]:
+                        t_idx = track_pos + idx
+                        if 0 <= t_idx < len(all_tracks):
+                            trk = all_tracks[t_idx]
+                            knobs[idx]["mute"] = bool(getattr(trk, "mute", False))
+                            knobs[idx]["solo"] = bool(getattr(trk, "solo", False))
 
         device = getattr(self.component_map["Device"], "device", None)
         if callable(device):
             device = device()
         target_track = self.component_map["Target_Track"].target_track
-        view = self.component_map["Display_Modes"].selected_mode
         encoder_mode = self.component_map["Encoder_Modes"].selected_mode
         return {
             "encoder": self._screen_bridge_encoder(encoder_mode),
@@ -1388,6 +1413,9 @@ class CustomMaschineMK3(ControlSurface):
                 self.refresh_state()
             self._update_link_led()
             self._update_session_view_led()
+            modes = self.component_map.get("TouchStrip_Modes")
+            if modes is None or getattr(modes, "selected_mode", "pitch") == "pitch":
+                self._do_send_midi((0xE0, 0x00, 0x40))
 
     # Session ring highlight is enabled only if hardware is identified by identity request
     # But maschine didn't respond to this message, so bypass identification process
@@ -1499,6 +1527,21 @@ class CustomMaschineMK3(ControlSurface):
                     self._select_playable_mode(SIMPLER_MODE)
                 else:
                     self._select_playable_mode(KEYBOARD_MODE)
+
+    def _init_touchstrip(self):
+        if not self._vdj_mode and not self._standby:
+            modes = self.component_map.get("TouchStrip_Modes")
+            if modes is None or getattr(modes, "selected_mode", "pitch") == "pitch":
+                self._do_send_midi((0xE0, 0x00, 0x40))
+
+    def _on_touchstrip_mode_changed(self, *a, **k):
+        if not self._vdj_mode and not self._standby:
+            modes = self.component_map.get("TouchStrip_Modes")
+            mode = getattr(modes, "selected_mode", "pitch") if modes else "pitch"
+            if mode == "pitch":
+                self._do_send_midi((0xE0, 0x00, 0x40))
+            else:
+                self._do_send_midi((0xE0, 0x00, 0x00))
 
     def _on_pad_mode_changed(self, component):
         is_playable_enabled = self.get_pad_mode() in self._playable_mode_list

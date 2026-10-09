@@ -8,8 +8,9 @@
 #
 # ==================================================
 
+import sys
 from itertools import zip_longest
-from ableton.v3.base import listens, listens_group
+from ableton.v3.base import listens, listens_group, liveobj_valid, depends
 from ableton.v3.control_surface.skin import LiveObjSkinEntry
 from ableton.v3.control_surface.components import DrumGroupComponent
 from ableton.v3.control_surface.controls import (
@@ -30,9 +31,12 @@ class CustomDrumGroupComponent(DrumGroupComponent, ClipNotesSelectMixin):
 
     _group_start_notes = list(range(4, 128, DEFAULT_GROUP_SIZE))
     _has_chain_list = []
+    _show_message = None
 
-    def __init__(self, *a, **k):
+    @depends(show_message = None)
+    def __init__(self, show_message = None, *a, **k):
         super().__init__(*a, **k, matrix_always_listenable = True)
+        self._show_message = show_message
 
     def set_select_buttons(self, matrix):
         self.select_buttons.set_control_element(matrix)
@@ -52,8 +56,68 @@ class CustomDrumGroupComponent(DrumGroupComponent, ClipNotesSelectMixin):
         #     button.set_mode(PlayableControl.Mode.playable_and_listenable)
 
     def _on_matrix_pressed(self, button):
+        if self.delete_button.is_pressed:
+            button.color = "DrumGroup.PadAction"
+            pad = self._pad_for_button(button)
+            pad_name = str(pad.name) if (pad is not None and hasattr(pad, "name")) else ""
+            pitch = getattr(pad, "note", None)
+            if pitch is None and hasattr(self, "_note_translation_for_button"):
+                try:
+                    pitch, _ = self._note_translation_for_button(button)
+                except Exception:
+                    pitch = None
+            self._do_delete_pad(pad, pad_name, pitch = pitch)
+            return
         self.process_pad_pressed(button)
         return super()._on_matrix_pressed(button)
+
+    def _do_delete_pad(self, pad, pad_name, pitch = None):
+        clip = self.get_active_midi_clip()
+        if pitch is None and pad is not None:
+            pitch = getattr(pad, "note", None)
+
+        notes_deleted = False
+        if clip is not None and pitch is not None:
+            notes = clip.get_notes_extended(from_time = 0.0, from_pitch = pitch, time_span = sys.maxsize, pitch_span = 1)
+            if notes:
+                clip.remove_notes_extended(from_time = 0.0, from_pitch = pitch, time_span = sys.maxsize, pitch_span = 1)
+                notes_deleted = True
+                name_str = pad_name or (pad.name if (pad is not None and hasattr(pad, "name")) else f"Pitch {pitch}")
+                msg = f"Borradas {len(notes)} notas de {name_str} en clip '{clip.name or 'MIDI'}'"
+                if self._show_message:
+                    self._show_message(msg)
+                logger.info(msg)
+                if hasattr(self, "notify") and hasattr(self, "notifications"):
+                    try:
+                        self.notify(self.notifications.DrumGroup.Pad.delete_notes, pad_name)
+                    except Exception:
+                        pass
+
+        if not notes_deleted:
+            chains = getattr(pad, "chains", []) if pad is not None else []
+            if pad is not None and hasattr(pad, "delete_all_chains") and len(chains) > 0:
+                pad.delete_all_chains()
+                name_str = pad_name or getattr(pad, "name", f"Pitch {pitch}")
+                msg = f"Pad borrado: {name_str}"
+                if self._show_message:
+                    self._show_message(msg)
+                logger.info(msg)
+                if hasattr(self, "notify") and hasattr(self, "notifications"):
+                    try:
+                        self.notify(self.notifications.DrumGroup.Pad.delete, pad_name)
+                    except Exception:
+                        pass
+            elif not notes_deleted and clip is not None:
+                name_str = pad_name or (pad.name if (pad is not None and hasattr(pad, "name")) else f"Pitch {pitch}")
+                msg = f"No hay notas de {name_str} en clip '{clip.name or 'MIDI'}'"
+                if self._show_message:
+                    self._show_message(msg)
+                logger.info(msg)
+            elif not notes_deleted and clip is None and (pad is None or len(chains) == 0):
+                msg = "No hay clip ni pad para borrar"
+                if self._show_message:
+                    self._show_message(msg)
+                logger.info(msg)
 
     def _update_led_feedback(self):
         super()._update_led_feedback()

@@ -8,7 +8,8 @@
 #
 # ==================================================
 
-from ableton.v3.base import listens
+import sys
+from ableton.v3.base import listens, depends
 from ableton.v3.live.util import liveobj_valid
 from ableton.v3.control_surface.components import SlicedSimplerComponent
 from ableton.v3.control_surface.components.sliced_simpler import DEFAULT_SIMPLER_TRANSLATION_CHANNEL
@@ -25,9 +26,12 @@ from .ClipNotesSelectMixin import ClipNotesSelectMixin
 class CustomSlicedSimplerComponent(ClipNotesSelectMixin, SlicedSimplerComponent):
     _select_buttons = control_list(ButtonControl, control_count = 4, color = None)
     _has_slice_list = [False] * 4
+    _show_message = None
 
-    def __init__(self, *a, **k):
+    @depends(show_message = None)
+    def __init__(self, show_message = None, *a, **k):
         super().__init__(*a, **k, matrix_always_listenable = True)
+        self._show_message = show_message
 
     def set_select_buttons(self, matrix):
         self._select_buttons.set_control_element(matrix)
@@ -42,6 +46,41 @@ class CustomSlicedSimplerComponent(ClipNotesSelectMixin, SlicedSimplerComponent)
                 logger.info(f"Slice group selected index = {button.index}")
 
     def _on_matrix_pressed(self, button):
+        if hasattr(self, "delete_button") and self.delete_button.is_pressed:
+            if not self._simpler_setup_is_valid():
+                return
+            slice_index = self._coordinate_to_slice_index(button.coordinate)
+            if slice_index is not None:
+                button.color = "SlicedSimpler.PadAction"
+                clip = self.get_active_midi_clip()
+                pitch = getattr(button, "identifier", None)
+                if pitch is None and hasattr(self, "_note_translation_for_button"):
+                    try:
+                        pitch, _ = self._note_translation_for_button(button)
+                    except Exception:
+                        pitch = None
+                notes_deleted = False
+                if clip is not None and pitch is not None:
+                    notes = clip.get_notes_extended(from_time=0.0, from_pitch=pitch, time_span=sys.maxsize, pitch_span=1)
+                    if notes:
+                        clip.remove_notes_extended(from_time=0.0, from_pitch=pitch, time_span=sys.maxsize, pitch_span=1)
+                        notes_deleted = True
+                        msg = f"Borradas {len(notes)} notas de slice {slice_index + 1} en clip '{clip.name or 'MIDI'}'"
+                        if self._show_message:
+                            self._show_message(msg)
+                        logger.info(msg)
+                        if hasattr(self, "notify") and hasattr(self, "notifications"):
+                            try:
+                                self.notify(self.notifications.Simpler.Slice.delete_notes, slice_index + 1)
+                            except Exception:
+                                pass
+                if not notes_deleted:
+                    self._delete_slice_at_index(slice_index)
+                    msg = f"Slice {slice_index + 1} borrado"
+                    if self._show_message:
+                        self._show_message(msg)
+                    logger.info(msg)
+            return
         self.process_pad_pressed(button)
         return super()._on_matrix_pressed(button)
 
