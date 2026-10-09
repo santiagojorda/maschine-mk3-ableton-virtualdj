@@ -283,8 +283,22 @@ def main():
     left_browser = ableton_ui.render_screen(st_browser, 0)
     right_browser = ableton_ui.render_screen(st_browser, 1)
     img_browser = frame_displays(left_browser, right_browser, "Vista Browser (BROWSER) - Grilla a la izquierda, navegador a la derecha")
-    img_browser.save(os.path.join(OUT_DIR, "ableton-browser-view.png"))
-    print("Generada: ableton-browser-view.png")
+    # 5. Vista Standby / Splash
+    left_splash = Image.new("RGB", (WIDTH, HEIGHT), (0, 0, 0))
+    draw_sl = ImageDraw.Draw(left_splash)
+    from dj_screens import _centered_text
+    _centered_text(draw_sl, "Maschine mk3", 68, 52, (255, 255, 255))
+    _centered_text(draw_sl, "as Push", 132, 44, (255, 210, 0))
+
+    right_splash = Image.new("RGB", (WIDTH, HEIGHT), (0, 0, 0))
+    draw_sr = ImageDraw.Draw(right_splash)
+    _centered_text(draw_sr, "by", 60, 24, (140, 140, 140))
+    _centered_text(draw_sr, "@santiagojorda", 96, 40, (255, 255, 255))
+    _centered_text(draw_sr, "Maicol", 156, 32, (255, 150, 30))
+
+    img_splash = frame_displays(left_splash, right_splash)
+    img_splash.save(os.path.join(OUT_DIR, "maschine-mk3-as-push-standby.png"))
+    print("Generada: maschine-mk3-as-push-standby.png")
 
 
 if __name__ == "__main__":

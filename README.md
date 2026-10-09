@@ -7,6 +7,8 @@
 [![YouTube Playlist](https://img.shields.io/badge/YouTube-Maicol%20Session-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
 [![Instagram](https://img.shields.io/badge/Instagram-@santiagojorda-E4405F?logo=instagram&logoColor=white)](http://instagram.com/santiagojorda)
 
+![Maschine MK3 as Ableton Push by @santiagojorda](docs/images/maschine-mk3-as-push-standby.png)
+
 Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
 - 🎛️ **Navegación tipo Push**: lanzá clips y escenas con el encoder 4D.
@@ -134,42 +136,31 @@ Al presionar cualquiera de estos botones, el encoder principal toma el control y
 
 ---
 
-## 🚀 Instalación y Puesta en Marcha
+## 🚀 Instalación Rápida (3 Pasos)
 
-### Requisitos Previos
-- **Windows 11** (o Windows 10 con soporte MIDI).
-- **Ableton Live 12 Suite**.
-- **Maschine MK3** con **NI Controller Editor**.
-- **Python 3.12** y **[Zadig](https://zadig.akeo.ie/)** (para la aplicación de pantallas).
+> 💡 **Requisitos:** Windows 10/11, Ableton Live 12 Suite y Maschine MK3 conectada por USB.
 
----
+### 1️⃣ Plantilla en Controller Editor
+1. Cerrá **Controller Editor**.
+2. Copiá el archivo `Controller Editor/Configuration.ncc` en:  
+   `Documentos\Native Instruments\Controller Editor\`
+3. Abrí **Controller Editor** y en la Maschine seleccioná la plantilla **CUSTOM MASCHINE**.
 
-### Paso 1: Controller Editor
-1. Cerrar Controller Editor.
-2. Copiar `Controller Editor/Configuration.ncc` en `Documentos\Native Instruments\Controller Editor\`.
-3. Abrir Controller Editor y seleccionar en la Maschine la plantilla **CUSTOM MASCHINE**.
-
-### Paso 2: Script de Ableton
-1. Copiar la carpeta `Ableton/CustomMaschineMK3` dentro de:  
+### 2️⃣ Script en Ableton Live
+1. Copiá la carpeta `Ableton/CustomMaschineMK3` dentro de:  
    `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts\`
 2. En Ableton Live (*Opciones → Preferencias → Link, Tempo & MIDI*):
-   - **Control Surface:** `CustomMaschineMK3`
-   - **Input:** `Maschine MK3 Ctrl MIDI`
-   - **Output:** `Maschine MK3 Ctrl MIDI`
+   - **Superficie de control:** `CustomMaschineMK3`
+   - **Entrada:** `Maschine MK3 Ctrl MIDI`
+   - **Salida:** `Maschine MK3 Ctrl MIDI`
 
-### Paso 3: Driver y Programa de Pantallas
-1. Abrir **Zadig** (*Options → List All Devices*):
-   - Asignar el driver **WinUSB** **únicamente** a **`Maschine MK3 BD (Interface 5)`**.
-   - ⚠️ *No modificar las otras interfaces (0, 4 ni 6).*
-   - Desconectar y volver a conectar el cable USB de la Maschine.
-2. Compilar el ejecutable desde la carpeta `Pantallas`:
-   ```bash
-   cd Pantallas
-   python -m venv .venv
-   .venv\Scripts\pip install -r requirements.txt
-   construir_exe.bat
-   ```
-3. Ejecutar `MaschineMK3AsPush.exe` (corre en segundo plano y se reinicia automáticamente ante cualquier reconexión).
+### 3️⃣ Pantallas de la Maschine
+1. **Driver USB (solo la primera vez):**
+   - Abrí el programa gratuito **[Zadig](https://zadig.akeo.ie/)** (*Options → List All Devices*).
+   - Seleccioná **`Maschine MK3 BD (Interface 5)`**, elegí **WinUSB** y hacé clic en **Install Driver** *(no toques las otras interfaces)*. Desconectá y volvé a conectar el cable USB.
+2. **Encender las pantallas:**
+   - Ejecutá `Pantallas\iniciar_pantallas.bat` (o `MaschineMK3AsPush.exe` si armaste el ejecutable).
+   - ¡Listo! Las pantallas se encenderán mostrando la sesión de Live.
 
 ---
 
