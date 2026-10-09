@@ -33,28 +33,28 @@ Todo esto empezó por mis sesiones combinando **Maschine MK3** y **Ableton Live*
 
 Las dos pantallas de la Maschine MK3 muestran la interfaz gráfica nativa de Ableton en vivo:
 
-### 1. Vista Session (`ARRANGER`)
+### 1. Vista Session (<kbd>ARRANGER</kbd>)
 Grilla completa de **8 pistas × 4 escenas** con los nombres y colores reales de tus clips. Un marco verde destaca las 4 pistas asignadas a los pads (zonas A–H) y un cursor blanco marca el clip seleccionado en Live. Los clips en reproducción se identifican con un borde verde.
 
 ![Vista Session en las pantallas](docs/images/ableton-session-view.png)
 
 ---
 
-### 2. Vista Mixer (`MIXER`)
+### 2. Vista Mixer (<kbd>MIXER</kbd>)
 Faders verticales por canal, vúmetros con graduación verde/amarillo/rojo, paneo estéreo y niveles exactos en dB. Las pistas llevan su color correspondiente y el marco verde indica las pistas vinculadas a los pads.
 
 ![Vista Mixer en las pantallas](docs/images/ableton-mixer-view.png)
 
 ---
 
-### 3. Vista Dispositivo / Plugins (`PLUGIN`)
+### 3. Vista Dispositivo / Plugins (<kbd>PLUGIN</kbd>)
 Las 8 perillas toman los parámetros del instrumento o efecto de audio seleccionado. Muestra el nombre del dispositivo, el color asignado a la cadena o pista y los valores exactos en tiempo real (frecuencia, resonancia, drive, dry/wet, etc.).
 
 ![Vista Dispositivo en las pantallas](docs/images/ableton-device-view.png)
 
 ---
 
-### 4. Vista Browser (`BROWSER`)
+### 4. Vista Browser (<kbd>BROWSER</kbd>)
 Navegador de sonidos integrado: la pantalla izquierda mantiene la grilla de sesión para ver exactamente dónde caerá el elemento seleccionado, mientras la pantalla derecha permite explorar tu **User Library**, carpetas y presets cómodamente con el encoder.
 
 ![Vista Browser en las pantallas](docs/images/ableton-browser-view.png)
@@ -63,14 +63,17 @@ Navegador de sonidos integrado: la pantalla izquierda mantiene la grilla de sesi
 
 ## 🎮 Guía Rápida de Controles
 
+> 💡 **¿Buscás más operaciones y funciones avanzadas?**  
+> Para consultar el catálogo completo con más de 100 operaciones interactivas (Drum Rack, Simpler slicing, escalas, acordes, step sequencer, automatizaciones y edición de clips), ingresá al **[Manual Web: All Operations](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)**.
+
 ### 🛑 Reposo (Standby)
 Para cuidar las pantallas y evitar toques accidentales cuando no estés tocando:
 
-| Control | Acción |
+| Botón / Control | Acción |
 |---|---|
-| **SHIFT + CHANNEL** | Pasa a reposo: apaga pads y botones, y muestra el salvapantallas con logo. |
-| **CHANNEL** | Despierta la controladora. |
-| **MIXER** / **PLUGIN** / **ARRANGER** | Despiertan la controladora y van directamente a esa vista. |
+| <kbd>SHIFT</kbd> + <kbd>CHANNEL</kbd> | Pasa a reposo: apaga pads y botones, y muestra el salvapantallas con logo. |
+| <kbd>CHANNEL</kbd> | Despierta la controladora al modo activo. |
+| <kbd>MIXER</kbd> / <kbd>PLUGIN</kbd> / <kbd>ARRANGER</kbd> | Despiertan la controladora y van directamente a esa vista. |
 
 ---
 
@@ -78,49 +81,82 @@ Para cuidar las pantallas y evitar toques accidentales cuando no estés tocando:
 
 | Botón | Vista |
 |---|---|
-| **ARRANGER** | **Vista Session:** grilla de clips en las dos pantallas. |
-| **MIXER** | **Vista Mixer:** faders, medidores de nivel, paneo y envíos de 8 pistas. |
-| **PLUGIN** | **Vista Dispositivo:** perillas del plugin o efecto seleccionado. |
-| **BROWSER** | **Vista Browser:** lista en pantalla derecha, grilla en pantalla izquierda. |
+| <kbd>ARRANGER</kbd> | **Vista Session:** grilla de clips en las dos pantallas a color. |
+| <kbd>MIXER</kbd> | **Vista Mixer:** faders verticales, medidores de nivel dinámicos, paneo y envíos de 8 pistas. |
+| <kbd>PLUGIN</kbd> | **Vista Dispositivo:** 8 perillas con parámetros del plugin o efecto seleccionado. |
+| <kbd>BROWSER</kbd> | **Vista Browser:** lista en pantalla derecha, grilla de destino en pantalla izquierda. |
+| <kbd>SAMPLING</kbd> | **Editor de Clips:** recorte, warp, ganancia, transposición y loop. |
+| <kbd>SETTINGS</kbd> | **Ajustes:** opciones de configuración y visualización en pantallas. |
 
 ---
 
 ### 🕹️ Navegación de Clips y Escenas (Estilo Push)
 
-| Control | Acción |
+| Botón / Control | Acción |
 |---|---|
-| **Girar rueda (Encoder)** | Mover el cursor de pista en pista. |
-| **Inclinar rueda (Arriba / Abajo)** | Mover el cursor de escena en escena. |
-| **Apretar rueda** | Lanzar el clip (o disparar la celda) bajo el cursor. |
-| **SHIFT + girar / inclinar** | Desplazar manualmente la grilla y pads (4 pistas al costado, 1 escena arriba/abajo). |
-| **Botones A–H** | Saltar rápido de a 4 pistas: A (1-4), B (5-8), C (9-12), etc. |
-| **Botones ◀ / ▶** | En vista Session, alternan las 8 perillas entre volumen de pistas y parámetros del dispositivo. |
-| **VARIATION** | **Borrar clip:** elimina el clip bajo el cursor en vista Session (o el último grabado en otras vistas; recuperable con `Ctrl+Z`). |
-| **EVENTS** | **Crear escena:** inserta una nueva escena debajo de la actual, detiene el clip de esa pista y ubica el cursor allí. |
+| <kbd>Girar Encoder</kbd> | Mover el cursor de pista en pista (izquierda / derecha). |
+| <kbd>Inclinar Encoder</kbd> (▲ / ▼) | Mover el cursor de escena en escena (arriba / abajo). |
+| <kbd>Apretar Encoder</kbd> | Lanzar el clip (o disparar la celda) bajo el cursor. |
+| <kbd>SHIFT</kbd> + <kbd>Encoder</kbd> | Desplazar manualmente la grilla y pads (4 pistas al costado, 1 escena arriba/abajo). |
+| <kbd>A</kbd>–<kbd>H</kbd> | Saltar rápido de a 4 pistas: <kbd>A</kbd> (1-4), <kbd>B</kbd> (5-8), <kbd>C</kbd> (9-12), etc. |
+| <kbd>◀</kbd> / <kbd>▶</kbd> | En vista Session, alternan las 8 perillas entre volumen de pistas y parámetros del dispositivo. |
+| <kbd>Pads 1–16</kbd> | Matriz 4×4 para disparar clips de las 4 pistas asignadas. |
+| <kbd>VARIATION</kbd> | **Borrar clip:** elimina el clip bajo el cursor en vista Session (o el último grabado en otras vistas; recuperable con `Ctrl+Z`). |
+| <kbd>EVENTS</kbd> | **Crear escena:** inserta una nueva escena debajo de la actual, detiene el clip de esa pista y ubica el cursor allí. |
 
 ---
 
 ### 🎛️ Atajos y Modificadores en Perillas
 
-| Combinación | Acción |
+| Botón / Combinación | Acción |
 |---|---|
-| **RESTART + tocar perilla** | Restablece el parámetro a su valor por defecto (en mixer: 0 dB). |
-| **ERASE + doble toque** | Lleva el parámetro a cero (paneo al centro, etc.). |
-| **SHIFT + RESTART** | Restablece todos los volúmenes del mixer a su valor por defecto (el Master no se modifica). |
-| **MUTE + tocar perilla** | Detiene el clip que está sonando en la pista de esa perilla. |
-| **SOLO + tocar perilla** | Activa o desactiva la preescucha (Solo) de esa pista. |
-| **RESTART + SOLO** | Desactiva todas las preescuchas activas. |
-| **FOLLOW + tocar perilla** | Dispara el clip de esa pista en la escena donde está posicionado el cursor. |
+| <kbd>RESTART</kbd> + tocar <kbd>Perilla 1–8</kbd> | Restablece el parámetro a su valor por defecto (en mixer: 0 dB). |
+| <kbd>ERASE</kbd> + doble toque <kbd>Perilla 1–8</kbd> | Lleva el parámetro a cero (paneo al centro, etc.). |
+| <kbd>SHIFT</kbd> + <kbd>RESTART</kbd> | Restablece todos los volúmenes del mixer a su valor por defecto (el Master no se modifica). |
+| <kbd>MUTE</kbd> + tocar <kbd>Perilla 1–8</kbd> | Detiene el clip que está sonando en la pista de esa perilla. |
+| <kbd>SOLO</kbd> + tocar <kbd>Perilla 1–8</kbd> | Activa o desactiva la preescucha (Solo) de esa pista. |
+| <kbd>RESTART</kbd> + <kbd>SOLO</kbd> | Desactiva todas las preescuchas activas simultáneamente. |
+| <kbd>FOLLOW</kbd> + tocar <kbd>Perilla 1–8</kbd> | Dispara el clip de esa pista en la escena donde está posicionado el cursor. |
+| <kbd>MACRO</kbd> (mantener) + <kbd>Perilla 1–8</kbd> | Ajuste fino de precisión del parámetro. |
+
+---
+
+### ⏯️ Transporte y Atajos Rápidos
+
+| Botón / Combinación | Acción |
+|---|---|
+| <kbd>PLAY</kbd> | Iniciar / pausar reproducción en Ableton Live. |
+| <kbd>REC</kbd> | Activar grabación en Session o Arrangement. |
+| <kbd>STOP</kbd> | Detener reproducción general. |
+| <kbd>SHIFT</kbd> + <kbd>Pad 1</kbd> | **Deshacer (Undo)** la última acción. |
+| <kbd>SHIFT</kbd> + <kbd>Pad 2</kbd> | **Rehacer (Redo)** la última acción deshecha. |
+| <kbd>DUPLICATE</kbd> | Duplicar el clip seleccionado (o duplicar la longitud del loop). |
 
 ---
 
 ### 🔊 Volumen Master, Auriculares y Tempo
 
 Al presionar cualquiera de estos botones, el encoder principal toma el control y la pantalla derecha muestra el valor numérico y gráfico:
-- **VOLUME:** Volumen Master.
-- **SWING:** Volumen de auriculares / preescucha (Cue).
-- **TEMPO:** Tempo general en BPM.
-- Presionar cualquier botón de vista o pad apaga este modo.
+- <kbd>VOLUME</kbd> : Volumen Master.
+- <kbd>SWING</kbd> : Volumen de auriculares / preescucha (Cue).
+- <kbd>TEMPO</kbd> : Tempo general en BPM.
+- *(Presionar cualquier botón de vista o pad apaga este modo).*
+
+---
+
+## 🌐 Ver Más Operaciones en la Web
+
+La Maschine MK3 tiene implementadas **más de 100 operaciones** para controlar Ableton Live en profundidad. Para ver la guía completa interactiva con diagramas visuales de hardware:
+
+👉 **[Ingresar a la Web de Operaciones Completas](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)**
+
+En la web vas a encontrar el detalle de:
+- 🥁 **Drum Rack & Simpler:** Mapeo de pads, rebanado de audio (Slicing) y manipulación de samples.
+- 🎹 **Escalas y Acordes:** Modos armónicos, notas raíz, transposiciones y arpegios en tiras táctiles.
+- 🎚️ **Edición de Clips:** Modos warp, transposición de semitonos, ganancia y puntos de inicio de loop.
+- 🎼 **Step Sequencer:** Secuenciación por pasos en la matriz de pads con longitud y división métrica.
+- 📂 **Browser Visual:** Navegación por colecciones de colores, hotswap y preescucha de librerías.
+- ⚙️ **Configuración:** Brillo de pantallas, sensibilidad de pads y curvas de respuesta.
 
 ---
 
@@ -160,7 +196,7 @@ Si querés usar la Maschine MK3 como siempre con el software oficial de **Native
 1. **Cerrá las pantallas:** Cerrá la ventana de `iniciar_pantallas.bat` (o cerrá `MaschineMK3AsPush.exe`).
 2. **Volver al software Maschine:**
    - Abrí el software **Maschine 2**.
-   - En el controlador, presioná **`SHIFT + CHANNEL`** (MIDI) para alternar entre el modo MIDI y el modo nativo del software Maschine.
+   - En el controlador, presioná <kbd>SHIFT</kbd> + <kbd>CHANNEL</kbd> (MIDI) para alternar entre el modo MIDI y el modo nativo del software Maschine.
    - ¡Listo! Todo vuelve a funcionar exactamente como viene de fábrica.
 
 ### 2. Restaurar el driver original de NI (si alguna vez querés quitar WinUSB)
