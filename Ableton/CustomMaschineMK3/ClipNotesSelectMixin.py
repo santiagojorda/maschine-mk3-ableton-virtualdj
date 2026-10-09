@@ -13,7 +13,8 @@ from ableton.v3.control_surface.controls import (
     ButtonControl,
     control_matrix
 )
-from ableton.v3.base import depends, liveobj_valid
+from ableton.v3.base import depends
+from ableton.v3.live import liveobj_valid
 
 from .Logger import logger
 

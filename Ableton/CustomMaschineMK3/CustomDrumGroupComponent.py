@@ -10,7 +10,8 @@
 
 import sys
 from itertools import zip_longest
-from ableton.v3.base import listens, listens_group, liveobj_valid, depends
+from ableton.v3.base import listens, listens_group, depends
+from ableton.v3.live import liveobj_valid
 from ableton.v3.control_surface.skin import LiveObjSkinEntry
 from ableton.v3.control_surface.components import DrumGroupComponent
 from ableton.v3.control_surface.controls import (
