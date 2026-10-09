@@ -4,6 +4,8 @@
 [![Native Instruments](https://img.shields.io/badge/Hardware-Maschine%20MK3-black.svg)](https://www.native-instruments.com)
 [![Windows 11](https://img.shields.io/badge/OS-Windows%2011%20MIDI%20Services-0078D4.svg)](https://microsoft.com)
 [![Manual Web](https://img.shields.io/badge/Manual-All%20Operations%20(Web)-brightgreen.svg)](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)
+[![YouTube Playlist](https://img.shields.io/badge/YouTube-Maicol%20Session-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
+[![Instagram](https://img.shields.io/badge/Instagram-@santiagojorda-E4405F?logo=instagram&logoColor=white)](http://instagram.com/santiagojorda)
 
 Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
@@ -14,6 +16,14 @@ Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push
 - 🛑 **Modo Reposo inteligente**: protege las pantallas y evita toques accidentales.
 
 > 📖 **[Ver Manual Web de Todas las Operaciones](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)**: guía visual interactiva completa con diagramas de botones y perillas.
+
+---
+
+### 🎵 El Origen: Maicol Sessions
+Todo esto empezó por mis sesiones combinando **Maschine MK3** y **Ableton Live**: una combinación tremenda donde el sampler de Maschine resulta súper cómodo y versátil con sus perillas dedicadas, y tener el control estilo Push permite manejar absolutamente todo el set sin tocar el mouse.
+
+- 📺 **YouTube Playlist:** [Maicol Session: Ableton Push + Maschine MK3](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
+- 📸 **Instagram:** [@santiagojorda](http://instagram.com/santiagojorda)
 
 ---
 
@@ -172,6 +182,9 @@ python tools/registros.py [minutos] [filtro]
 
 ---
 
-## 📄 Créditos
+## 👤 Creador y Créditos
 
-Basado en el script de control de *CustomMaschineMK3* (chiaki).
+- **Desarrollo y concepto:** Santiago Jorda (Maicol)  
+  - 📺 [Maicol Session en YouTube](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)  
+  - 📸 Instagram: [@santiagojorda](http://instagram.com/santiagojorda)
+- **Base del script:** *CustomMaschineMK3* (chiaki).
