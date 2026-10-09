@@ -312,6 +312,7 @@ class CustomMaschineMK3(ControlSurface):
     _screen_bridge_timer = None
     _screen_bridge_last_tick = 0.0
     _last_screen_bridge_payload = None
+    _last_screen_bridge_dict = None
     _last_screen_bridge_time = 0.0
     _screen_bridge_timer_ok = False
     _screen_bridge_timer_repeats = False
@@ -961,8 +962,9 @@ class CustomMaschineMK3(ControlSurface):
         session_volume.block_start = self._session_block(ring)
         session_volume.refresh()
         tracks_to_use = getattr(ring, "tracks_to_use", None)
-        tracks = list(tracks_to_use()) if callable(tracks_to_use) else list(self.song.visible_tracks)
-        scenes = list(self.song.scenes)
+        tracks = list(tracks_to_use()) if callable(tracks_to_use) else self.song.visible_tracks
+        scenes = self.song.scenes
+        scenes_len = len(scenes)
         track_offset, scene_offset = ring.track_offset, ring.scene_offset
         # The screens show a block of SESSION_GRID_TRACKS tracks: moving the ring inside it only moves the
         # highlighted columns (the ones on the pads); leaving it moves the block SESSION_GRID_STEP tracks
@@ -976,7 +978,7 @@ class CustomMaschineMK3(ControlSurface):
             "ring_tracks": ring.num_tracks,
             # What the knobs control in the session view: "volume" (left arrow) or "fx" (right arrow)
             "knob_page": self.component_map["Session_Volume"].page,
-            "scenes": [scenes[index].name if index < len(scenes) else "" for index in
+            "scenes": [scenes[index].name if index < scenes_len else "" for index in
                        range(scene_offset, scene_offset + SESSION_GRID_SCENES)],
             "tracks": columns,
         }
@@ -994,17 +996,20 @@ class CustomMaschineMK3(ControlSurface):
         # The selected or locked track (the one the pads play), drawn in white on the screens
         target = self.component_map["Target_Track"].target_track
         columns = []
+        num_tracks = len(tracks)
         for track_index in range(track_start, track_start + track_count):
-            if track_index >= len(tracks):
+            if track_index >= num_tracks:
                 columns.append(None)
                 continue
             track = tracks[track_index]
             slots = []
+            clip_slots = track.clip_slots
+            num_slots = len(clip_slots)
             for scene_index in range(scene_start, scene_start + scene_count):
-                if scene_index >= len(track.clip_slots):
+                if scene_index >= num_slots:
                     slots.append(None)
                     continue
-                slot = track.clip_slots[scene_index]
+                slot = clip_slots[scene_index]
                 if slot.has_clip:
                     clip = slot.clip
                     info = {"name": clip.name, "color": clip.color, "playing": clip.is_playing,
@@ -1115,6 +1120,7 @@ class CustomMaschineMK3(ControlSurface):
     def _init_screen_bridge(self):
         self._screen_bridge_lines = {}
         self._last_screen_bridge_payload = None
+        self._last_screen_bridge_dict = None
         self._last_screen_bridge_time = 0.0
         if Config.SCREEN_BRIDGE_PORT is None:
             return
@@ -1211,10 +1217,11 @@ class CustomMaschineMK3(ControlSurface):
             # Never let the bridge break the controller: log once and keep the text-only display
             self._log_error_once("screen bridge state", traceback.format_exc())
             return
-        payload = json.dumps(state, separators=(",", ":")).encode("utf-8")
         now = perf_counter()
-        if payload == self._last_screen_bridge_payload and now - self._last_screen_bridge_time < 0.5:
+        if self._last_screen_bridge_dict == state and now - self._last_screen_bridge_time < 0.5:
             return
+        payload = json.dumps(state, separators=(",", ":")).encode("utf-8")
+        self._last_screen_bridge_dict = state
         self._last_screen_bridge_payload = payload
         self._last_screen_bridge_time = now
         self._send_to_screen_bridge(payload)
