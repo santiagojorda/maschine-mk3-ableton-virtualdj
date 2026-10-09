@@ -116,12 +116,12 @@ LEFT_BUTTON = (0xB1, 110)
 RIGHT_BUTTON = (0xB1, 111)
 STANDBY_BUTTON = (0xB1, 34)
 SHIFT_BUTTON = (0xB1, 119)
-STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 37))
+STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 36), (0xB1, 37))
 # Only the controllers that are LEDs: sending a value to all 128 also hits MIDI's special messages
 # (CC 120-127 channel mode, RPN / NRPN, bank select...) and can leave the Maschine in an odd state
 STANDBY_LED_CCS = (34, 35, 36, 37, 38, 39, 40, 41, 42, 44, 45, 47, 48, 49, 52, 53, 55, 56, 57, 58, 59, 80, 81, 82, 83, 84, 87, 88, 100, 101, 102, 103, 104, 105, 106, 107, 110, 111)
 STANDBY_LED_NOTES = range(4)  # buttons 1-4 above the screens (channel 2)
-VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 37))
+VDJ_EXIT_BUTTONS = ((0xB1, 35), (0xB1, 36), (0xB1, 37))
 # Buttons that keep controlling Ableton even in VirtualDJ mode: PLAY, STOP, TAP (messages and their LEDs).
 # SHIFT (sysex from the MK3 / Plus) also gets through, so SHIFT + STOP and SHIFT + TAP (metronome) work too.
 ABLETON_ALWAYS_BUTTONS = ((0xB1, 57), (0xB1, 59), (0xB1, 55))
@@ -544,11 +544,9 @@ class CustomMaschineMK3(ControlSurface):
         if (is_cc and midi_bytes[:2] in (LEFT_BUTTON, RIGHT_BUTTON) and not self._vdj_mode
                 and self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE
                 and not self.elements.macro.is_pressed and not self.elements.plugin.is_pressed):
-            # In the mixer, left / right scroll by grids of SESSION_GRID_STEP tracks, like the session view (with
-            # MACRO held they still change the mixer page: volume, pan, sends)
-            if midi_bytes[2] > 0:
-                self._scroll_grid(1 if midi_bytes[:2] == RIGHT_BUTTON else -1)
-            return False
+            # In the mixer, left / right change the mixer page: volume <-> pan <-> sends (FXs)
+            # Letting the press through to MaschineMixerComponent.prev_parameter_button / next_parameter_button
+            return True
 
         if is_cc and midi_bytes[:2] == NEW_SCENE_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
@@ -567,8 +565,10 @@ class CustomMaschineMK3(ControlSurface):
                 self.component_map["Encoder_Mode_Control"].reset_selected_mode()
 
         # ARRANGER enters the session view; the other view buttons leave it (they select their own display mode)
-        if is_cc and midi_bytes[:2] == SESSION_VIEW_BUTTON and not self._vdj_mode:
+        if is_cc and midi_bytes[:2] == SESSION_VIEW_BUTTON:
             if midi_bytes[2] > 0:
+                if self._vdj_mode:
+                    self._set_vdj_mode(False)
                 self._show_session_view()
             return False
 
@@ -908,9 +908,6 @@ class CustomMaschineMK3(ControlSurface):
             return
         self.component_map["Session_Zones"].refresh()
         if self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE:
-            # The mixer shows the same 8 tracks as the session grid, and a selected track outside the pads' grid
-            # moves the grid (4 tracks at a time), as in the session view
-            self._move_session_selection(0, 0)
             self._mixer_follow_ring(ring)
         offsets = (ring.track_offset, ring.scene_offset)
         last, self._ring_offsets_seen = self._ring_offsets_seen, offsets
@@ -918,7 +915,7 @@ class CustomMaschineMK3(ControlSurface):
             return
         self._log(f"session ring moved: tracks {last[0]} -> {offsets[0]}, scenes {last[1]} -> {offsets[1]}")
         self._mixer_follow_ring(ring)
-        if self.component_map["Display_Modes"].selected_mode not in (BROWSER_DISPLAY_MODE, SESSION_DISPLAY_MODE):
+        if self.component_map["Display_Modes"].selected_mode not in (BROWSER_DISPLAY_MODE, SESSION_DISPLAY_MODE, MIXER_DISPLAY_MODE):
             return
         _, tracks, scenes = self._session_tracks_and_scenes()
         view = self.song.view
