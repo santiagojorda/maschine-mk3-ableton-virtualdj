@@ -3,7 +3,6 @@
 [![Ableton Live 12](https://img.shields.io/badge/Ableton%20Live-12%20Suite-00D2B4.svg)](https://www.ableton.com)
 [![Native Instruments](https://img.shields.io/badge/Hardware-Maschine%20MK3-black.svg)](https://www.native-instruments.com)
 [![Windows 11](https://img.shields.io/badge/OS-Windows%2011%20MIDI%20Services-0078D4.svg)](https://microsoft.com)
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 
 Convertí tu **Maschine MK3** en un potente controlador al estilo **Ableton Push** para **Live 12**:
 - 📺 **Grilla de clips en tiempo real** en las dos pantallas a color.
@@ -170,9 +169,6 @@ python tools/registros.py [minutos] [filtro]
 
 ---
 
-## 📄 Créditos y Licencia
+## 📄 Créditos
 
-Desarrollado y optimizado por **Santiago Jorda**.  
-Basado originalmente en el script de control de *CustomMaschineMK3* (© 2024–2025 chiaki).
-
-Distribuido bajo licencia libre **GNU General Public License v3.0**. Consulta el archivo [`LICENSE`](LICENSE) para más información.
+Basado en el script de control de *CustomMaschineMK3* (chiaki).
