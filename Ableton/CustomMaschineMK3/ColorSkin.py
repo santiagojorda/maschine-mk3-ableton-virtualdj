@@ -8,6 +8,7 @@
 #
 # ==================================================
 
+import colorsys
 from functools import partial
 from ableton.v3.control_surface.skin import Skin, BasicColors
 from ableton.v3.control_surface.elements import SimpleColor, RgbColor, create_rgb_color
@@ -174,34 +175,116 @@ LIVE_COLOR_MAP = {
     69: (WHITE, LEVEL_1)
 }
 
-def make_color_from_element(element):
+HUE_CENTERS = (
+    (0, RED),
+    (20, ORANGE),
+    (34, LIGHT_ORANGE),
+    (46, WARM_YELLOW),
+    (60, YELLOW),
+    (85, LIME),
+    (125, GREEN),
+    (155, MINT),
+    (180, CYAN),
+    (205, TURQUOISE),
+    (230, BLUE),
+    (265, PLUM),
+    (285, VIOLET),
+    (305, PURPLE),
+    (325, MAGENTA),
+    (345, FUCHSIA),
+    (360, RED),
+)
+
+def rgb_to_maschine_base_and_level(rgb_int):
+    if rgb_int is None:
+        return (WHITE, LEVEL_3)
+    r = (rgb_int >> 16) & 0xFF
+    g = (rgb_int >> 8) & 0xFF
+    b = rgb_int & 0xFF
+    max_c = max(r, g, b)
+    min_c = min(r, g, b)
+    if max_c < 20:
+        return (BLACK, LEVEL_1)
+    if max_c - min_c < 25 or (r + g + b) > 700:
+        return (WHITE, LEVEL_4 if max_c > 200 else LEVEL_2)
+    h, s, v = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)
+    if s < 0.16:
+        return (WHITE, LEVEL_4 if v > 0.8 else LEVEL_2)
+    hue = h * 360.0
+    best_c = RED
+    best_dist = 999
+    for center_h, cid in HUE_CENTERS:
+        diff = abs(hue - center_h)
+        d = min(diff, 360.0 - diff)
+        if d < best_dist:
+            best_dist = d
+            best_c = cid
+    level = LEVEL_3 if v > 0.6 else LEVEL_2
+    return (best_c, level)
+
+def get_element_base_and_level(element, default_level = None):
+    if not liveobj_valid(element):
+        return (BLACK, LEVEL_1)
+    if hasattr(element, "clip") and hasattr(element, "has_clip"):
+        if element.has_clip and liveobj_valid(element.clip):
+            element = element.clip
+    if hasattr(element, "color") and element.color is not None:
+        base, lvl = rgb_to_maschine_base_and_level(element.color)
+        if default_level is not None:
+            lvl = default_level
+        return (base, lvl)
+    if hasattr(element, "color_index") and element.color_index is not None:
+        if element.color_index in LIVE_COLOR_MAP:
+            base, lvl = LIVE_COLOR_MAP[element.color_index]
+            if default_level is not None:
+                lvl = default_level
+            return (base, lvl)
+    lvl = default_level if default_level is not None else LEVEL_3
+    return (WHITE, lvl)
+
+def make_color_from_element(element = None, level = None):
     if liveobj_valid(element):
-        if element.color_index != None:
-            return make_color(*LIVE_COLOR_MAP.get(element.color_index, (0, 0)))
-            #return SimpleColor(element.color_index)
-        else:
-            return make_color(WHITE, LEVEL_3)
-    else:
-        return BasicColors.OFF
+        base, lvl = get_element_base_and_level(element, default_level = level)
+        if base == BLACK:
+            return BasicColors.OFF
+        return make_color(base, lvl)
+    return BasicColors.OFF
+
+def make_clip_stopped_color(element = None):
+    if liveobj_valid(element):
+        return make_color_from_element(element, level = LEVEL_2)
+    return make_color(WHITE, LEVEL_2)
+
+def make_clip_playing_color(element = None):
+    if liveobj_valid(element):
+        return make_color_from_element(element, level = LEVEL_4)
+    return make_color(GREEN, LEVEL_4)
+
+def make_clip_playing_dimmed_color(element = None):
+    if liveobj_valid(element):
+        return make_color_from_element(element, level = LEVEL_1)
+    return make_color(GREEN, LEVEL_1)
 
 def make_keyboard_color(element, accent = False, group = False):
     if liveobj_valid(element):
-        if element.color_index != None:
-            base_color, brightness = LIVE_COLOR_MAP.get(element.color_index, (0, 0))
-            if accent:
-                return make_color(base_color, LEVEL_3 if brightness < LEVEL_4 else LEVEL_2)
-            elif group:
-                return make_color(base_color, LEVEL_2 if brightness < LEVEL_4 else LEVEL_4)
-            else:
-                return make_color(base_color, LEVEL_1 if brightness < LEVEL_4 else LEVEL_4)
+        base_color, brightness = get_element_base_and_level(element)
+        if base_color == BLACK:
+            return BasicColors.OFF
+        if accent:
+            return make_color(base_color, LEVEL_3 if brightness < LEVEL_4 else LEVEL_2)
+        elif group:
+            return make_color(base_color, LEVEL_2 if brightness < LEVEL_4 else LEVEL_4)
+        else:
+            return make_color(base_color, LEVEL_1 if brightness < LEVEL_4 else LEVEL_4)
     return BasicColors.OFF
 
 def make_velocity_color(element, level = LEVEL_1):
     if liveobj_valid(element):
-        if element.color_index != None:
-            base_color, brightness = LIVE_COLOR_MAP.get(element.color_index, (0, 0))
-            return make_color(base_color, level)
-    BasicColors.ON
+        base_color, _ = get_element_base_and_level(element)
+        if base_color == BLACK:
+            return BasicColors.OFF
+        return make_color(base_color, level)
+    return BasicColors.ON
 
 class MaschineLEDColors:
 
@@ -317,15 +400,17 @@ class MaschineLEDColors:
 
     class Session:
         Slot = BasicColors.OFF
-        SlotRecordButton = make_color(WHITE, LEVEL_1)
+        SlotRecordButton = make_color(RED, LEVEL_1)
         NoSlot = BasicColors.OFF
-        ClipStopped = make_color_from_element
-        ClipTriggeredPlay = make_color(GREEN, LEVEL_2)
-        ClipTriggeredRecord = make_color(RED, LEVEL_1)
-        ClipPlaying = make_color(GREEN, LEVEL_3)
-        ClipRecording = make_color(RED, LEVEL_3)
-        ClipPlayingDimmed = make_color(GREEN, LEVEL_2)
-        ClipRecordingDimmed = make_color(RED, LEVEL_2)
+        ClipStopped = make_clip_stopped_color
+        ClipTriggeredPlay = make_color(GREEN, LEVEL_4)
+        ClipTriggeredPlayDimmed = make_color(GREEN, LEVEL_1)
+        ClipTriggeredRecord = make_color(RED, LEVEL_3)
+        ClipTriggeredRecordDimmed = make_color(RED, LEVEL_1)
+        ClipPlaying = make_clip_playing_color
+        ClipRecording = make_color(RED, LEVEL_4)
+        ClipPlayingDimmed = make_clip_playing_dimmed_color
+        ClipRecordingDimmed = make_color(RED, LEVEL_1)
         Scene = make_color_from_element
         SceneTriggered = make_color(GREEN, LEVEL_3)
         NoScene = BasicColors.OFF

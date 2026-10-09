@@ -45,8 +45,11 @@ class CustomClipSlotComponent(ClipSlotComponent):
     def __init__(self, clipboard = None, blinker = None, *a, **k):
         super().__init__(*a, **k)
         self._blinker = blinker
-        self._on_blink_state_changed.subject = self._blinker
-        self._blink_state = self._blinker.blink_state
+        if self._blinker is not None:
+            self._on_blink_state_changed.subject = self._blinker
+            self._blink_state = self._blinker.blink_state
+        else:
+            self._blink_state = True
 
     def _update_launch_button_color(self):
         super()._update_launch_button_color()
@@ -57,11 +60,20 @@ class CustomClipSlotComponent(ClipSlotComponent):
         # Earlier version always returns LiveObjSkinEntry
         # Later version (maybe 12.1?) returns str or OptionalSkinEntry
         if not self._blink_state:
+            dimmable = (
+                "Session.ClipPlaying",
+                "Session.ClipRecording",
+                "Session.ClipTriggeredPlay",
+                "Session.ClipTriggeredRecord",
+            )
             if isinstance(skin_or_str, LiveObjSkinEntry):
-                if skin_or_str.name == "Session.ClipPlaying" or skin_or_str.name == "Session.ClipRecording":
-                    skin_or_str.name += "Dimmed"
+                if skin_or_str.name in dimmable:
+                    skin_or_str = LiveObjSkinEntry(skin_or_str.name + "Dimmed", skin_or_str.liveobj)
+            elif isinstance(skin_or_str, OptionalSkinEntry):
+                if skin_or_str.name in dimmable:
+                    skin_or_str = OptionalSkinEntry(skin_or_str.name + "Dimmed", skin_or_str.fallback)
             elif isinstance(skin_or_str, str):
-                if skin_or_str == "Session.ClipPlaying" or skin_or_str == "Session.ClipRecording":
+                if skin_or_str in dimmable:
                     skin_or_str += "Dimmed"
         
         # logger.info(f"Clip color = {skin_or_str}")
@@ -70,6 +82,7 @@ class CustomClipSlotComponent(ClipSlotComponent):
 
     @listens("blink_state")
     def _on_blink_state_changed(self):
-        self._blink_state = self._blinker.blink_state
+        if self._blinker is not None:
+            self._blink_state = self._blinker.blink_state
         if self.launch_button.control_element != None:
             self._update_launch_button_color()
