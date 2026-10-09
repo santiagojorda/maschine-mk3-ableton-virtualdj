@@ -3,6 +3,8 @@
 [![Ableton Live 12](https://img.shields.io/badge/Ableton%20Live-12%20Suite-00D2B4.svg)](https://www.ableton.com)
 [![Native Instruments](https://img.shields.io/badge/Hardware-Maschine%20MK3-black.svg)](https://www.native-instruments.com)
 [![Windows 11](https://img.shields.io/badge/OS-Windows%2011%20MIDI%20Services-0078D4.svg)](https://microsoft.com)
+[![Driver Pantallas](https://img.shields.io/badge/Driver%20Pantallas-maschine--mk3--driver-0078D4.svg)](https://github.com/santiagojorda/maschine-mk3-driver)
+[![Release Driver](https://img.shields.io/badge/Release%20Driver-v1.0.0%20(Windows%20x64)-brightgreen.svg)](https://github.com/santiagojorda/maschine-mk3-driver/releases/latest)
 [![Manual Web](https://img.shields.io/badge/Manual-All%20Operations%20(Web)-brightgreen.svg)](https://santiagojorda.github.io/maschine-mk3-as-ableton-push/)
 [![YouTube Playlist](https://img.shields.io/badge/YouTube-Maicol%20Session-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=ImqHw-zkiZQ&list=PLxk2dEOPjuEYO00P264yMStEUhukVkO1y)
 [![Instagram](https://img.shields.io/badge/Instagram-@santiagojorda-E4405F?logo=instagram&logoColor=white)](http://instagram.com/santiagojorda)
@@ -180,12 +182,14 @@ En la web vas a encontrar el detalle de:
    - **Entrada:** `Maschine MK3 Ctrl MIDI`
    - **Salida:** `Maschine MK3 Ctrl MIDI`
 
-### 3️⃣ Pantallas de la Maschine
+### 3️⃣ Pantallas de la Maschine (Driver)
+El servidor de pantallas y el ejecutable oficial `MaschineMK3AsPush.exe` se mantienen en el repositorio complementario **[santiagojorda/maschine-mk3-driver](https://github.com/santiagojorda/maschine-mk3-driver)**:
+
 1. **Driver USB (solo la primera vez):**
    - Abrí el programa gratuito **[Zadig](https://zadig.akeo.ie/)** (*Options → List All Devices*).
    - Seleccioná **`Maschine MK3 BD (Interface 5)`**, elegí **WinUSB** y hacé clic en **Install Driver** *(no toques las otras interfaces)*. Desconectá y volvé a conectar el cable USB.
 2. **Encender las pantallas:**
-   - Ejecutá `Pantallas\iniciar_pantallas.bat` (o `MaschineMK3AsPush.exe` si armaste el ejecutable).
+   - Descargá el ejecutable listo para usar desde **[Releases de maschine-mk3-driver](https://github.com/santiagojorda/maschine-mk3-driver/releases/latest)** o ejecutá `Pantallas\iniciar_pantallas.bat`.
    - ¡Listo! Las pantallas se encenderán mostrando la sesión de Live.
 
 ---
