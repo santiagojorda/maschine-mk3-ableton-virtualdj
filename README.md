@@ -177,10 +177,10 @@ En la web vas a encontrar el detalle de:
 3. Abrí **Controller Editor** y en la Maschine seleccioná la plantilla **CUSTOM MASCHINE**.
 
 ### 2️⃣ Script en Ableton Live
-1. Copiá la carpeta `Ableton/CustomMaschineMK3` dentro de:  
+1. Copiá la carpeta `Ableton/CustomMaschineMK3` como `Maschine as Push` (o `Maschine_as_Push`) dentro de:  
    `C:\ProgramData\Ableton\Live 12 Suite\Resources\MIDI Remote Scripts\`
 2. En Ableton Live (*Opciones → Preferencias → Link, Tempo & MIDI*):
-   - **Superficie de control:** `CustomMaschineMK3`
+   - **Superficie de control:** `Maschine as Push` *(o `Maschine_as_Push`)*
    - **Entrada:** `Maschine MK3 Ctrl MIDI`
    - **Salida:** `Maschine MK3 Ctrl MIDI`
 
