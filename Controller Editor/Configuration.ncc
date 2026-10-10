@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='utf-8'?>
 <ni-controller-midi-map version="3">
   <controller type="Komplete Kontrol S - 1">
     <wrapmode>0</wrapmode>
@@ -13220,7 +13220,7 @@
           <min>0</min>
           <max>16383</max>
           <ledPattern>0</ledPattern>
-          <behavior>none</behavior>
+          <behavior onIfDown="on">none</behavior>
         </knob>
         <button version="1" id="TouchstripCap">
           <pitchbend />
@@ -13234,11 +13234,11 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
+            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="0" />
           </display>
           <pitchbend />
           <channel>0</channel>
-          <min>8192</min>
+          <min>0</min>
           <max>16383</max>
           <default>8192</default>
           <last>8192</last>
@@ -14746,7 +14746,7 @@
           <min>0</min>
           <max>16383</max>
           <ledPattern>0</ledPattern>
-          <behavior>none</behavior>
+          <behavior onIfDown="on">none</behavior>
         </knob>
         <button version="1" id="TouchstripCap">
           <pitchbend />
@@ -14760,11 +14760,11 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
+            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="0" />
           </display>
           <pitchbend />
           <channel>0</channel>
-          <min>8192</min>
+          <min>0</min>
           <max>16383</max>
           <default>8192</default>
           <last>3746</last>
@@ -16212,7 +16212,7 @@
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
           <lastExt>0</lastExt>
@@ -16220,7 +16220,7 @@
           <steps>20</steps>
           <bipolar>off</bipolar>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <ledPattern>0</ledPattern>
           <behavior onIfDown="on">none</behavior>
         </knob>
@@ -16236,12 +16236,12 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
+            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
         </led>
@@ -31486,7 +31486,7 @@
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
           <lastExt>0</lastExt>
@@ -31494,7 +31494,7 @@
           <steps>20</steps>
           <bipolar>off</bipolar>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <ledPattern>0</ledPattern>
           <behavior onIfDown="on">none</behavior>
         </knob>
@@ -31510,12 +31510,12 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
+            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
         </led>
@@ -36325,7 +36325,7 @@
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
           <lastExt>0</lastExt>
@@ -36333,7 +36333,7 @@
           <steps>20</steps>
           <bipolar>off</bipolar>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <ledPattern>0</ledPattern>
           <behavior onIfDown="on">none</behavior>
         </knob>
@@ -36349,12 +36349,12 @@
         </button>
         <led version="1" id="TouchstripIDX">
           <display type="0">
-            <unit color-type="1" color-mode="0" color-on-index="0" color-off-index="0" />
+            <unit color-type="1" color-mode="0" color-on-index="1" color-off-index="0" />
           </display>
           <controller>1</controller>
           <channel>0</channel>
           <min>0</min>
-          <max>127</max>
+          <max>16383</max>
           <default>0</default>
           <last>0</last>
         </led>
@@ -106974,7 +106974,7 @@
             <controller>2</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -106982,9 +106982,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck A - Shift">
@@ -107730,7 +107730,7 @@
             <controller>32</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -107738,9 +107738,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck C - Basic">
@@ -108486,7 +108486,7 @@
             <controller>2</controller>
             <channel>2</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -108494,9 +108494,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck C - Shift">
@@ -109242,7 +109242,7 @@
             <controller>32</controller>
             <channel>2</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -109250,9 +109250,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
       </pageSet1Content>
@@ -110195,7 +110195,7 @@
             <controller>2</controller>
             <channel>5</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -110203,9 +110203,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck A - Shift">
@@ -110951,7 +110951,7 @@
             <controller>32</controller>
             <channel>5</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -110959,9 +110959,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck C - Basic">
@@ -111707,7 +111707,7 @@
             <controller>2</controller>
             <channel>7</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -111715,9 +111715,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
         <pageSet1 name="Deck C - Shift">
@@ -112463,7 +112463,7 @@
             <controller>32</controller>
             <channel>7</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -112471,9 +112471,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </pageSet1>
       </pageSet1Content>
@@ -141376,7 +141376,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>34</controller>
             <channel>0</channel>
             <off>0</off>
@@ -141576,7 +141576,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>35</controller>
             <channel>0</channel>
             <off>0</off>
@@ -141818,7 +141818,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>78</controller>
             <channel>0</channel>
             <off>0</off>
@@ -142018,7 +142018,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>79</controller>
             <channel>0</channel>
             <off>0</off>
@@ -142272,7 +142272,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>34</controller>
             <channel>1</channel>
             <off>0</off>
@@ -142472,7 +142472,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>35</controller>
             <channel>1</channel>
             <off>0</off>
@@ -142714,7 +142714,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>78</controller>
             <channel>1</channel>
             <off>0</off>
@@ -142914,7 +142914,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>79</controller>
             <channel>1</channel>
             <off>0</off>
@@ -143168,7 +143168,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>34</controller>
             <channel>2</channel>
             <off>0</off>
@@ -143368,7 +143368,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>35</controller>
             <channel>2</channel>
             <off>0</off>
@@ -143610,7 +143610,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>78</controller>
             <channel>2</channel>
             <off>0</off>
@@ -143810,7 +143810,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>79</controller>
             <channel>2</channel>
             <off>0</off>
@@ -144064,7 +144064,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>34</controller>
             <channel>3</channel>
             <off>0</off>
@@ -144264,7 +144264,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>35</controller>
             <channel>3</channel>
             <off>0</off>
@@ -144506,7 +144506,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Left Beat >">
+          <button version="1" id="Left Beat &gt;">
             <controller>78</controller>
             <channel>3</channel>
             <off>0</off>
@@ -144706,7 +144706,7 @@
             <behavior>gate</behavior>
             <reaction>ondown</reaction>
           </button>
-          <button version="1" id="Right Beat >">
+          <button version="1" id="Right Beat &gt;">
             <controller>79</controller>
             <channel>3</channel>
             <off>0</off>
@@ -145745,7 +145745,7 @@
             <controller>29</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -145753,9 +145753,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
         <page name="Shift">
@@ -146624,7 +146624,7 @@
             <controller>73</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -146632,9 +146632,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
       </pages>
@@ -147515,7 +147515,7 @@
             <controller>29</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -147523,9 +147523,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
         <page name="Shift">
@@ -148394,7 +148394,7 @@
             <controller>73</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -148402,9 +148402,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
       </pages>
@@ -149285,7 +149285,7 @@
             <controller>29</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -149293,9 +149293,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
         <page name="Shift">
@@ -150164,7 +150164,7 @@
             <controller>73</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -150172,9 +150172,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
       </pages>
@@ -151055,7 +151055,7 @@
             <controller>29</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -151063,9 +151063,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
         <page name="Shift">
@@ -151934,7 +151934,7 @@
             <controller>73</controller>
             <channel>0</channel>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <default>0</default>
             <last>0</last>
             <lastExt>0</lastExt>
@@ -151942,9 +151942,9 @@
             <steps>20</steps>
             <bipolar>off</bipolar>
             <min>0</min>
-            <max>127</max>
+            <max>16383</max>
             <ledPattern>0</ledPattern>
-            <behavior>none</behavior>
+            <behavior onIfDown="on">none</behavior>
           </knob>
         </page>
       </pages>
