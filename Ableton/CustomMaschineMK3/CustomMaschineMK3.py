@@ -121,8 +121,8 @@ SHIFT_BUTTON = (0xB1, 119)
 MACRO_BUTTON = (0xB1, 43)
 SCREENS_SUPERVISOR_ADDRESS = ("127.0.0.1", 9020)
 # TEMPO mode of the encoder: turning moves the tempo in whole BPM (90.09 -> 91.00 up, 89.00 down; with SHIFT it stays
-# fine), and SHIFT + TEMPO sets it to the tempo of the VirtualDJ deck the driver picks as reference, staying in the
-# tempo view. The driver (vdj_master.py) sends it here by UDP twice a second
+# fine), and SHIFT + TEMPO, in any view, sets it to the tempo of the VirtualDJ deck the driver picks as reference
+# without changing the view. The driver (vdj_master.py) sends it here by UDP twice a second
 ENCODER_TEMPO_MODE = "tempo"
 ENCODER_TURN_BUTTON = (0xB1, 7)
 TEMPO_BUTTON = (0xB1, 47)
@@ -465,10 +465,9 @@ class CustomMaschineMK3(ControlSurface):
                 return False
             if midi_bytes[:2] == TEMPO_BUTTON:
                 if midi_bytes[2] > 0 and self._shift_down:
-                    # SHIFT + TEMPO: sync with VirtualDJ and stay in (or go to) the tempo view; the press never
-                    # reaches the encoder mode component, which would toggle the view off
+                    # SHIFT + TEMPO: sync with VirtualDJ, in any view, leaving the view as it is; the press never
+                    # reaches the encoder mode component, which would toggle the tempo view
                     self._swallow_tempo_release = True
-                    self._show_tempo_view()
                     self._sync_tempo_with_virtualdj()
                     return False
                 if midi_bytes[2] == 0 and self._swallow_tempo_release:
@@ -1218,14 +1217,6 @@ class CustomMaschineMK3(ControlSurface):
             return self.component_map["Encoder_Modes"].selected_mode == ENCODER_TEMPO_MODE
         except (KeyError, AttributeError):
             return False
-
-    def _show_tempo_view(self):
-        # TEMPO mode on, without toggling it off if it already is
-        if self._encoder_tempo_mode():
-            return
-        with self.component_guard():
-            control = self.component_map["Encoder_Mode_Control"]
-            control._handle_mode_button_pressed(control.tempo_modes)
 
     def _turn_tempo(self, value):
         # Coarse turn: from the nearest whole BPM, so it always lands on round numbers. The step is the encoder's

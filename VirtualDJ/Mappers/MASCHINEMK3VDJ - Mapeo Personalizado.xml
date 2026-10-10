@@ -95,10 +95,11 @@
 	     En Ableton, LOCK los suelta (el script de Ableton hace lo mismo del lado de Ableton).
 	     VOLUME / SWING: el encoder grande controla el volumen master / de auriculares ($encmode 1 / 2) y la pantalla izquierda lo muestra.
 	     TEMPO ($encmode 3): el encoder controla el TEMPO DE ABLETON (lo hace el script de Ableton; VirtualDJ solo lo ignora)
-	     y la pantalla derecha muestra la vista de tempo. SHIFT + TEMPO entra al modo sin salir si ya esta. -->
+	     y la pantalla derecha muestra la vista de tempo. SHIFT + TEMPO no cambia de vista: solo iguala el tempo de Ableton con
+	     el de VirtualDJ (lo hace el script de Ableton). -->
 	<map value="LOCK" action="var '$select' 1 ? (set '$help' 39) : (var '$vdj' ? toggle '$padlock' : (set '$padlock' 0 &amp; set '$pads' 0))" />
 	<map value="VOLUME" action="var '$select' 1 ? (set '$help' 37) : (var '$encmode' 1 ? set '$encmode' 0 : set '$encmode' 1)" />
-	<map value="TEMPO" action="var '$select' 1 ? nothing : (var '$shift' ? set '$encmode' 3 : (var '$encmode' 3 ? set '$encmode' 0 : set '$encmode' 3))" />
+	<map value="TEMPO" action="var '$select' 1 ? nothing : (var '$shift' ? nothing : (var '$encmode' 3 ? set '$encmode' 0 : set '$encmode' 3))" />
 	<map value="SWING" action="var '$select' 1 ? (set '$help' 38) : (var '$encmode' 2 ? set '$encmode' 0 : set '$encmode' 2)" />
 	<map value="LEDON_LOCK" action="var '$vdj' ? (var '$padlock') : false" />
 	<map value="LEDOFF_LOCK" action="var '$vdj' ? (var '$padlock' ? false : true) : false" />
