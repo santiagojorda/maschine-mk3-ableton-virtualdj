@@ -126,16 +126,18 @@
 	<map value="RIGHT" action="var '$select' 1 ? (set '$help' 31) : (var '$vdj' ? (deck 2 select) : nothing)" />
 	<!-- STOP pausa el tema donde esta (no vuelve al cue) -->
 
+	<!-- LOCK (pads fijados a VirtualDJ, $pads): el touch strip (crossfader) y los botones A-H tambien quedan en VirtualDJ al
+	     volver a Ableton; por eso estos mapeos miran $pads (modo DJ o LOCK) y no $vdj (solo modo DJ) -->
 	<!-- Touch strip = crossfader: toma la posicion absoluta donde tocas (sin soft takeover) y queda ahi al soltar -->
 	<!-- Fuera del modo DJ, con Ableton en PITCH: VirtualDJ hace de espejo y prende las luces del strip segun el dedo
 	     ($ps, 0 = suelto / centro). El script de Ableton no puede: si recibe el pitch bend, Ableton no se lo pasa a la pista.
 	     $abstrip sigue el modo del touch strip de Ableton: 1 PITCH, 2 MOD, 3 PERFORM (las luces se prenden salvo en MOD / PERFORM).
 	     La posicion ($ps) se calcula fuera de las condiciones (al final, despues del crossfader de modo DJ) -->
-	<map value="TOUCHSTRIP_RELEASE" action="var '$vdj' ? nothing : set '$ps' 0" />
+	<map value="TOUCHSTRIP_RELEASE" action="var '$pads' ? nothing : set '$ps' 0" />
 	<map value="PITCH" action="var '$vdj' ? nothing : set '$abstrip' 1" />
 	<map value="MOD" action="var '$vdj' ? nothing : set '$abstrip' 2" />
 	<map value="PERFORM" action="var '$vdj' ? nothing : set '$abstrip' 3" />
-	<map value="TOUCHSTRIP" action="(var '$vdj' ? (crossfader &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0) : nothing) &amp; (param_smaller 6.25% ? set '$ps' 1 : param_smaller 12.5% ? set '$ps' 2 : param_smaller 18.75% ? set '$ps' 3 : param_smaller 25% ? set '$ps' 4 : param_smaller 31.25% ? set '$ps' 5 : param_smaller 37.5% ? set '$ps' 6 : param_smaller 43.75% ? set '$ps' 7 : param_smaller 50% ? set '$ps' 8 : param_smaller 56.25% ? set '$ps' 9 : param_smaller 62.5% ? set '$ps' 10 : param_smaller 68.75% ? set '$ps' 11 : param_smaller 75% ? set '$ps' 12 : param_smaller 81.25% ? set '$ps' 13 : param_smaller 87.5% ? set '$ps' 14 : param_smaller 93.75% ? set '$ps' 15 : set '$ps' 16)" />
+	<map value="TOUCHSTRIP" action="(var '$pads' ? (crossfader &amp; set '$knob' 9 &amp; repeat_stop 'xfshow' &amp; repeat_start 'xfshow' 1500ms 1 &amp; set '$knob' 0) : nothing) &amp; (param_smaller 6.25% ? set '$ps' 1 : param_smaller 12.5% ? set '$ps' 2 : param_smaller 18.75% ? set '$ps' 3 : param_smaller 25% ? set '$ps' 4 : param_smaller 31.25% ? set '$ps' 5 : param_smaller 37.5% ? set '$ps' 6 : param_smaller 43.75% ? set '$ps' 7 : param_smaller 50% ? set '$ps' 8 : param_smaller 56.25% ? set '$ps' 9 : param_smaller 62.5% ? set '$ps' 10 : param_smaller 68.75% ? set '$ps' 11 : param_smaller 75% ? set '$ps' 12 : param_smaller 81.25% ? set '$ps' 13 : param_smaller 87.5% ? set '$ps' 14 : param_smaller 93.75% ? set '$ps' 15 : set '$ps' 16)" />
 
 	<!-- LEDs -->
 
@@ -239,49 +241,49 @@
 
 	<!-- Grupos A-H (CC 100-107): A C E G = deck 1 (azul), B D F H = deck 2 (naranja).
 	     A/B reverb, C/D flanger, E/F echo, G/H preescucha (pfl). Apagados; con color solo cuando estan activos -->
-	<map value="GROUP_A" action="var '$select' 1 ? (set '$help' 25) : (var '$vdj' ? (deck 1 effect_active 'Reverb') : nothing)" />
-	<map value="LEDON_GROUP_A" action="var '$vdj' ? (deck 1 effect_active 'Reverb') : false" />
-	<map value="LEDOFF_GROUP_A" action="var '$vdj' ? (deck 1 effect_active 'Reverb' ? false : true) : false" />
-	<map value="GROUP_B" action="var '$select' 1 ? (set '$help' 25) : (var '$vdj' ? (deck 2 effect_active 'Reverb') : nothing)" />
-	<map value="LEDON_GROUP_B" action="var '$vdj' ? (deck 2 effect_active 'Reverb') : false" />
-	<map value="LEDOFF_GROUP_B" action="var '$vdj' ? (deck 2 effect_active 'Reverb' ? false : true) : false" />
-	<map value="GROUP_C" action="var '$select' 1 ? (set '$help' 26) : (var '$vdj' ? (deck 1 effect_active 'Flanger') : nothing)" />
-	<map value="LEDON_GROUP_C" action="var '$vdj' ? (deck 1 effect_active 'Flanger') : false" />
-	<map value="LEDOFF_GROUP_C" action="var '$vdj' ? (deck 1 effect_active 'Flanger' ? false : true) : false" />
-	<map value="GROUP_D" action="var '$select' 1 ? (set '$help' 26) : (var '$vdj' ? (deck 2 effect_active 'Flanger') : nothing)" />
-	<map value="LEDON_GROUP_D" action="var '$vdj' ? (deck 2 effect_active 'Flanger') : false" />
-	<map value="LEDOFF_GROUP_D" action="var '$vdj' ? (deck 2 effect_active 'Flanger' ? false : true) : false" />
-	<map value="GROUP_E" action="var '$select' 1 ? (set '$help' 27) : (var '$vdj' ? (deck 1 effect_active 'Echo') : nothing)" />
-	<map value="LEDON_GROUP_E" action="var '$vdj' ? (deck 1 effect_active 'Echo') : false" />
-	<map value="LEDOFF_GROUP_E" action="var '$vdj' ? (deck 1 effect_active 'Echo' ? false : true) : false" />
-	<map value="GROUP_F" action="var '$select' 1 ? (set '$help' 27) : (var '$vdj' ? (deck 2 effect_active 'Echo') : nothing)" />
-	<map value="LEDON_GROUP_F" action="var '$vdj' ? (deck 2 effect_active 'Echo') : false" />
-	<map value="LEDOFF_GROUP_F" action="var '$vdj' ? (deck 2 effect_active 'Echo' ? false : true) : false" />
-	<map value="GROUP_G" action="var '$select' 1 ? (set '$help' 28) : (var '$vdj' ? (deck 1 pfl) : nothing)" />
-	<map value="LEDON_GROUP_G" action="var '$vdj' ? (deck 1 pfl) : false" />
-	<map value="LEDOFF_GROUP_G" action="var '$vdj' ? (deck 1 pfl ? false : true) : false" />
-	<map value="GROUP_H" action="var '$select' 1 ? (set '$help' 28) : (var '$vdj' ? (deck 2 pfl) : nothing)" />
-	<map value="LEDON_GROUP_H" action="var '$vdj' ? (deck 2 pfl) : false" />
-	<map value="LEDOFF_GROUP_H" action="var '$vdj' ? (deck 2 pfl ? false : true) : false" />
+	<map value="GROUP_A" action="var '$select' 1 ? (set '$help' 25) : (var '$pads' ? (deck 1 effect_active 'Reverb') : nothing)" />
+	<map value="LEDON_GROUP_A" action="var '$pads' ? (deck 1 effect_active 'Reverb') : false" />
+	<map value="LEDOFF_GROUP_A" action="var '$pads' ? (deck 1 effect_active 'Reverb' ? false : true) : false" />
+	<map value="GROUP_B" action="var '$select' 1 ? (set '$help' 25) : (var '$pads' ? (deck 2 effect_active 'Reverb') : nothing)" />
+	<map value="LEDON_GROUP_B" action="var '$pads' ? (deck 2 effect_active 'Reverb') : false" />
+	<map value="LEDOFF_GROUP_B" action="var '$pads' ? (deck 2 effect_active 'Reverb' ? false : true) : false" />
+	<map value="GROUP_C" action="var '$select' 1 ? (set '$help' 26) : (var '$pads' ? (deck 1 effect_active 'Flanger') : nothing)" />
+	<map value="LEDON_GROUP_C" action="var '$pads' ? (deck 1 effect_active 'Flanger') : false" />
+	<map value="LEDOFF_GROUP_C" action="var '$pads' ? (deck 1 effect_active 'Flanger' ? false : true) : false" />
+	<map value="GROUP_D" action="var '$select' 1 ? (set '$help' 26) : (var '$pads' ? (deck 2 effect_active 'Flanger') : nothing)" />
+	<map value="LEDON_GROUP_D" action="var '$pads' ? (deck 2 effect_active 'Flanger') : false" />
+	<map value="LEDOFF_GROUP_D" action="var '$pads' ? (deck 2 effect_active 'Flanger' ? false : true) : false" />
+	<map value="GROUP_E" action="var '$select' 1 ? (set '$help' 27) : (var '$pads' ? (deck 1 effect_active 'Echo') : nothing)" />
+	<map value="LEDON_GROUP_E" action="var '$pads' ? (deck 1 effect_active 'Echo') : false" />
+	<map value="LEDOFF_GROUP_E" action="var '$pads' ? (deck 1 effect_active 'Echo' ? false : true) : false" />
+	<map value="GROUP_F" action="var '$select' 1 ? (set '$help' 27) : (var '$pads' ? (deck 2 effect_active 'Echo') : nothing)" />
+	<map value="LEDON_GROUP_F" action="var '$pads' ? (deck 2 effect_active 'Echo') : false" />
+	<map value="LEDOFF_GROUP_F" action="var '$pads' ? (deck 2 effect_active 'Echo' ? false : true) : false" />
+	<map value="GROUP_G" action="var '$select' 1 ? (set '$help' 28) : (var '$pads' ? (deck 1 pfl) : nothing)" />
+	<map value="LEDON_GROUP_G" action="var '$pads' ? (deck 1 pfl) : false" />
+	<map value="LEDOFF_GROUP_G" action="var '$pads' ? (deck 1 pfl ? false : true) : false" />
+	<map value="GROUP_H" action="var '$select' 1 ? (set '$help' 28) : (var '$pads' ? (deck 2 pfl) : nothing)" />
+	<map value="LEDON_GROUP_H" action="var '$pads' ? (deck 2 pfl) : false" />
+	<map value="LEDOFF_GROUP_H" action="var '$pads' ? (deck 2 pfl ? false : true) : false" />
 
 	<!-- Luces del touch strip: en modo DJ consulta directo la posicion real del crossfader (se restaura al instante al entrar); en Ableton sigue $ps -->
-	<map value="STRIP_LED_CENTER" action="var '$vdj' ? false : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_smaller '$ps' 0.5 ? true : false)))" />
-	<map value="XF_LED_1" action="var '$vdj' ? (param_smaller 6.25% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 0.5 ? (var_smaller '$ps' 1.5 ? true : false) : false)))" />
-	<map value="XF_LED_2" action="var '$vdj' ? (param_bigger 6.25% crossfader ? (param_smaller 12.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 1.5 ? (var_smaller '$ps' 2.5 ? true : false) : false)))" />
-	<map value="XF_LED_3" action="var '$vdj' ? (param_bigger 12.5% crossfader ? (param_smaller 18.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 2.5 ? (var_smaller '$ps' 3.5 ? true : false) : false)))" />
-	<map value="XF_LED_4" action="var '$vdj' ? (param_bigger 18.75% crossfader ? (param_smaller 25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 3.5 ? (var_smaller '$ps' 4.5 ? true : false) : false)))" />
-	<map value="XF_LED_5" action="var '$vdj' ? (param_bigger 25% crossfader ? (param_smaller 31.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 4.5 ? (var_smaller '$ps' 5.5 ? true : false) : false)))" />
-	<map value="XF_LED_6" action="var '$vdj' ? (param_bigger 31.25% crossfader ? (param_smaller 37.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 5.5 ? (var_smaller '$ps' 6.5 ? true : false) : false)))" />
-	<map value="XF_LED_7" action="var '$vdj' ? (param_bigger 37.5% crossfader ? (param_smaller 43.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 6.5 ? (var_smaller '$ps' 7.5 ? true : false) : false)))" />
-	<map value="XF_LED_8" action="var '$vdj' ? (param_bigger 43.75% crossfader ? (param_smaller 50.01% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 7.5 ? (var_smaller '$ps' 8.5 ? true : false) : false)))" />
-	<map value="XF_LED_9" action="var '$vdj' ? (param_bigger 50% crossfader ? (param_smaller 56.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 8.5 ? (var_smaller '$ps' 9.5 ? true : false) : false)))" />
-	<map value="XF_LED_10" action="var '$vdj' ? (param_bigger 56.25% crossfader ? (param_smaller 62.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 9.5 ? (var_smaller '$ps' 10.5 ? true : false) : false)))" />
-	<map value="XF_LED_11" action="var '$vdj' ? (param_bigger 62.5% crossfader ? (param_smaller 68.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 10.5 ? (var_smaller '$ps' 11.5 ? true : false) : false)))" />
-	<map value="XF_LED_12" action="var '$vdj' ? (param_bigger 68.75% crossfader ? (param_smaller 75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 11.5 ? (var_smaller '$ps' 12.5 ? true : false) : false)))" />
-	<map value="XF_LED_13" action="var '$vdj' ? (param_bigger 75% crossfader ? (param_smaller 81.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 12.5 ? (var_smaller '$ps' 13.5 ? true : false) : false)))" />
-	<map value="XF_LED_14" action="var '$vdj' ? (param_bigger 81.25% crossfader ? (param_smaller 87.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 13.5 ? (var_smaller '$ps' 14.5 ? true : false) : false)))" />
-	<map value="XF_LED_15" action="var '$vdj' ? (param_bigger 87.5% crossfader ? (param_smaller 93.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 14.5 ? (var_smaller '$ps' 15.5 ? true : false) : false)))" />
-	<map value="XF_LED_16" action="var '$vdj' ? (param_bigger 93.75% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 15.5 ? (var_smaller '$ps' 16.5 ? true : false) : false)))" />
+	<map value="STRIP_LED_CENTER" action="var '$pads' ? false : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_smaller '$ps' 0.5 ? true : false)))" />
+	<map value="XF_LED_1" action="var '$pads' ? (param_smaller 6.25% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 0.5 ? (var_smaller '$ps' 1.5 ? true : false) : false)))" />
+	<map value="XF_LED_2" action="var '$pads' ? (param_bigger 6.25% crossfader ? (param_smaller 12.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 1.5 ? (var_smaller '$ps' 2.5 ? true : false) : false)))" />
+	<map value="XF_LED_3" action="var '$pads' ? (param_bigger 12.5% crossfader ? (param_smaller 18.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 2.5 ? (var_smaller '$ps' 3.5 ? true : false) : false)))" />
+	<map value="XF_LED_4" action="var '$pads' ? (param_bigger 18.75% crossfader ? (param_smaller 25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 3.5 ? (var_smaller '$ps' 4.5 ? true : false) : false)))" />
+	<map value="XF_LED_5" action="var '$pads' ? (param_bigger 25% crossfader ? (param_smaller 31.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 4.5 ? (var_smaller '$ps' 5.5 ? true : false) : false)))" />
+	<map value="XF_LED_6" action="var '$pads' ? (param_bigger 31.25% crossfader ? (param_smaller 37.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 5.5 ? (var_smaller '$ps' 6.5 ? true : false) : false)))" />
+	<map value="XF_LED_7" action="var '$pads' ? (param_bigger 37.5% crossfader ? (param_smaller 43.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 6.5 ? (var_smaller '$ps' 7.5 ? true : false) : false)))" />
+	<map value="XF_LED_8" action="var '$pads' ? (param_bigger 43.75% crossfader ? (param_smaller 50.01% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 7.5 ? (var_smaller '$ps' 8.5 ? true : false) : false)))" />
+	<map value="XF_LED_9" action="var '$pads' ? (param_bigger 50% crossfader ? (param_smaller 56.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 8.5 ? (var_smaller '$ps' 9.5 ? true : false) : false)))" />
+	<map value="XF_LED_10" action="var '$pads' ? (param_bigger 56.25% crossfader ? (param_smaller 62.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 9.5 ? (var_smaller '$ps' 10.5 ? true : false) : false)))" />
+	<map value="XF_LED_11" action="var '$pads' ? (param_bigger 62.5% crossfader ? (param_smaller 68.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 10.5 ? (var_smaller '$ps' 11.5 ? true : false) : false)))" />
+	<map value="XF_LED_12" action="var '$pads' ? (param_bigger 68.75% crossfader ? (param_smaller 75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 11.5 ? (var_smaller '$ps' 12.5 ? true : false) : false)))" />
+	<map value="XF_LED_13" action="var '$pads' ? (param_bigger 75% crossfader ? (param_smaller 81.25% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 12.5 ? (var_smaller '$ps' 13.5 ? true : false) : false)))" />
+	<map value="XF_LED_14" action="var '$pads' ? (param_bigger 81.25% crossfader ? (param_smaller 87.5% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 13.5 ? (var_smaller '$ps' 14.5 ? true : false) : false)))" />
+	<map value="XF_LED_15" action="var '$pads' ? (param_bigger 87.5% crossfader ? (param_smaller 93.75% crossfader ? true : false) : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 14.5 ? (var_smaller '$ps' 15.5 ? true : false) : false)))" />
+	<map value="XF_LED_16" action="var '$pads' ? (param_bigger 93.75% crossfader ? true : false) : (var '$abstrip' 2 ? false : (var '$abstrip' 3 ? false : (var_greater '$ps' 15.5 ? (var_smaller '$ps' 16.5 ? true : false) : false)))" />
 
 
 

@@ -131,6 +131,7 @@ TEMPO_BUTTON = (0xB1, 47)
 SCENE_BUTTON = (0xB1, 85)
 PATTERN_BUTTON = (0xB1, 86)
 VDJ_TEMPO_ADDRESS = ("127.0.0.1", 9021)
+TEMPO_FLASH_SECONDS = 3.0  # how long SHIFT + TEMPO shows the tempo view when it wasn't the one on screen
 VDJ_TEMPO_MAX_AGE = 3.0  # seconds: older than this, the driver isn't sending (closed) and the number can't be trusted
 TEMPO_RANGE = (20.0, 999.0)  # Live's own limits
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 36), (0xB1, 37))
@@ -156,6 +157,8 @@ VDJ_REFRESH_DELAY = 1
 # "LOCK" pressed in VirtualDJ mode keeps the pads with VirtualDJ after going back to Ableton ("pad lock").
 # Pressing "LOCK" in Ableton releases them. VirtualDJ's mapping mirrors the same logic.
 PAD_LOCK_BUTTON = (0xB1, 48)
+# Locked to VirtualDJ along with the pads: the A-H group buttons and the touch strip (VirtualDJ's crossfader)
+GROUP_BUTTON_CCS = range(100, 108)
 PAD_NOTES = range(60, 76)
 # Screen bridge: the Pantallas program drives the Maschine's screens (NI's software can't), so every display line
 # the script sends also goes to it over UDP on localhost. The last lines are resent every second,
@@ -661,11 +664,16 @@ class CustomMaschineMK3(ControlSurface):
 
     @staticmethod
     def _is_pad_section(midi_bytes, include_lock = False):
-        # The 16 pads (note on / off / poly pressure on any channel) and the pad page buttons
+        # The 16 pads (note on / off / poly pressure on any channel), the pad page buttons, the group buttons A-H
+        # and the touch strip: what the pad lock gives to VirtualDJ
         midi_bytes = tuple(midi_bytes)
         if len(midi_bytes) != 3:
             return False
         if midi_bytes[0] & 0xF0 in (0x80, 0x90, 0xA0) and midi_bytes[1] in PAD_NOTES:
+            return True
+        if midi_bytes[0] & 0xF0 == 0xE0:  # the touch strip (pitch bend): movement, and its LEDs on the way out
+            return True
+        if midi_bytes[0] == 0xB1 and midi_bytes[1] in GROUP_BUTTON_CCS:  # A-H
             return True
         return midi_bytes[:2] in PAD_PAGE_BUTTONS or (include_lock and midi_bytes[:2] == PAD_LOCK_BUTTON)
 
@@ -680,6 +688,11 @@ class CustomMaschineMK3(ControlSurface):
                     Live.MidiMap.forward_midi_note(script_handle, midi_map_handle, 0, note)
                 for _, cc in PAD_PAGE_BUTTONS:
                     Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, 1, cc)
+                # The group buttons and the touch strip stay with VirtualDJ too (its crossfader, effects and PFL)
+                for cc in GROUP_BUTTON_CCS:
+                    Live.MidiMap.forward_midi_cc(script_handle, midi_map_handle, 1, cc)
+                for channel in (0, 1):
+                    Live.MidiMap.forward_midi_pitchbend(script_handle, midi_map_handle, channel)
             return
 
         # Knobs and touch strip are normally mapped by Live directly to parameters, bypassing receive_midi.
@@ -1293,6 +1306,10 @@ class CustomMaschineMK3(ControlSurface):
             else:
                 self.song.tempo = bpm
                 text = f"Tempo set to VirtualDJ deck {message.get('deck')}: {self.song.tempo:.2f} BPM"
+                # The screens show the tempo view for a few seconds and go back to the view they were on (TEMPO alone
+                # is what switches to it for good)
+                self._send_to_screen_bridge(json.dumps({"type": "tempo_flash", "bpm": self.song.tempo,
+                                                        "seconds": TEMPO_FLASH_SECONDS}).encode("ascii"))
         self._log(f"SHIFT + click in TEMPO: {text}")
         self._c_instance.show_message(text)
 
