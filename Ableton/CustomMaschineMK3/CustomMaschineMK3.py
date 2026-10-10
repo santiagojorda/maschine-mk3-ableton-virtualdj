@@ -116,6 +116,9 @@ LEFT_BUTTON = (0xB1, 110)
 RIGHT_BUTTON = (0xB1, 111)
 STANDBY_BUTTON = (0xB1, 34)
 SHIFT_BUTTON = (0xB1, 119)
+# SHIFT + MACRO asks the screens' supervisor (the driver) to restart the screens, in case they freeze or draw garbage
+MACRO_BUTTON = (0xB1, 43)
+SCREENS_SUPERVISOR_ADDRESS = ("127.0.0.1", 9020)
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 36), (0xB1, 37))
 # Only the controllers that are LEDs: sending a value to all 128 also hits MIDI's special messages
 # (CC 120-127 channel mode, RPN / NRPN, bank select...) and can leave the Maschine in an odd state
@@ -195,6 +198,13 @@ VIEW_BUTTONS = tuple((0xB1, cc) for cc in range(34, 42))
 VDJ_ONLY_NOTES = range(0, 4)
 # PITCH, MOD, PERFORM: NOTES (note repeat rate selector on the group buttons) turns off when one of them is pressed
 TOUCHSTRIP_MODE_BUTTONS = ((0xB1, 49), (0xB1, 50), (0xB1, 51))
+
+def _track_flag(track, name):
+    # Live raises RuntimeError (not AttributeError) for mute / solo on the Main track, so getattr's default is not enough
+    try:
+        return bool(getattr(track, name))
+    except Exception:
+        return False
 
 class CustomTargetTrackComponent(TargetTrackComponent):
         
@@ -436,6 +446,9 @@ class CustomMaschineMK3(ControlSurface):
         if is_cc and midi_bytes[0] == 0xB1 and midi_bytes[2] > 0 and midi_bytes[1] in BUTTON_NAMES:
             self._log(f"button {BUTTON_NAMES[midi_bytes[1]]} pressed (shift = {self._shift_down}, "
                       f"standby = {self._standby}, vdj = {self._vdj_mode})")
+        if is_cc and midi_bytes[:2] == MACRO_BUTTON and midi_bytes[2] > 0 and self._shift_down:
+            self._restart_screens()
+            return False
         if self._standby:
             # Everything is ignored, except SHIFT's state and the buttons that wake the Maschine
             if midi_bytes[:4] == SHIFT_SYSEX_PREFIX:
@@ -541,7 +554,8 @@ class CustomMaschineMK3(ControlSurface):
                 self._follow_used = True
                 self._launch_knob_track_clip(index)
 
-        if (is_cc and not self._vdj_mode and self._session_view
+        if (is_cc and not self._vdj_mode
+                and (self._session_view or self.component_map["Display_Modes"].selected_mode == MIXER_DISPLAY_MODE)
                 and (midi_bytes[:2] in (SESSION_NAV_TURN, SESSION_NAV_PUSH) or midi_bytes[:2] in SESSION_NAV_TILTS)
                 and self.component_map["Encoder_Modes"].selected_mode == ENCODER_DEFAULT_MODE):
             self._handle_session_navigation(midi_bytes)
@@ -761,8 +775,11 @@ class CustomMaschineMK3(ControlSurface):
 
     def _handle_session_navigation(self, midi_bytes):
         key, value = midi_bytes[:2], midi_bytes[2]
+        # In the mixer the same moves walk the tracks (the cursor shown on the screens, blocks of 4 like in the
+        # session view); there is no clip grid there, so no scene moves and no clip to fire
+        in_session = self._session_view
         if key == SESSION_NAV_PUSH:
-            if value > 0:
+            if value > 0 and in_session:
                 slot = self.song.view.highlighted_clip_slot
                 if liveobj_valid(slot):
                     slot.fire()
@@ -776,6 +793,10 @@ class CustomMaschineMK3(ControlSurface):
             if value == 0:  # tilt released
                 return
             delta = SESSION_NAV_TILTS[key]
+        if not in_session:
+            delta = (delta[0], 0)
+            if delta[0] == 0:
+                return
         with self.component_guard():
             if self.elements.shift.is_pressed:
                 self._move_session_ring(delta[0] * SESSION_GRID_STEP, delta[1])  # 4 tracks sideways, 1 scene
@@ -993,7 +1014,19 @@ class CustomMaschineMK3(ControlSurface):
         ring = getattr(self, "_session_ring", None)
         if ring is None:
             return None
-        return {"ring_column": ring.track_offset - self._session_block(ring), "ring_tracks": ring.num_tracks}
+        block = self._session_block(ring)
+        # "selected": which of the block's columns holds the selected track (the cursor), None if it's out of the block
+        selected = None
+        try:
+            tracks = self._session_tracks_and_scenes()[1]
+            selected_track = self.song.view.selected_track
+            if selected_track in tracks:
+                column = tracks.index(selected_track) - block
+                if 0 <= column < SESSION_GRID_TRACKS:
+                    selected = column
+        except Exception:
+            self._log_error_once("mixer cursor", traceback.format_exc())
+        return {"ring_column": ring.track_offset - block, "ring_tracks": ring.num_tracks, "selected": selected}
 
     def _grid_columns(self, tracks, track_start, track_count, scene_start, scene_count):
         # Clip slots of a block of tracks x scenes, for the screens
@@ -1027,8 +1060,8 @@ class CustomMaschineMK3(ControlSurface):
                 slots.append(info)
             columns.append({"name": track.name, "color": track.color, "slots": slots,
                             "target": liveobj_valid(target) and track == target,
-                            "mute": bool(getattr(track, "mute", False)),
-                            "solo": bool(getattr(track, "solo", False))})
+                            "mute": _track_flag(track, "mute"),
+                            "solo": _track_flag(track, "solo")})
         return columns
 
     def _screen_bridge_browser_grid(self):
@@ -1147,6 +1180,16 @@ class CustomMaschineMK3(ControlSurface):
         self._screen_bridge_lines[midi_event_bytes[6]] = message
         self._send_to_screen_bridge(message)
 
+    def _restart_screens(self):
+        # The supervisor closes the screens in an orderly way and starts them again (it ignores a second request
+        # within a few seconds). If it isn't running nothing answers, and the press is harmless
+        try:
+            self._screen_bridge.sendto(b"reiniciar", SCREENS_SUPERVISOR_ADDRESS)
+            self._log("SHIFT + MACRO: screens restart requested")
+            self._c_instance.show_message("Restarting the screens...")
+        except (OSError, AttributeError):
+            self._log("SHIFT + MACRO: could not reach the screens' supervisor")
+
     def _send_to_screen_bridge(self, message):
         try:
             self._screen_bridge.sendto(message, SCREEN_BRIDGE_ADDRESS)
@@ -1256,8 +1299,8 @@ class CustomMaschineMK3(ControlSurface):
             if isinstance(owner, Live.Track.Track):
                 knob["track"] = owner.name
                 knob["color"] = owner.color
-                knob["mute"] = bool(getattr(owner, "mute", False))
-                knob["solo"] = bool(getattr(owner, "solo", False))
+                knob["mute"] = _track_flag(owner, "mute")
+                knob["solo"] = _track_flag(owner, "solo")
                 if owner.has_audio_output:
                     knob["meter"] = max(owner.output_meter_left, owner.output_meter_right)
             knobs.append(knob)
@@ -1273,8 +1316,8 @@ class CustomMaschineMK3(ControlSurface):
                         t_idx = track_pos + idx
                         if 0 <= t_idx < len(all_tracks):
                             trk = all_tracks[t_idx]
-                            knobs[idx]["mute"] = bool(getattr(trk, "mute", False))
-                            knobs[idx]["solo"] = bool(getattr(trk, "solo", False))
+                            knobs[idx]["mute"] = _track_flag(trk, "mute")
+                            knobs[idx]["solo"] = _track_flag(trk, "solo")
 
         device = getattr(self.component_map["Device"], "device", None)
         if callable(device):

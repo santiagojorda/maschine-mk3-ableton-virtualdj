@@ -8,7 +8,7 @@
 #
 # ==================================================
 
-from CustomMaschineMK3.ClipEditorComponent import BoolWrappingParameter
+from .ClipEditorComponent import BoolWrappingParameter
 from ableton.v3.base import listens, listenable_property, nop
 from ableton.v2.base.collection import IndexedDict
 from ableton.v3.live import find_parent_track, liveobj_valid

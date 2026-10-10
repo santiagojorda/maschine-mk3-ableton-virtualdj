@@ -494,6 +494,16 @@ def _draw_pads_frame(draw, display, ring_start, ring_end):
         draw.rectangle((right - width + 1, top, right, bottom), fill=PADS_FRAME)
 
 
+def _draw_mixer_cursor(draw, display, column):
+    """Marco blanco alrededor del track donde está el cursor del mixer (el track seleccionado en Live)."""
+    local = column - display * COLUMNS
+    if not 0 <= local < COLUMNS:
+        return
+    left = local * COLUMN_WIDTH + 1
+    right = (local + 1) * COLUMN_WIDTH - 2
+    draw.rectangle((left, HEADER_HEIGHT + 1, right, HEIGHT - 2), outline=TOUCHED, width=3)
+
+
 def _draw_volume_popup(draw, knob, box):
     """Volumen de un track en un recuadro chico (box): nombre, valor en dB, fader vertical y medidor."""
     left, top, right, bottom = box
@@ -626,4 +636,6 @@ def render_screen(state, display):
     if view == MIXER_VIEW and frame:
         # El mixer muestra los tracks de la grilla de session: el mismo marco verde de los que están en los pads
         _draw_pads_frame(draw, display, frame["ring_column"], frame["ring_column"] + frame["ring_tracks"])
+        if frame.get("selected") is not None:
+            _draw_mixer_cursor(draw, display, frame["selected"])
     return image
