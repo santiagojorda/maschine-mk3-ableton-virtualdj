@@ -126,6 +126,10 @@ SCREENS_SUPERVISOR_ADDRESS = ("127.0.0.1", 9020)
 ENCODER_TEMPO_MODE = "tempo"
 ENCODER_TURN_BUTTON = (0xB1, 7)
 TEMPO_BUTTON = (0xB1, 47)
+# SCENE + click of the encoder launches the scene under the cursor (all its clips). PATTERN captures the clips that are
+# playing into a new scene, like Push's "capture and insert scene" (it used to be the fixed length recording button)
+SCENE_BUTTON = (0xB1, 85)
+PATTERN_BUTTON = (0xB1, 86)
 VDJ_TEMPO_ADDRESS = ("127.0.0.1", 9021)
 VDJ_TEMPO_MAX_AGE = 3.0  # seconds: older than this, the driver isn't sending (closed) and the number can't be trusted
 TEMPO_RANGE = (20.0, 999.0)  # Live's own limits
@@ -342,6 +346,7 @@ class CustomMaschineMK3(ControlSurface):
     _follow_held = False
     _follow_used = False
     _swallow_tempo_release = False
+    _scene_down = False
     _erase_touch = (None, 0.0)  # (knob index, time) of the last ERASE + knob touch
     _browser_bridge_key = None  # browser folder whose items are cached for the screens
     _browser_bridge_items = ()
@@ -454,9 +459,20 @@ class CustomMaschineMK3(ControlSurface):
             self._shift_down = midi_bytes[-2] > 0
         elif is_cc and midi_bytes[:2] == SHIFT_BUTTON:
             self._shift_down = midi_bytes[2] > 0
+        elif is_cc and midi_bytes[:2] == SCENE_BUTTON:
+            self._scene_down = midi_bytes[2] > 0  # tracked here too; SCENE still reaches the framework (SCENE + pad)
         if is_cc and midi_bytes[0] == 0xB1 and midi_bytes[2] > 0 and midi_bytes[1] in BUTTON_NAMES:
             self._log(f"button {BUTTON_NAMES[midi_bytes[1]]} pressed (shift = {self._shift_down}, "
                       f"standby = {self._standby}, vdj = {self._vdj_mode})")
+        if is_cc and not self._vdj_mode and not self._standby:
+            if midi_bytes[:2] == SESSION_NAV_PUSH and self._scene_down:
+                if midi_bytes[2] > 0:
+                    self._launch_cursor_scene()
+                return False
+            if midi_bytes[:2] == PATTERN_BUTTON:
+                if midi_bytes[2] > 0:
+                    self._capture_scene()
+                return False
         if is_cc and not self._standby:
             # Also in VirtualDJ mode: the tempo view opened from there controls Ableton's tempo the same way
             # (VirtualDJ's mapping ignores the encoder in its encoder mode 3 and the driver draws the view)
@@ -1123,6 +1139,22 @@ class CustomMaschineMK3(ControlSurface):
             self._c_instance.show_message("That knob doesn't control a track")
             return None
         return owner
+
+    def _launch_cursor_scene(self):
+        scene = self.song.view.selected_scene
+        if not liveobj_valid(scene):
+            return
+        scene.fire()
+        name = scene.name or f"{list(self.song.scenes).index(scene) + 1}"
+        self._log(f"SCENE + click: scene '{name}' launched")
+        self._c_instance.show_message(f"Scene launched: {name}")
+
+    def _capture_scene(self):
+        # What Push does: a new scene under the selected one with the clips that are playing now (and it launches, so
+        # they keep playing in sync)
+        self.song.capture_and_insert_scene()
+        self._log("PATTERN: playing clips captured into a new scene")
+        self._c_instance.show_message("Scene captured from the playing clips")
 
     def _new_scene_below_cursor(self):
         # A new empty scene under the selected one: the clip of the cursor's track stops (the other tracks keep

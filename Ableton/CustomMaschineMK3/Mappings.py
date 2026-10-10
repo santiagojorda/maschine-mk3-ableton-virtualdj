@@ -195,9 +195,6 @@ def create_mappings(surface):
                     select_button = "select",
                     delete_button = "erase",
                     copy_button = "duplicate"),
-                dict(component = "View_Based_Recording",
-                    fixed_button = "pattern",
-                    length_select_buttons = "group_buttons_with_pattern"),
             ]),
         keyboard = dict(
             modes = [
@@ -209,9 +206,6 @@ def create_mappings(surface):
                     scroll_page_up_button = "row0_pads_with_shift_raw[3]",
                     select_button = "select",
                     delete_button = "erase"),
-                dict(component = "View_Based_Recording",
-                    fixed_button = "pattern",
-                    length_select_buttons = "group_buttons_with_pattern"),
             ]
         ),
         drum_rack = dict(
@@ -229,9 +223,6 @@ def create_mappings(surface):
                     copy_button = "duplicate",
                     clear_all_solo_button = "solo_with_erase",
                     clear_all_mute_button = "mute_with_erase"),
-                dict(component = "View_Based_Recording",
-                    fixed_button = "pattern",
-                    length_select_buttons = "group_buttons_with_pattern"),
             ]
         ),
         simpler = dict(
@@ -244,9 +235,6 @@ def create_mappings(surface):
                     scroll_page_up_button = "row0_pads_with_shift_raw[3]",
                     select_button = "select",
                     delete_button = "erase"),
-                dict(component = "View_Based_Recording",
-                    fixed_button = "pattern",
-                    length_select_buttons = "group_buttons_with_pattern"),
             ]
         ),
         chord = dict(
@@ -254,15 +242,11 @@ def create_mappings(surface):
                 dict(component = "Velocity_Levels",
                     matrix = "pads",
                     select_button = "select"),
-                dict(component = "View_Based_Recording",
-                    fixed_button = "pattern",
-                    length_select_buttons = "group_buttons_with_pattern"),
             ]
         ),
         step = dict(
             component = "Step_Sequence",
             step_buttons = "pads" if sequencer_style == "Push" else "original_order_pads",
-            resolution_buttons = "group_buttons_with_pattern",
             loop_copy_button = "duplicate",
             loop_delete_button = "erase",
             prev_page_button = "row0_pads_with_shift_raw[2]",
