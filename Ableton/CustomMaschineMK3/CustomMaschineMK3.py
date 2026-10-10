@@ -457,7 +457,9 @@ class CustomMaschineMK3(ControlSurface):
         if is_cc and midi_bytes[0] == 0xB1 and midi_bytes[2] > 0 and midi_bytes[1] in BUTTON_NAMES:
             self._log(f"button {BUTTON_NAMES[midi_bytes[1]]} pressed (shift = {self._shift_down}, "
                       f"standby = {self._standby}, vdj = {self._vdj_mode})")
-        if is_cc and not self._vdj_mode and not self._standby:
+        if is_cc and not self._standby:
+            # Also in VirtualDJ mode: the tempo view opened from there controls Ableton's tempo the same way
+            # (VirtualDJ's mapping ignores the encoder in its encoder mode 3 and the driver draws the view)
             if (midi_bytes[:2] == ENCODER_TURN_BUTTON and not self._shift_down and self._encoder_tempo_mode()):
                 self._turn_tempo(midi_bytes[2])
                 return False
@@ -1324,6 +1326,8 @@ class CustomMaschineMK3(ControlSurface):
         # pick it up when it starts while VirtualDJ mode is on
         if self._vdj_mode:
             self._send_to_screen_bridge(b'{"type":"mode","vdj":true}')
+            if self._encoder_tempo_mode():
+                self._send_to_screen_bridge(json.dumps({"type": "tempo", "bpm": self.song.tempo}).encode("ascii"))
         else:
             self._carry_selection_with_ring()
             self._send_screen_bridge_state()

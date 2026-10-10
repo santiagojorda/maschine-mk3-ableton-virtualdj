@@ -74,7 +74,7 @@
 
 
 	<!-- Browser -->
-	<map value="BROWSE" action="var '$vdj' ? (var '$encmode' 1 ? (param_greater 0 ? master_volume +2% : master_volume -2%) : (var '$encmode' 2 ? (param_greater 0 ? headphone_volume +2% : headphone_volume -2%) : (param_greater 0 ? browser_scroll +1 : browser_scroll -1))) : nothing" />
+	<map value="BROWSE" action="var '$vdj' ? (var '$encmode' 1 ? (param_greater 0 ? master_volume +2% : master_volume -2%) : (var '$encmode' 2 ? (param_greater 0 ? headphone_volume +2% : headphone_volume -2%) : (var '$encmode' 3 ? nothing : (param_greater 0 ? browser_scroll +1 : browser_scroll -1)))) : nothing" />
 	<!-- Apretar alterna carpetas / temas; el encoder gira dentro de esa zona -->
 	<map value="ENCODER_PUSH" action="var '$select' 1 ? (set '$help' 33) : (var '$vdj' ? (browser_window 'folders,songs' &amp; (var '$encmode' 0 ? (browser_window 'songs' ? set '$browse' 1 : set '$browse' 2) : set '$browse' 0)) : nothing)" />
 	<!-- Inclinar el encoder arriba / abajo solo mueve la lista: si cambiara el foco, una inclinacion sin querer al girar lo resetea -->
@@ -93,10 +93,12 @@
 
 	<!-- LOCK: en modo VirtualDJ fija los pads a VirtualDJ ($padlock) para que sigan aca al volver a Ableton.
 	     En Ableton, LOCK los suelta (el script de Ableton hace lo mismo del lado de Ableton).
-	     VOLUME / SWING: el encoder grande controla el volumen master / de auriculares ($encmode 1 / 2) y la pantalla izquierda lo muestra. -->
+	     VOLUME / SWING: el encoder grande controla el volumen master / de auriculares ($encmode 1 / 2) y la pantalla izquierda lo muestra.
+	     TEMPO ($encmode 3): el encoder controla el TEMPO DE ABLETON (lo hace el script de Ableton; VirtualDJ solo lo ignora)
+	     y la pantalla derecha muestra la vista de tempo. SHIFT + TEMPO entra al modo sin salir si ya esta. -->
 	<map value="LOCK" action="var '$select' 1 ? (set '$help' 39) : (var '$vdj' ? toggle '$padlock' : (set '$padlock' 0 &amp; set '$pads' 0))" />
 	<map value="VOLUME" action="var '$select' 1 ? (set '$help' 37) : (var '$encmode' 1 ? set '$encmode' 0 : set '$encmode' 1)" />
-	<map value="TEMPO" action="set '$encmode' 0" />
+	<map value="TEMPO" action="var '$select' 1 ? nothing : (var '$shift' ? set '$encmode' 3 : (var '$encmode' 3 ? set '$encmode' 0 : set '$encmode' 3))" />
 	<map value="SWING" action="var '$select' 1 ? (set '$help' 38) : (var '$encmode' 2 ? set '$encmode' 0 : set '$encmode' 2)" />
 	<map value="LEDON_LOCK" action="var '$vdj' ? (var '$padlock') : false" />
 	<map value="LEDOFF_LOCK" action="var '$vdj' ? (var '$padlock' ? false : true) : false" />
@@ -105,6 +107,8 @@
 	<map value="LEDOFF_FOLLOW" action="var '$vdj' ? (deck master effect_active 'Ableton Link' ? false : true) : false" />
 	<map value="LEDON_VOLUME" action="var '$vdj' ? (var '$encmode' 1) : false" />
 	<map value="LEDOFF_VOLUME" action="var '$vdj' ? (var '$encmode' 1 ? false : true) : false" />
+	<map value="LEDON_TEMPO" action="var '$vdj' ? (var '$encmode' 3) : false" />
+	<map value="LEDOFF_TEMPO" action="var '$vdj' ? (var '$encmode' 3 ? false : true) : false" />
 	<map value="LEDON_SWING" action="var '$vdj' ? (var '$encmode' 2) : false" />
 	<map value="LEDOFF_SWING" action="var '$vdj' ? (var '$encmode' 2 ? false : true) : false" />
 

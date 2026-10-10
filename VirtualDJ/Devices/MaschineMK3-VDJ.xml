@@ -222,6 +222,8 @@
   <sysex value="B13800" name="LEDOFF_FOLLOW" />
   <sysex value="B12C7F" name="LEDON_VOLUME" />
   <sysex value="B12C00" name="LEDOFF_VOLUME" />
+  <sysex value="B12F7F" name="LEDON_TEMPO" />
+  <sysex value="B12F00" name="LEDOFF_TEMPO" />
   <sysex value="B12D7F" name="LEDON_SWING" />
   <sysex value="B12D00" name="LEDOFF_SWING" />
 
