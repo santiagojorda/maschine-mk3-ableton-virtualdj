@@ -24,7 +24,8 @@ class EncoderModeControlComponent(Component):
     volume_modes = ("volume",)
     # SWING only switches the encoder to the cue (headphones) volume, like VOLUME with the master volume
     swing_modes = ("swing",)
-    tempo_modes = ("tempo", "scale")
+    # TEMPO is only the tempo (SHIFT + TEMPO used to switch the encoder to the scale selector)
+    tempo_modes = ("tempo",)
 
     _encoder_modes = None
     _display_modes = None

@@ -14,6 +14,7 @@ from time import perf_counter, sleep
 import json
 import traceback
 import socket
+import time
 
 import Live # type: ignore
 from Live.Base import Timer # type: ignore
@@ -119,6 +120,15 @@ SHIFT_BUTTON = (0xB1, 119)
 # SHIFT + MACRO asks the screens' supervisor (the driver) to restart the screens, in case they freeze or draw garbage
 MACRO_BUTTON = (0xB1, 43)
 SCREENS_SUPERVISOR_ADDRESS = ("127.0.0.1", 9020)
+# TEMPO mode of the encoder: turning moves the tempo in whole BPM (90.09 -> 91.00 up, 89.00 down; with SHIFT it stays
+# fine), and SHIFT + TEMPO sets it to the tempo of the VirtualDJ deck the driver picks as reference, staying in the
+# tempo view. The driver (vdj_master.py) sends it here by UDP twice a second
+ENCODER_TEMPO_MODE = "tempo"
+ENCODER_TURN_BUTTON = (0xB1, 7)
+TEMPO_BUTTON = (0xB1, 47)
+VDJ_TEMPO_ADDRESS = ("127.0.0.1", 9021)
+VDJ_TEMPO_MAX_AGE = 3.0  # seconds: older than this, the driver isn't sending (closed) and the number can't be trusted
+TEMPO_RANGE = (20.0, 999.0)  # Live's own limits
 STANDBY_WAKE_BUTTONS = ((0xB1, 34), (0xB1, 35), (0xB1, 36), (0xB1, 37))
 # Only the controllers that are LEDs: sending a value to all 128 also hits MIDI's special messages
 # (CC 120-127 channel mode, RPN / NRPN, bank select...) and can leave the Maschine in an odd state
@@ -331,6 +341,7 @@ class CustomMaschineMK3(ControlSurface):
     _restart_used = False
     _follow_held = False
     _follow_used = False
+    _swallow_tempo_release = False
     _erase_touch = (None, 0.0)  # (knob index, time) of the last ERASE + knob touch
     _browser_bridge_key = None  # browser folder whose items are cached for the screens
     _browser_bridge_items = ()
@@ -446,6 +457,21 @@ class CustomMaschineMK3(ControlSurface):
         if is_cc and midi_bytes[0] == 0xB1 and midi_bytes[2] > 0 and midi_bytes[1] in BUTTON_NAMES:
             self._log(f"button {BUTTON_NAMES[midi_bytes[1]]} pressed (shift = {self._shift_down}, "
                       f"standby = {self._standby}, vdj = {self._vdj_mode})")
+        if is_cc and not self._vdj_mode and not self._standby:
+            if (midi_bytes[:2] == ENCODER_TURN_BUTTON and not self._shift_down and self._encoder_tempo_mode()):
+                self._turn_tempo(midi_bytes[2])
+                return False
+            if midi_bytes[:2] == TEMPO_BUTTON:
+                if midi_bytes[2] > 0 and self._shift_down:
+                    # SHIFT + TEMPO: sync with VirtualDJ and stay in (or go to) the tempo view; the press never
+                    # reaches the encoder mode component, which would toggle the view off
+                    self._swallow_tempo_release = True
+                    self._show_tempo_view()
+                    self._sync_tempo_with_virtualdj()
+                    return False
+                if midi_bytes[2] == 0 and self._swallow_tempo_release:
+                    self._swallow_tempo_release = False
+                    return False
         if is_cc and midi_bytes[:2] == MACRO_BUTTON and midi_bytes[2] > 0 and self._shift_down:
             self._restart_screens()
             return False
@@ -476,16 +502,12 @@ class CustomMaschineMK3(ControlSurface):
                     self._set_vdj_mode(True)
             return False
 
-        # FOLLOW is also a modifier: FOLLOW + knob launches the clip of that knob's track in the cursor's scene, so
-        # Link toggles on release, only if no knob was touched meanwhile
+        # FOLLOW is a modifier only: FOLLOW + knob launches the clip of that knob's track in the cursor's scene.
+        # It no longer toggles Ableton Link (Link is still on / off from Live itself)
         if is_cc and midi_bytes[:2] == LINK_BUTTON and not self._vdj_mode:
             if midi_bytes[2] > 0:
                 self._follow_held, self._follow_used = True, False
             else:
-                if self._follow_held and not self._follow_used:
-                    self.song.is_ableton_link_enabled = not self.song.is_ableton_link_enabled
-                    self._c_instance.log_message(f"CustomMaschineMK3: Ableton Link = {self.song.is_ableton_link_enabled}")
-                    self._update_link_led()
                 self._follow_held = False
             return False
 
@@ -770,8 +792,8 @@ class CustomMaschineMK3(ControlSurface):
     def _update_link_led(self):
         if self._vdj_mode or self._standby:
             return
-        value = 127 if self.song.is_ableton_link_enabled else 0
-        super()._do_send_midi((LINK_BUTTON[0], LINK_BUTTON[1], value))
+        # FOLLOW's LED stays off: it doesn't show Ableton Link any more
+        super()._do_send_midi((LINK_BUTTON[0], LINK_BUTTON[1], 0))
 
     def _handle_session_navigation(self, midi_bytes):
         key, value = midi_bytes[:2], midi_bytes[2]
@@ -1159,6 +1181,15 @@ class CustomMaschineMK3(ControlSurface):
         self._c_instance.show_message(f"Stopped {owner.name}")
 
     def _init_screen_bridge(self):
+        self._vdj_tempo_socket = None
+        self._vdj_tempo_last = None
+        try:
+            self._vdj_tempo_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self._vdj_tempo_socket.bind(VDJ_TEMPO_ADDRESS)
+            self._vdj_tempo_socket.setblocking(False)
+        except OSError as error:
+            logger.info(f"VirtualDJ tempo socket disabled: {error}")
+            self._vdj_tempo_socket = None
         self._screen_bridge_lines = {}
         self._last_screen_bridge_payload = None
         self._last_screen_bridge_dict = None
@@ -1179,6 +1210,66 @@ class CustomMaschineMK3(ControlSurface):
         message = bytes(midi_event_bytes)
         self._screen_bridge_lines[midi_event_bytes[6]] = message
         self._send_to_screen_bridge(message)
+
+    def _encoder_tempo_mode(self):
+        try:
+            return self.component_map["Encoder_Modes"].selected_mode == ENCODER_TEMPO_MODE
+        except (KeyError, AttributeError):
+            return False
+
+    def _show_tempo_view(self):
+        # TEMPO mode on, without toggling it off if it already is
+        if self._encoder_tempo_mode():
+            return
+        with self.component_guard():
+            control = self.component_map["Encoder_Mode_Control"]
+            control._handle_mode_button_pressed(control.tempo_modes)
+
+    def _turn_tempo(self, value):
+        # Coarse turn: from the nearest whole BPM, so it always lands on round numbers. The step is the encoder's
+        # (two's complement), so turning fast moves more than one BPM at a time
+        step = value if value < 64 else value - 128
+        if step == 0:
+            return
+        tempo = min(max(round(self.song.tempo) + step, TEMPO_RANGE[0]), TEMPO_RANGE[1])
+        self.song.tempo = float(tempo)
+
+    def _latest_vdj_tempo(self):
+        # Reads everything the driver sent since the last click and keeps the newest: (bpm, deck) or None
+        if self._vdj_tempo_socket is None:
+            return None
+        latest = None
+        while True:
+            try:
+                data = self._vdj_tempo_socket.recv(512)
+            except (BlockingIOError, OSError):
+                break
+            try:
+                latest = json.loads(data.decode("ascii"))
+            except ValueError:
+                continue
+        if latest is not None:
+            self._vdj_tempo_last = latest
+        message = self._vdj_tempo_last
+        if not message or time.time() - message.get("t", 0) > VDJ_TEMPO_MAX_AGE:
+            return None
+        return message
+
+    def _sync_tempo_with_virtualdj(self):
+        message = self._latest_vdj_tempo()
+        if message is None:
+            text = "VirtualDJ: no data (is the screens driver running?)"
+        elif not message.get("bpm"):
+            text = "VirtualDJ: no track with a tempo"
+        else:
+            bpm = float(message["bpm"])
+            if not TEMPO_RANGE[0] <= bpm <= TEMPO_RANGE[1]:
+                text = f"VirtualDJ tempo out of range: {bpm:.2f}"
+            else:
+                self.song.tempo = bpm
+                text = f"Tempo set to VirtualDJ deck {message.get('deck')}: {self.song.tempo:.2f} BPM"
+        self._log(f"SHIFT + click in TEMPO: {text}")
+        self._c_instance.show_message(text)
 
     def _restart_screens(self):
         # The supervisor closes the screens in an orderly way and starts them again (it ignores a second request
@@ -1559,6 +1650,9 @@ class CustomMaschineMK3(ControlSurface):
         if self._screen_bridge is not None:
             self._screen_bridge.close()
             self._screen_bridge = None
+        if self._vdj_tempo_socket is not None:
+            self._vdj_tempo_socket.close()
+            self._vdj_tempo_socket = None
 
     def _on_playable_mode_selected(self):
         logger.info(f"keyboard button state = {self.elements.keyboard.is_pressed}")
